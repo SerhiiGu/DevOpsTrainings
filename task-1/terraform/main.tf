@@ -66,12 +66,12 @@ resource "null_resource" "join_worker" {
 
   provisioner "file" {
     source      = "worker_token.txt"
-    destination = "/tmp/worker_token.txt"
+    destination = "/var/lib/docker/worker_token.txt"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "SWARM_TOKEN=$(cat /tmp/worker_token.txt)",
+      "SWARM_TOKEN=$(cat /var/lib/docker/worker_token.txt)",
       "docker swarm join --token $SWARM_TOKEN ${var.manager.ip}:2377"
     ]
   }
