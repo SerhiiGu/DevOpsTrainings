@@ -11,7 +11,6 @@ pipeline {
             steps {
                 dir('task-1/todo-app') {
                     checkout scm
-                    sh "echo One && pwd && ls -la"
                 }
             }
         }
@@ -19,16 +18,13 @@ pipeline {
         stage('Build & Push Images') {
             steps {
                 dir('task-1/todo-app') {
-                    sh "echo Two"
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
-                        sh "echo Three"
                         script {
                             def services = [
                                 [name: 'task-1_web', path: 'web'],
                                 [name: 'task-1_api', path: 'api']
                             ]
 
-                            sh "echo Four && pwd && ls -la"
                             for (s in services) {
                                 sh """
                                     ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
