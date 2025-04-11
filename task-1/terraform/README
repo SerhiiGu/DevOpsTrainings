@@ -1,5 +1,9 @@
 Команди для запуску:
-cd terraform
 terraform init
 terraform apply -var-file=hosts.tfvars
 
+
+Якщо щось пішло не так:
+terraform state list
+..
+terraform state rm resource.state
