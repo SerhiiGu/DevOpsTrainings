@@ -19,7 +19,7 @@ pipeline {
             steps {
                 dir('task-1/todo-app') {
                     script {
-                        def services = ['web', 'api']
+                        def services = ['task-1_web', 'task-1_api']
                         for (s in services) {
                             sh """
                                 docker build -t ${DOCKERHUB_CREDS_USR}/${s}:latest ./${s}
