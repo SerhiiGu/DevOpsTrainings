@@ -1,0 +1,18 @@
+Не забути у Jenkins:
+
+    Додати SSH-ключ до Jenkins: swarm-ssh-key типу "SSH username with private key"
+
+    Додати DockerHub логін/пароль у Credentials
+
+    Налаштувати Jenkins Agent, де встановлено Docker.
+      1. Встанови Docker на Jenkins сервері:
+        sudo apt update
+        sudo apt install -y docker.io
+        sudo usermod -aG docker jenkins
+
+        sudo systemctl restart jenkins
+      2. Перевірити доступ Jenkins до Docker:
+        sudo su - jenkins
+        docker version
+            Якщо видно інфу про Docker Engine — все працює. 
+            Якщо ні — потрібно ще раз перезапустити систему або перевірити групу користувача.
