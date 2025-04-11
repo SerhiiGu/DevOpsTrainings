@@ -35,7 +35,8 @@ pipeline {
 
                                 echo "📦  SCP ${s.path} → Swarm Manager..."
                                 sh """
-                                    scp -r -o StrictHostKeyChecking=no ${s.path} root@${MANAGER_HOST}:/root/build/
+                                    scp -r -o StrictHostKeyChecking=no ${s.path}/* root@${MANAGER_HOST}:/root/build/${s.path}/ &&
+                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} 'ls -la /root/build/${s.path}'
                                 """
 
                                 echo "🛠️  Building image for ${s.name}..."
