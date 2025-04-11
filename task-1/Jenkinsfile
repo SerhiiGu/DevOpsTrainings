@@ -5,7 +5,7 @@ pipeline {
         DOCKERHUB_USER = credentials('serhiih2025')
         DOCKERHUB_PASS = credentials('DiavCRvPw-Lf')
         MANAGER_HOST = "192.168.1.188"
-        SSH_KEY = credentials('swarm-ssh-key') // Jenkins credential: "SSH Username with private key"
+        SSH_KEY = credentials('swarm-manager-ssh-key') // Jenkins credential: "SSH Username with private key"
     }
 
     stages {
