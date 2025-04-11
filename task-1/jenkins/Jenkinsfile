@@ -18,17 +18,33 @@ pipeline {
         stage('Build & Push Images') {
             steps {
                 dir('task-1/todo-app') {
-                    script {
-                        def services = [
-                            [name: 'task-1_web', path: 'web'],
-                            [name: 'task-1_api', path: 'api']
-                        ]
-                        for (s in services) {
-                            sh """
-                                docker build -t ${DOCKERHUB_CREDS_USR}/${s.name}:latest ./${s.path}
-                                echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
-                                docker push ${DOCKERHUB_CREDS_USR}/${s.name}:latest
-                            """
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        script {
+                            def services = [
+                                [name: 'task-1_web', path: 'web'],
+                                [name: 'task-1_api', path: 'api']
+                            ]
+
+                            for (s in services) {
+                                sh """
+                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                                        cd /root &&
+                                        mkdir -p build/${s.path} &&
+                                        rm -rf build/${s.path}/*'
+                                """
+
+                                sh """
+                                    scp -r -o StrictHostKeyChecking=no ${s.path} root@${MANAGER_IP}:/root/
+                                """
+
+                                sh """
+                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                                        echo ${DOCKERHUB_CREDS_PSW} | docker login -u ${DOCKERHUB_CREDS_USR} --password-stdin &&
+                                        docker build -t ${DOCKERHUB_CREDS_USR}/${s.name}:latest ./build/${s.path} &&
+                                        docker push ${DOCKERHUB_CREDS_USR}/${s.name}:latest
+                                    '
+                                """
+                            }
                         }
                     }
                 }
