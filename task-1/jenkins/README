@@ -1,8 +1,8 @@
 Не забути у Jenkins:
 
-    Додати SSH-ключ до Jenkins: swarm-ssh-key типу "SSH username with private key"
-
-    Додати DockerHub логін/пароль у Credentials
+    Jenkins → Manage Jenkins → Credentials → (Global)
+        - Додати SSH-ключ до Jenkins: swarm-ssh-key типу "SSH username with private key"
+        - Додати DockerHub логін/пароль у Credentials
 
     Налаштувати Jenkins Agent, де встановлено Docker.
       1. Встанови Docker на Jenkins сервері:
