@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = credentials('serhiih2025')
-        DOCKERHUB_PASS = credentials('DiavCRvPw-Lf')
+        DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
         MANAGER_HOST = "192.168.1.188"
     }
 
@@ -23,9 +22,9 @@ pipeline {
                         def services = ['web', 'api']
                         for (s in services) {
                             sh """
-                                docker build -t ${DOCKERHUB_USER}/${s}:latest ./${s}
-                                echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
-                                docker push ${DOCKERHUB_USER}/${s}:latest
+                                docker build -t ${DOCKERHUB_CREDS_USR}/${s}:latest ./${s}
+                                echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
+                                docker push ${DOCKERHUB_CREDS_USR}/${s}:latest
                             """
                         }
                     }
