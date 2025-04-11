@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: yourdockerhub/web:latest
+    image: serhiih2025/task-1_web:latest
     ports:
       - "80:80"
     depends_on:
@@ -13,7 +13,7 @@ services:
         condition: on-failure
 
   api:
-    image: yourdockerhub/api:latest
+    image: serhiih2025/task-1_api:latest
     environment:
       - MONGO_URL=mongodb://mongo:27017/todo
     deploy:
