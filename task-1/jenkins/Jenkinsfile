@@ -19,12 +19,15 @@ pipeline {
             steps {
                 dir('task-1/todo-app') {
                     script {
-                        def services = ['task-1_web', 'task-1_api']
+                        def services = [
+                            [name: 'task-1_web', path: 'web'],
+                            [name: 'task-1_api', path: 'api']
+                        ]
                         for (s in services) {
                             sh """
-                                docker build -t ${DOCKERHUB_CREDS_USR}/${s}:latest ./${s}
+                                docker build -t ${DOCKERHUB_CREDS_USR}/${s.name}:latest ./${s.path}
                                 echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
-                                docker push ${DOCKERHUB_CREDS_USR}/${s}:latest
+                                docker push ${DOCKERHUB_CREDS_USR}/${s.name}:latest
                             """
                         }
                     }
