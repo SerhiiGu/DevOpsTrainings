@@ -27,18 +27,18 @@ pipeline {
 
                             for (s in services) {
                                 sh """
-                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
                                         cd /root &&
                                         mkdir -p build/${s.path} &&
                                         rm -rf build/${s.path}/*'
                                 """
 
                                 sh """
-                                    scp -r -o StrictHostKeyChecking=no ${s.path} root@${MANAGER_IP}:/root/
+                                    scp -r -o StrictHostKeyChecking=no ${s.path} root@${MANAGER_HOST}:/root/build/
                                 """
 
                                 sh """
-                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                                    ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
                                         echo ${DOCKERHUB_CREDS_PSW} | docker login -u ${DOCKERHUB_CREDS_USR} --password-stdin &&
                                         docker build -t ${DOCKERHUB_CREDS_USR}/${s.name}:latest ./build/${s.path} &&
                                         docker push ${DOCKERHUB_CREDS_USR}/${s.name}:latest
@@ -56,8 +56,8 @@ pipeline {
                 dir('task-1/todo-app') {
                     sshagent (credentials: ['swarm-manager-ssh-key']) { // Jenkins credential: "SSH Username with private key"
                         sh """
-                            scp -o StrictHostKeyChecking=no docker-compose.yml root@${MANAGER_IP}:/home/ubuntu/
-                            ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} 'docker stack deploy -c docker-compose.yml task1'
+                            scp -o StrictHostKeyChecking=no docker-compose.yml root@${MANAGER_HOST}:/root/
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} 'docker stack deploy -c docker-compose.yml task1'
                         """
                     }
                 }
