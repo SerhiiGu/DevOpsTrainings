@@ -11,7 +11,7 @@ pipeline {
             steps {
                 dir('task-1/todo-app') {
                     checkout scm
-                    sh "pwd && ls -la"
+                    sh "echo One && pwd && ls -la"
                 }
             }
         }
@@ -26,6 +26,7 @@ pipeline {
                                 [name: 'task-1_api', path: 'api']
                             ]
 
+                            sh "echo Two && pwd && ls -la"
                             for (s in services) {
                                 sh """
                                     ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
