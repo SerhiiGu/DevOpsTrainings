@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/your/repo.git'
+                git 'git@github.com:SerhiiGu/DevOpsTrainings.git'
             }
         }
 
@@ -34,8 +34,8 @@ pipeline {
             steps {
                 sshagent (credentials: ['swarm-ssh-key']) {
                     sh """
-                        scp -o StrictHostKeyChecking=no docker-compose.yml ${env.MANAGER_HOST}:/home/ubuntu/
-                        ssh -o StrictHostKeyChecking=no ubuntu@${env.MANAGER_HOST} 'docker stack deploy -c docker-compose.yml myapp'
+                        scp -o StrictHostKeyChecking=no docker-compose.yml ${env.MANAGER_HOST}:/root/
+                        ssh -o StrictHostKeyChecking=no root@${env.MANAGER_HOST} 'docker stack deploy -c docker-compose.yml task1'
                     """
                 }
             }
