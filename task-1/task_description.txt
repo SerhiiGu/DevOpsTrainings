@@ -1,0 +1,23 @@
+1. Інфраструктура (Terraform)
+    Напиши конфігурацію Terraform, яка:
+      Створює віртуальні машини (наприклад, в AWS, GCP, або на локальному Proxmox/Vagrant — залежить від твоїх можливостей)
+	    		Цього разу пункт виключимо через недоступність зараз цих ресурсів).
+   	  		Я створив дві машини на локальному VirtualBox. Docker Manager буде на IP 192.168.1.188, a worker - 192.168.1.189
+      Ініціалізує кластер Docker Swarm (1 manager + 1 worker)
+      Встановлює Docker на всі вузли (можеш використати remote-exec або cloud-init)
+
+2. Додаток (Docker + GitHub)
+    У GitHub має бути репозиторій з мікросервісним застосунком (наприклад, фронтенд + бекенд)
+    Напиши Dockerfile для кожного сервісу
+    Створи docker-compose.yml, адаптований для Docker Swarm (docker stack deploy)
+3. CI/CD (Jenkins + GitHub)
+    Jenkins має автоматично запускати pipeline при кожному push до гілки main
+    Pipeline має:
+        Завантажити код з GitHub
+        Побудувати Docker-образи
+        Запушити їх до DockerHub або приватного registry
+        З SSH-доступом підключитись до manager-вузла Swarm-кластера та оновити docker stack
+4. Додаткові фішки (за бажанням):
+    Додати reverse proxy (Traefik або Nginx) з TLS
+    Створити monitoring stack (наприклад, Prometheus + Grafana через окремий стек)
+    Винос pipeline у Jenkinsfile з GitHub
