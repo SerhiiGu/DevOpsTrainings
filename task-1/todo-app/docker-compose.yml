@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  web:
+    image: yourdockerhub/web:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  api:
+    image: yourdockerhub/api:latest
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/todo
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  mongo:
+    image: mongo:5
+    volumes:
+      - mongo_data:/data/db
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+volumes:
+  mongo_data:
