@@ -5,26 +5,29 @@ pipeline {
         DOCKERHUB_USER = credentials('serhiih2025')
         DOCKERHUB_PASS = credentials('DiavCRvPw-Lf')
         MANAGER_HOST = "192.168.1.188"
-        SSH_KEY = credentials('swarm-manager-ssh-key') // Jenkins credential: "SSH Username with private key"
     }
 
     stages {
-        stage('Clone Repo') {
+       stage('Checkout') {
             steps {
-                git 'git@github.com:SerhiiGu/DevOpsTrainings.git'
+                dir('task-1/todo-app') {
+                    checkout scm
+                }
             }
         }
 
         stage('Build & Push Images') {
             steps {
-                script {
-                    def services = ['web', 'api']
-                    for (s in services) {
-                        sh """
-                            docker build -t ${DOCKERHUB_USER}/${s}:latest ./${s}
-                            echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
-                            docker push ${DOCKERHUB_USER}/${s}:latest
-                        """
+                dir('task-1/todo-app') {
+                    script {
+                        def services = ['web', 'api']
+                        for (s in services) {
+                            sh """
+                                docker build -t ${DOCKERHUB_USER}/${s}:latest ./${s}
+                                echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
+                                docker push ${DOCKERHUB_USER}/${s}:latest
+                            """
+                        }
                     }
                 }
             }
@@ -32,11 +35,13 @@ pipeline {
 
         stage('Deploy to Swarm') {
             steps {
-                sshagent (credentials: ['swarm-ssh-key']) {
-                    sh """
-                        scp -o StrictHostKeyChecking=no docker-compose.yml ${env.MANAGER_HOST}:/root/
-                        ssh -o StrictHostKeyChecking=no root@${env.MANAGER_HOST} 'docker stack deploy -c docker-compose.yml task1'
-                    """
+                dir('task-1/todo-app') {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) { // Jenkins credential: "SSH Username with private key"
+                        sh """
+                            scp -o StrictHostKeyChecking=no docker-compose.yml root@${MANAGER_IP}:/home/ubuntu/
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} 'docker stack deploy -c docker-compose.yml task1'
+                        """
+                    }
                 }
             }
         }
