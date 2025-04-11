@@ -11,6 +11,7 @@ pipeline {
             steps {
                 dir('task-1/todo-app') {
                     checkout scm
+                    sh "pwd && ls -la"
                 }
             }
         }
