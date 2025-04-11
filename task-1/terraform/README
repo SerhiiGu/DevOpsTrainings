@@ -1,4 +1,4 @@
-Команди для запуску (в подальшому не будуь потрібні):
+Команди для запуску:
 cd terraform
 terraform init
 terraform apply -var-file=hosts.tfvars
