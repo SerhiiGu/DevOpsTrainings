@@ -33,10 +33,12 @@ pipeline {
                                         rm -rf build/${s.path}/*'
                                 """
 
+                                echo "📦  SCP ${s.path} → Swarm Manager..."
                                 sh """
                                     scp -r -o StrictHostKeyChecking=no ${s.path} root@${MANAGER_HOST}:/root/build/
                                 """
 
+                                echo "🛠️  Building image for ${s.name}..."
                                 sh """
                                     ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
                                         echo ${DOCKERHUB_CREDS_PSW} | docker login -u ${DOCKERHUB_CREDS_USR} --password-stdin &&
