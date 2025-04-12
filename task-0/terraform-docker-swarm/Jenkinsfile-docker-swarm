@@ -7,8 +7,8 @@ pipeline {
     }
 
     environment {
-        TF_VAR_manager_server_ip = "${params.SWARM_MANAGER_SERVER_IP}"
-        TF_VAR_worker_server_ip = "${params.SWARM_WORKER_SERVER_IP}"
+        TF_VAR_swarm_manager_ip = "${params.SWARM_MANAGER_SERVER_IP}"
+        TF_VAR_swarm_worker_ip  = "${params.SWARM_WORKER_SERVER_IP}"
     }
 
     stages {
