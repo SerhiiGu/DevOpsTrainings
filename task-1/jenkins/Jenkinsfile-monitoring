@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        MANAGER_HOST = "192.168.1.188"
+        STACK_NAME = "monitoring"
+        COMPOSE_FILE = "task-1/monitoring/docker-compose.yml"
+        DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'git@github.com:SerhiiGu/DevOpsTrainings.git'
+            }
+        }
+
+        stage('Copy files to Swarm manager') {
+            steps {
+                sh """
+                scp -r -o StrictHostKeyChecking=no task-1/monitoring/ root@${SWARM_MANAGER}:/root/${STACK_NAME}
+                """
+            }
+        }
+
+        stage('Deploy Monitoring Stack') {
+            steps {
+                sh """
+                ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} "
+                  cd /root/${STACK_NAME} &&
+                  docker stack deploy -c docker-compose.yml ${STACK_NAME}
+                "
+                """
+            }
+        }
+        stage('Verify Created Stack') {
+            steps {
+                sh 'docker service ls | grep ${STACK_NAME}'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Monitoring stack deployed successfully!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
+        }
+    }
+}
