@@ -13,6 +13,16 @@ services:
     networks:
       - monitoring
 
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - 9100:9100
+     deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - monitoring
+      
   grafana:
     image: grafana/grafana
     ports:
