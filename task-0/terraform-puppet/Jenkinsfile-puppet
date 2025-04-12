@@ -21,7 +21,6 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 dir('task-0/terraform-puppet') {
-                    sh 'hostname && pwd && ls -la'
                     sh 'terraform init'
                 }
             }
