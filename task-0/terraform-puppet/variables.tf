@@ -4,7 +4,7 @@ variable "puppet_server_ip" {
 }
 
 variable "ssh_private_key_path" {
-  default     = "/root/.ssh/id_rsa"
+  default     = "~/.ssh/id_rsa"
   description = "Path to the SSH private key"
 }
 
