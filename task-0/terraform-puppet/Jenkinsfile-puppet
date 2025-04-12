@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'PUPPET_SERVER_IP', defaultValue: '192.168.1.191', description: 'IP address of the Puppet Server target machine')
+    }
+
+    environment {
+        TF_VAR_puppet_server_ip = "${params.PUPPET_SERVER_IP}"
+    }
+
+    stages {
+       stage('Git checkout') {
+            steps {
+                dir('task-0/terraform-puppet') {
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir('task-0/terraform-puppet') {
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('task-0/terraform-puppet') {
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+    }
+}
