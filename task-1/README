@@ -18,7 +18,6 @@
         Побудувати Docker-образи
         Запушити їх до DockerHub або приватного registry
         З SSH-доступом підключитись до manager-вузла Swarm-кластера та оновити docker stack
-4. Додаткові фішки (за бажанням):
-    Додати reverse proxy (Traefik або Nginx) з TLS
+4. Додаткова фішка (за бажанням):
     Створити monitoring stack (наприклад, Prometheus + Grafana через окремий стек)
-    Винос pipeline у Jenkinsfile з GitHub
+
