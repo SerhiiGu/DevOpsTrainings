@@ -19,7 +19,7 @@ pipeline {
         stage('Copy files to Swarm manager') {
             steps {
                 sh """
-                scp -r -o StrictHostKeyChecking=no task-1/monitoring/ root@${SWARM_MANAGER}:/root/${STACK_NAME}
+                scp -r -o StrictHostKeyChecking=no task-1/monitoring/ root@${MANAGER_HOST}:/root/${STACK_NAME}
                 """
             }
         }
