@@ -14,9 +14,7 @@ pipeline {
     stages {
        stage('Git checkout') {
             steps {
-                dir('task-0/terraform-docker-swarm') {
-                    checkout scm
-                }
+                checkout scm
             }
         }
 
