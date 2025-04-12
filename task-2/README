@@ -1,0 +1,28 @@
+1. Інфраструктура (Terraform)
+    Розгортання двох віртуальних машин:
+        Manager і Worker з Docker.
+    Terraform ініціалізує Docker Swarm кластер.
+
+2. Налаштування серверів (Puppet)
+    Puppet Server виконує:
+        Встановлення базових пакетів.
+        Оновлення системи.
+        Налаштування hostname.
+        Встановлення/налаштування firewall (ufw/iptables).
+        (Необов'язково) Встановлення Docker.
+
+3. CI/CD (Jenkins + GitHub)
+    Jenkinsfile-deploy: для деплою веб-додатку:
+        Nginx + PHP-FPM (або Python FastAPI/Flask).
+        Reverse proxy з Traefik.
+    Jenkinsfile-monitoring: для розгортання стеку моніторингу.
+
+4. Контейнеризація (Docker + Swarm)
+    Docker stack включає:
+        Nginx (як веб-сервер).
+        PHP-FPM (як backend, або Python-сервіс).
+        Traefik (reverse proxy + TLS).
+
+    Моніторинг-стек:
+        Prometheus + Node Exporter.
+        Grafana (з попередньо налаштованим dashboard для Swarm).
