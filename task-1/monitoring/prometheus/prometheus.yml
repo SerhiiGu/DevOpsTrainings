@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 20s
+
+scrape_configs:
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node-app'
+    static_configs:
+      - targets: ['api:80']  # Або ім’я твоєї API-служби
