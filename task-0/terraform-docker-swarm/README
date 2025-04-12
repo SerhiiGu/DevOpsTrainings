@@ -1,6 +1,6 @@
 Команди для запуску:
 terraform init
-terraform apply -var-file=hosts.tfvars
+terraform apply
 
 
 Якщо щось пішло не так:
