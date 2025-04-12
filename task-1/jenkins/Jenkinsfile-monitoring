@@ -22,7 +22,7 @@ pipeline {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         sh """
                             ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} 'rm -rf /root/${STACK_NAME}/*' &&
-                            scp -r -o StrictHostKeyChecking=no task-1/monitoring/ root@${MANAGER_HOST}:/root/${STACK_NAME}
+                            scp -r -o StrictHostKeyChecking=no task-1/monitoring/* root@${MANAGER_HOST}:/root/${STACK_NAME}
                         """
                     }
                 }
