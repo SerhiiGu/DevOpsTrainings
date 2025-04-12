@@ -1,12 +1,14 @@
 variable "puppet_server_ip" {
-  default = "192.168.1.191"
+  description = "Target IP for Puppet Server installation"
+  type        = string
 }
 
 variable "ssh_private_key_path" {
-  default = "~/.ssh/id_rsa"
+  default     = "~/.ssh/id_rsa"
+  description = "Path to the SSH private key"
 }
 
 variable "ssh_user" {
-  default = "root"
+  default     = "root"
 }
 
