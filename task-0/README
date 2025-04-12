@@ -1,7 +1,17 @@
 				====== Що тут робимо =======
-1. Інфраструктура (Terraform)
+Інфраструктура:
+	1. Terraform
+		Ставимо вручну: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+	2. Docker Swarm (Terraform automation)
     Конфігурація Terraform:
       Є VirtualBox машини з порожньою системою.
         Docker Manager буде на IP 192.168.1.188, a worker - 192.168.1.189
       - Ініціалізуємо кластер Docker Swarm (1 manager + 1 worker)
       - Встановлюємо Docker на всі вузли (використатовуючи remote-exec)
+	3. Jenkins
+		Ставимо вручну: https://www.jenkins.io/doc/book/installing/
+		Також ставимо docker-cli:
+			- docker.io - internal debian repo
+			- docker-ce-cli - docker repo  https://docs.docker.com/engine/install/
+
+PS. Все працює на Debian 12
