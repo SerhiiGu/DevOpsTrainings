@@ -1,7 +1,4 @@
-1. Інфраструктура (Terraform)
-    Розгортання двох віртуальних машин:
-        Manager і Worker з Docker.
-    Terraform ініціалізує Docker Swarm кластер.
+1. Інфраструктура (Terraform)   # реалізовано в task-0/terraform-docker-swarm
 
 2. Налаштування серверів (Puppet)
     Puppet Server виконує:
