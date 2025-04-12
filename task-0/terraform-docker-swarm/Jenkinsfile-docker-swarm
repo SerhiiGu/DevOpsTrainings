@@ -21,6 +21,7 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 dir('task-0/terraform-docker-swarm') {
+                    sh 'hostname && ip a | grep 192.168.1'
                     sh 'terraform init'
                 }
             }
@@ -29,7 +30,7 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 dir('task-0/terraform-docker-swarm') {
-                    sh 'pwd && hostname && ip a | grep 192.168.1'
+                    sh 'hostname && ip a | grep 192.168.1'
                     sh 'terraform apply -auto-approve'
                 }
             }
