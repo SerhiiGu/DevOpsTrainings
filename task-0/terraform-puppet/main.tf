@@ -19,7 +19,7 @@ resource "null_resource" "install_puppet_server" {
 
       "apt install -y puppetserver",
 
-      "sed -i 's/2g/256m/' /etc/default/puppetserver",
+      "sed -i 's/2g/1g/' /etc/default/puppetserver",
 
       "systemctl enable puppetserver",
       "systemctl start puppetserver"
