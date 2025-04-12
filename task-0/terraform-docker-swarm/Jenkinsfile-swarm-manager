@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'SWARM_MANAGER_SERVER_IP', defaultValue: '192.168.1.188', description: 'IP address of the Docker Swarm Manager Server')
+        string(name: 'SWARM_WORKER_SERVER_IP', defaultValue: '192.168.1.189', description: 'IP address of the Docker Swarm Worker Server')
+    }
+
+    environment {
+        TF_VAR_manager_server_ip = "${params.SWARM_MANAGER_SERVER_IP}"
+    }
+
+    stages {
+       stage('Git checkout') {
+            steps {
+                dir('task-0/terraform-docker-swarm') {
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir('task-0/terraform-docker-swarm') {
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('task-0/terraform-docker-swarm') {
+                    sh 'id && whoami && pwd && ls -la'
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+    }
+}
