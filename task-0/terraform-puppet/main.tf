@@ -12,8 +12,9 @@ resource "null_resource" "install_puppet_server" {
     inline = [
       "apt update -y",
 
-      "wget https://apt.puppet.com/puppet7-release-focal.deb",
-      "dpkg -i puppet7-release-focal.deb",
+      # Puppet 7 для Debian 12 (bookworm)
+      "wget https://apt.puppet.com/puppet7-release-bookworm.deb",
+      "dpkg -i puppet7-release-bookworm.deb",
       "apt update -y",
 
       "apt install -y puppetserver",
