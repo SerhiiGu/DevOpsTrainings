@@ -1,0 +1,7 @@
+				====== Що тут робимо =======
+1. Інфраструктура (Terraform)
+    Конфігурація Terraform:
+      Є VirtualBox машини з порожньою системою.
+        Docker Manager буде на IP 192.168.1.188, a worker - 192.168.1.189
+      - Ініціалізуємо кластер Docker Swarm (1 manager + 1 worker)
+      - Встановлюємо Docker на всі вузли (використатовуючи remote-exec)
