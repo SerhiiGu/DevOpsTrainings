@@ -18,25 +18,37 @@ pipeline {
 
         stage('Copy files to Swarm manager') {
             steps {
-                sh """
-                scp -r -o StrictHostKeyChecking=no task-1/monitoring/ root@${MANAGER_HOST}:/root/${STACK_NAME}
-                """
+                dir('task-1/monitoring') {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        sh """
+                            scp -r -o StrictHostKeyChecking=no task-1/monitoring/ root@${MANAGER_HOST}:/root/${STACK_NAME}
+                        """
+                    }
+                }
             }
         }
 
         stage('Deploy Monitoring Stack') {
             steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} "
-                  cd /root/${STACK_NAME} &&
-                  docker stack deploy -c docker-compose.yml ${STACK_NAME}
-                "
-                """
+                dir('task-1/monitoring') {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} "
+                            cd /root/${STACK_NAME} &&
+                            docker stack deploy -c docker-compose.yml ${STACK_NAME}
+                            "
+                        """
+                    }
+                }
             }
         }
         stage('Verify Created Stack') {
             steps {
-                sh 'docker service ls | grep ${STACK_NAME}'
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} 'docker service ls | grep ${STACK_NAME}'
+                    """
+                }
             }
         }
     }
