@@ -17,7 +17,7 @@ services:
     image: prom/node-exporter
     ports:
       - 9100:9100
-     deploy:
+    deploy:
       placement:
         constraints: [node.role == manager]
     networks:
