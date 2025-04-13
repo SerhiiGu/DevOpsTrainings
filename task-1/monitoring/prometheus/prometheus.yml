@@ -8,3 +8,6 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']  
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['<traefik-container-ip>:8080']
