@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    environment {
+      DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
+      MANAGER_HOST = "192.168.1.188"
+      FLASK_IMAGE = 'flask-app:latest'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build & Push Flask App') {
+            steps {
+                dir('task-2/flask-app') {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                                cd /root &&
+                                mkdir -p build/${s.path} &&
+                                rm -rf build/${s.path}/*'
+                        """
+
+                        echo "📦  SCP ${s.path} → Copy configs..."
+                        sh """
+                            scp -r -o StrictHostKeyChecking=no ${s.path}/* root@${MANAGER_HOST}:/root/build/${s.path}/ &&
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} 'ls -la /root/build/${s.path}'
+                        """
+
+                        echo "🛠️  Building image for ${s.name}..."
+                        sh """
+                             ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                                 echo ${DOCKERHUB_CREDS_PSW} | docker login -u ${DOCKERHUB_CREDS_USR} --password-stdin &&
+                                 docker build -t ${DOCKERHUB_CREDS_USR}/${FLASK_IMAGE} ./build/${s.path} &&
+                                 docker push ${DOCKERHUB_CREDS_USR}/${FLASK_IMAGE}'
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Stack') {
+            steps {
+                dir('task-2/flask-app') {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        sh """
+                            scp -o StrictHostKeyChecking=no docker-compose.yml root@${MANAGER_HOST}:/root/
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} 'docker stack deploy -c docker-compose.yml task2_flask'
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
