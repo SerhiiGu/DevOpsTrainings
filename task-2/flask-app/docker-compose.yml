@@ -23,7 +23,7 @@ services:
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - /root/build/task-2/flask-app/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./logs:/logs
       - /etc/certs:/certs
     deploy:
