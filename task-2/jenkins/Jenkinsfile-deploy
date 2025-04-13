@@ -50,10 +50,10 @@ pipeline {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         sh '''
                             ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
-                                ip a | grep 192.168 && pwd && ls -la && \
+                                mkdir -p /etc/certs && \
                                 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-                                    -keyout certs/selfsigned.key \
-                                    -out certs/selfsigned.crt \
+                                    -keyout /etc/certs/selfsigned.key \
+                                    -out /etc/certs/selfsigned.crt \
                                     -subj "/CN=flask.local" '
                         '''
                     }
