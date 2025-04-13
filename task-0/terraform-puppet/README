@@ -14,3 +14,9 @@ echo "server = puppet-master" >> /etc/puppetlabs/puppet/puppet.conf
 echo "192.168.1.191 puppet-master" >> /etc/hosts
 
 /opt/puppetlabs/bin/puppet agent --test
+================================================
+Далі на сервері підтверджуємо сертифікати клієнтів:
+/opt/puppetlabs/bin/puppetserver ca list
+# Потім схвалити:
+/opt/puppetlabs/bin/puppetserver ca sign --certname swarm-worker
+/opt/puppetlabs/bin/puppetserver ca sign --certname swarm-manager
