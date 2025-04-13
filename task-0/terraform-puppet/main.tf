@@ -10,6 +10,8 @@ resource "null_resource" "install_puppet_server" {
 
   provisioner "remote-exec" {
     inline = [
+      "hostnamectl set-hostname puppet-master"
+      "echo ${var.puppet_server_ip} puppet-master >> /etc/hosts",
       "apt update -y",
 
       # Puppet 7 для Debian 12 (bookworm)
