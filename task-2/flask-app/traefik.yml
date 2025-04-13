@@ -13,11 +13,12 @@ entryPoints:
         entryPoint:
           to: websecure
           scheme: https
-
   websecure:
     address: ":443"
     http:
       tls: {}
+  metrics:
+    address: ":8082"
       
 tls:
   certificates:
@@ -32,9 +33,11 @@ providers:
     
 metrics:
   prometheus:
+    entryPoint: metrics
     addEntryPointsLabels: true
+    addRoutersLabels: true
     addServicesLabels: true
-
+    
 api:
   dashboard: true
   insecure: true
