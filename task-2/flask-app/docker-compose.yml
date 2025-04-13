@@ -25,8 +25,8 @@ services:
     image: serhiih2025/flask-app:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask.rule=Host(`flask.local`)"
+      # - "traefik.http.routers.flask.rule=Host(`flask.local`)"
       # якщо треба пересилати всі запити на Trefik, незалежно від сервісу, міняємо коменти з Host на PathPrefix
-      # - "traefik.http.routers.flask.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.flask.rule=PathPrefix(`/`)"
       - "traefik.http.routers.flask.entrypoints=web"
       - "traefik.http.services.flask.loadbalancer.server.port=5000"
