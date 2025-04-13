@@ -44,6 +44,16 @@ pipeline {
             }
         }
 
+        stage('Create Docker network if not exists') {
+            steps {
+                sh '''
+                    docker network inspect traefik-net >/dev/null 2>&1 && \
+                    echo "Network already exists" || \
+                    (docker network create --driver=overlay --scope=swarm traefik-net && echo "Network created")
+                '''
+            }
+        }
+
         stage('Deploy Stack') {
             steps {
                 dir('task-2/flask-app') {
