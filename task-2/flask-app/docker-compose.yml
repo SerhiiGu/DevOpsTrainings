@@ -7,7 +7,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.flask.rule=Host(`flask.local`)"
-        - "traefik.http.routers.flask.entrypoints=http"
+        - "traefik.http.routers.flask.entrypoints=web"
         - "traefik.http.services.flask.loadbalancer.server.port=5000"
     networks:
       - traefik-net
