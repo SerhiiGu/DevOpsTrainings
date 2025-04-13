@@ -2,7 +2,7 @@
 
 Агент вручну поки що:
 apt install -y ntpdate
-ntpdate ntp.pool.org
+ntpdate pool.ntp.org
 wget https://apt.puppet.com/puppet7-release-bookworm.deb
 dpkg -i puppet7-release-bookworm.deb
 rm -f puppet7-release-bookworm.deb
