@@ -1,15 +1,27 @@
-version: "3.8"
+version: "3.9"
 
 services:
+  flask:
+    image: serhiih2025/flask-app:latest
+    ports:
+      - "5000:5000"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.flask.rule=Host(`flask.local`)"
+        - "traefik.http.routers.flask.entrypoints=http"
+        - "traefik.http.services.flask.loadbalancer.server.port=5000"
+    networks:
+      - traefik-net
+
   traefik:
     image: traefik:v2.10
     command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
+      - "--api.insecure=true"
       - "--providers.docker.swarmMode=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--log.level=INFO"
+      - "--entrypoints.http.address=:80"
     ports:
       - "80:80"
       - "8080:8080"
@@ -17,17 +29,10 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     deploy:
       placement:
-        constraints:
-          - node.hostname == swarm-manager
+        constraints: [node.role == manager]
+    networks:
+      - traefik-net
 
-  flask:
-    image: serhiih2025/flask-app:latest
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.flask.rule=Host(`flask.local`)"
-      - "traefik.http.routers.flask.entrypoints=http"
-      - "traefik.http.services.flask.loadbalancer.server.port=5000"
-    ports:
-      - "5000:5000"
-    deploy:
-      replicas: 1
+networks:
+  traefik-net:
+    external: true
