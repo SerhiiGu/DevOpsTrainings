@@ -29,6 +29,19 @@ pipeline {
             }
         }
 
+        stage('Create Docker network @monitoring@ if not exists') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                            docker network inspect monitoring >/dev/null 2>&1 && \
+                            echo "Network @monitoring@ already exists" || \
+                            (docker network create --driver=overlay --scope=swarm --attachable monitoring && echo "Network @monitoting@ created")'
+                    '''
+                }
+            }
+        }
+
         stage('Deploy Monitoring Stack') {
             steps {
                 dir('task-1/monitoring') {
