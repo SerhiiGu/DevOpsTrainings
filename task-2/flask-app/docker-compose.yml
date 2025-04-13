@@ -3,6 +3,10 @@ version: "3.8"
 services:
   traefik:
     image: traefik:v2.10
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == swarm-manager
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
