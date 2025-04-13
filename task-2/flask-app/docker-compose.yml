@@ -21,6 +21,6 @@ services:
     image: flask-app:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.flask.rule=Host(`flask.localhost`)"
+      - "traefik.http.routers.flask.rule=Host(`localhost`)"
       - "traefik.http.routers.flask.entrypoints=web"
       - "traefik.http.services.flask.loadbalancer.server.port=5000"
