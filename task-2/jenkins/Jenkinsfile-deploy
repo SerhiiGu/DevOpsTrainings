@@ -84,14 +84,27 @@ pipeline {
             }
         }
 
-        stage('Create Docker network if not exists') {
+        stage('Create Docker network @traefik-net@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
                             docker network inspect traefik-net >/dev/null 2>&1 && \
-                            echo "Network already exists" || \
-                            (docker network create --driver=overlay --scope=swarm traefik-net && echo "Network created")'
+                            echo "Network @traefik-net@ already exists" || \
+                            (docker network create --driver=overlay --scope=swarm --attachable traefik-net && echo "Network @traefik-net@ created")'
+                    '''
+                }
+            }
+        }
+
+        stage('Create Docker network @monitoring@ if not exists') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                            docker network inspect monitoring >/dev/null 2>&1 && \
+                            echo "Network @monitoring@ already exists" || \
+                            (docker network create --driver=overlay --scope=swarm --attachable monitoring && echo "Network @monitoting@ created")'
                     '''
                 }
             }
