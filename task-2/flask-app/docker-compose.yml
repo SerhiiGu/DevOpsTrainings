@@ -14,21 +14,7 @@ services:
 
   traefik:
     image: traefik:v2.10
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.swarmMode=true"
-      # - "--providers.docker.exposedbydefault=true"
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--api.dashboard=true"
-      - "--accesslog=true"
-      - "--metrics.prometheus=true"
-      - "--api.insecure=true"
-      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-      - "--providers.docker.exposedbydefault=false"
-      - "--log.level=ERROR"
-      - "--log.filePath=/logs/traefik.log"
-      - "--accessLog.filePath=/logs/access.log"
+    command: []
     ports:
       - "80:80"
       - "443:443"
