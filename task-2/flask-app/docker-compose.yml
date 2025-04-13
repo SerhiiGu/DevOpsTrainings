@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: flask-app:latest
+    image: serhiih2025/flask-app:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.flask.rule=Host(`flask.local`)"
