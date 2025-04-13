@@ -4,16 +4,23 @@ services:
   traefik:
     image: traefik:v2.10
     command:
-      - "--providers.docker"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
+      - "--log.level=INFO"
     ports:
       - "80:80"
+      - "8080:8080" # для Traefik dashboard (опціонально)
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: flask-app:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.flask.rule=Host(`flask.localhost`)"
+      - "traefik.http.routers.flask.entrypoints=web"
       - "traefik.http.services.flask.loadbalancer.server.port=5000"
