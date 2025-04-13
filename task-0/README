@@ -17,3 +17,22 @@
 
 
 PS. Все працює на Debian 12
+==============================
+			====== Експорт/імпорт завдань в Jenkins ======
+	Експорт ітема в Jenkins:
+curl -u USERNAME:API_TOKEN  \
+  http://<JENKINS_IP>:<JENKINS_PORT>/job/<JOB_NAME>/config.xml  -o <JOB_NAME>_config.xml
+	Example:
+curl -u user_cli:1e38b3c67a2109b7e3d713da63  \
+  http://192.168.1.187:8080/job/task0_docker_swarm/config.xml  -o task0_docker_swarm_config.xml
+
+🔐 <API_TOKEN> можна згенерувати у Jenkins:
+    Перейдіть: Manage Jenkins → Manage Users → Ваш профіль → Configure → API Token
+=================================
+🔁 Імпорт config.xml (створення задачі)
+    Створіть нову папку:
+mkdir -p /var/lib/jenkins/jobs/task0_docker_swarm_imported
+cp task0_docker_swarm_config.xml /var/lib/jenkins/jobs/task0_docker_swarm_imported/config.xml
+	Задайте потрібні власника та права:
+chown -R jenkins:jenkins /var/lib/jenkins/jobs/task0_docker_swarm_imported
+	У Jenkins натисніть "Manage Jenkins → Reload Configuration from Disk".
