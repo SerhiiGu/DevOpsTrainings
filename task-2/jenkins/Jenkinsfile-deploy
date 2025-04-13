@@ -47,6 +47,7 @@ pipeline {
         stage('Create Docker network if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh 'ip a | grep 192.168 && hostname'
                     sh '''
                         docker network inspect traefik-net >/dev/null 2>&1 && \
                         echo "Network already exists" || \
