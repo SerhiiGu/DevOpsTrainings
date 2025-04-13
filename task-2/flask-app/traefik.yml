@@ -17,9 +17,8 @@ entryPoints:
   websecure:
     address: ":443"
     http:
-      tls:
-        certResolver: selfsigned
-
+      tls: {}
+      
 tls:
   certificates:
     - certFile: "/certs/selfsigned.crt"
