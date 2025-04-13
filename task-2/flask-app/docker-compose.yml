@@ -32,7 +32,10 @@ services:
           - node.role == manager
     networks:
       - traefik-net
+      - monitoring
 
 networks:
   traefik-net:
+    external: true
+  monitoring:
     external: true
