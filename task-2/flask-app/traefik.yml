@@ -6,7 +6,7 @@ accessLog:
   filePath: "/logs/access.log"
 
 entryPoints:
-  web:
+  http:
     address: ":80"
   websecure:
     address: ":443"
