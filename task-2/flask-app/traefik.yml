@@ -6,15 +6,29 @@ accessLog:
   filePath: "/logs/access.log"
 
 entryPoints:
-  http:
+  web:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+
   websecure:
     address: ":443"
+    http:
+      tls:
+        certResolver: selfsigned
+
+tls:
+  certificates:
+    - certFile: "/certs/selfsigned.crt"
+      keyFile: "/certs/selfsigned.key"
 
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
-    exposedByDefault: false # was true
+    exposedByDefault: false
     swarmMode: true
 
 metrics:
@@ -23,5 +37,3 @@ metrics:
 api:
   dashboard: true
   insecure: true
-
-  
