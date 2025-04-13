@@ -20,3 +20,5 @@ echo "192.168.1.191 puppet-master" >> /etc/hosts
 # Потім схвалити:
 /opt/puppetlabs/bin/puppetserver ca sign --certname swarm-worker
 /opt/puppetlabs/bin/puppetserver ca sign --certname swarm-manager
+   # або всі відразу
+/opt/puppetlabs/bin/puppetserver ca sign --all
