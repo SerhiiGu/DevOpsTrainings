@@ -1,0 +1,8 @@
+В Jenkinsfile - автоконфіг puppet-master сервера.
+
+Агент вручну поки що:
+wget https://apt.puppet.com/puppet7-release-bookworm.deb
+dpkg -i puppet7-release-bookworm.deb
+apt update
+
+apt install puppet-agent -y
