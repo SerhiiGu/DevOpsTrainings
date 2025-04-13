@@ -24,7 +24,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /root/build/task-2/flask-app/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./logs:/logs
+      - /root/build/task-2/flask-app/logs:/logs
       - /etc/certs:/certs
     deploy:
       placement:
