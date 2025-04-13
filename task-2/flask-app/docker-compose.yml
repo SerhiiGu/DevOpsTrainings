@@ -3,41 +3,27 @@ version: "3.8"
 services:
   traefik:
     image: traefik:v2.10
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == swarm-manager
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
       - "--log.level=INFO"
     ports:
-      - target: 80
-        published: 80
-        mode: host
-      - target: 8080 # для Traefik dashboard (опціонально)
-        published: 8080
-        mode: host
+      - "80:80"
+      - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
-#  whoami:
-#    image: traefik/whoami
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.whoami.rule=PathPrefix(`/`)"
-#      - "traefik.http.routers.whoami.entrypoints=web"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == swarm-manager
 
   flask:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: serhiih2025/flask-app:latest
     labels:
       - "traefik.enable=true"
-      # - "traefik.http.routers.flask.rule=Host(`flask.local`)"
-      # якщо треба пересилати всі запити на Trefik, незалежно від сервісу, міняємо коменти з Host на PathPrefix
-      - "traefik.http.routers.flask.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.flask.rule=Host(`flask.local`)"
       - "traefik.http.routers.flask.entrypoints=web"
       - "traefik.http.services.flask.loadbalancer.server.port=5000"
+    deploy:
+      replicas: 1
