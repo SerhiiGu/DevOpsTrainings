@@ -50,6 +50,7 @@ pipeline {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         sh '''
                             ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                                ip a | grep 192.168 && pwd && ls -la && \
                                 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
                                     -keyout certs/selfsigned.key \
                                     -out certs/selfsigned.crt \
