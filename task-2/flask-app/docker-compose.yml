@@ -18,7 +18,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.swarmMode=true"
       # - "--providers.docker.exposedbydefault=true"
-      # - "--entrypoints.web.address=:80"
+      - "--entrypoints.http.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--api.dashboard=true"
       - "--accesslog=true"
@@ -26,13 +26,16 @@ services:
       - "--api.insecure=true"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.http.address=:80"
+      - "--log.level=ERROR"
+      - "--log.filePath=/logs/traefik.log"
+      - "--accessLog.filePath=/logs/access.log"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./logs:/logs"
     deploy:
       placement:
         constraints: 
