@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'TLS_DOMAIN', defaultValue: 'flask.local', description: 'Domain name for TLS certificate')
+    }
+
     environment {
       DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
       MANAGER_HOST = "192.168.1.188"
@@ -44,17 +48,36 @@ pipeline {
             }
         }
 
-        stage('Generate TLS cert for flask.local') {
+        stage('Generate TLS cert for flask.local if not exist') {
             steps {
                 dir('task-2/flask-app') {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         sh '''
                             ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
-                                mkdir -p /etc/certs && \
-                                openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-                                    -keyout /etc/certs/selfsigned.key \
-                                    -out /etc/certs/selfsigned.crt \
-                                    -subj "/CN=flask.local" '
+                                DOMAIN="${TLS_DOMAIN}"
+                                CERT_DIR="/etc/certs"
+                                CERT_FILE="${CERT_DIR}/selfsigned.crt"
+                                KEY_FILE="${CERT_DIR}/selfsigned.key"
+
+                                mkdir -p ${CERT_DIR}
+
+                                if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
+                                    echo "🔐 TLS certificate for ${DOMAIN} already exists, skipping generation."
+                                else
+                                    echo "📜 Generating self-signed certificate for ${DOMAIN}..."
+                                    openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
+                                        -keyout /etc/certs/selfsigned.key \
+                                        -out /etc/certs/selfsigned.crt \
+                                        -subj "/CN=flask.local"
+                                fi
+
+                                if grep -q "${DOMAIN}" /etc/hosts; then
+                                    echo "✔️  Domain ${DOMAIN} already exists in /etc/hosts"
+                                else
+                                    echo "📝 Adding ${DOMAIN} to /etc/hosts"
+                                    echo "127.0.0.1 ${DOMAIN}" >> /etc/hosts
+                                fi
+                            '
                         '''
                     }
                 }
