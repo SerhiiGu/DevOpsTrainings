@@ -5,4 +5,3 @@ app = Flask(__name__)
 def hello():
     return "Hello from Flask inside Docker!"
 
-app.run(host="0.0.0.0", port=5000)
