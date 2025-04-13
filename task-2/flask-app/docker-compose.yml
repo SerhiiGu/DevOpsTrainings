@@ -6,7 +6,7 @@ services:
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
-      -  "--providers.docker.swarmMode=true"
+      - "--providers.docker.swarmMode=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--log.level=INFO"
