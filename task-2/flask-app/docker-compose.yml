@@ -25,7 +25,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
       - ./logs:/logs
-      - ./certs:/certs
+      - /etc/certs:/certs
     deploy:
       placement:
         constraints: 
