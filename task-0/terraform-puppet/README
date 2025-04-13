@@ -3,6 +3,12 @@
 Агент вручну поки що:
 wget https://apt.puppet.com/puppet7-release-bookworm.deb
 dpkg -i puppet7-release-bookworm.deb
+rm -f puppet7-release-bookworm.deb
 apt update
 
 apt install puppet-agent -y
+
+echo "server = puppet-master" >> /etc/puppetlabs/puppet/puppet.conf
+echo "192.168.1.191 puppet-master" >> /etc/hosts
+
+/opt/puppetlabs/bin/puppet agent --test
