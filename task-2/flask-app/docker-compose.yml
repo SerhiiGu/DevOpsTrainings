@@ -17,7 +17,7 @@ services:
     command:
       - "--providers.docker=true"
       - "--providers.docker.swarmMode=true"
-      - "--providers.docker.exposedbydefault=true"
+      # - "--providers.docker.exposedbydefault=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--api.dashboard=true"
@@ -25,7 +25,7 @@ services:
       - "--metrics.prometheus=true"
       - "--api.insecure=true"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-#      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.exposedbydefault=false"
 #      - "--entrypoints.http.address=:80"
     ports:
       - "80:80"
