@@ -44,6 +44,22 @@ pipeline {
             }
         }
 
+        stage('Generate TLS cert for flask.local') {
+            steps {
+                dir('task-2/flask-app') {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        sh '''
+                            ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                                openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
+                                    -keyout certs/selfsigned.key \
+                                    -out certs/selfsigned.crt \
+                                    -subj "/CN=flask.local" '
+                        '''
+                    }
+                }
+            }
+        }
+
         stage('Create Docker network if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
