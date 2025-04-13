@@ -5,7 +5,9 @@
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2254.v2a_978de46f35">
       <jobProperties/>
       <triggers/>
-      <parameters/>
+      <parameters>
+        <string>TLS_DOMAIN</string>
+      </parameters>
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
   </actions>
@@ -31,6 +33,16 @@
         </com.cloudbees.jenkins.GitHubPushTrigger>
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>TLS_DOMAIN</name>
+          <description>Domain name for TLS certificate</description>
+          <defaultValue>flask.local</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@4080.va_15b_44a_91525">
     <scm class="hudson.plugins.git.GitSCM" plugin="git@5.7.0">
