@@ -14,5 +14,14 @@ entryPoints:
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
-    exposedByDefault: true
+    exposedByDefault: false # was true
     swarmMode: true
+
+metrics:
+  prometheus: {}
+
+api:
+  dashboard: true
+  insecure: true
+
+  
