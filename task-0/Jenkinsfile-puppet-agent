@@ -3,7 +3,7 @@ pipeline {
 
     parameters {
         string(name: 'PUPPET_AGENT_IP', defaultValue: '192.168.1.188', description: 'IP Address for the Puppet Agent Installation')
-        string(name: 'PUPPET_MESTER_IP', defaultValue: '192.168.1.191', description: 'IP Address of the Puppet Master(for config)')
+        string(name: 'PUPPET_MASTER_IP', defaultValue: '192.168.1.191', description: 'IP Address of the Puppet Master(for config)')
     }
 
     environment {
