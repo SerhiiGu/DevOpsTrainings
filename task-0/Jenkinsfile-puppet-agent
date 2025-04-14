@@ -36,7 +36,7 @@ pipeline {
 
                             echo "server = puppet-master" >> /etc/puppetlabs/puppet/puppet.conf
                             echo "${PUPPET_MASTER_IP} puppet-master" >> /etc/hosts
-                        EOF
+EOF
                     """
                 }
             }
