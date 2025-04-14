@@ -3,12 +3,14 @@ pipeline {
 
     parameters {
         string(name: 'SWARM_MANAGER_SERVER_IP', defaultValue: '192.168.1.188', description: 'IP address of the Docker Swarm Manager Server')
-        string(name: 'SWARM_WORKER_SERVER_IP', defaultValue: '192.168.1.189', description: 'IP address of the Docker Swarm Worker Server')
+        string(name: 'SWARM_WORKER1_SERVER_IP', defaultValue: '192.168.1.189', description: 'IP address of the Docker Swarm Worker Server 1')
+        string(name: 'SWARM_WORKER2_SERVER_IP', defaultValue: '192.168.1.192', description: 'IP address of the Docker Swarm Worker Server 2')
     }
 
     environment {
         TF_VAR_swarm_manager_ip = "${params.SWARM_MANAGER_SERVER_IP}"
-        TF_VAR_swarm_worker_ip  = "${params.SWARM_WORKER_SERVER_IP}"
+        TF_VAR_swarm_worker1_ip  = "${params.SWARM_WORKER1_SERVER_IP}"
+        TF_VAR_swarm_worker2_ip  = "${params.SWARM_WORKER2_SERVER_IP}"
     }
 
     stages {
