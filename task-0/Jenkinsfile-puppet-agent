@@ -47,14 +47,15 @@ EOF
                 echo "Verifying Puppet Agent at ${PUPPET_AGENT_IP}"
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} '
+                        ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} <<EOF
                             if [ -f /opt/puppetlabs/bin/puppet ]; then
-                                exit 0  #yes
+                                echo "[INFO] Puppet agent found. Updating crontab..."
+                                (crontab -l 2>/dev/null | grep -v '/opt/puppetlabs/bin/puppet'; echo '*/10 * * * * /opt/puppetlabs/bin/puppet agent --test >/dev/null 2>&1') | crontab -
                             else
-                                exit 1  #no
+                                echo "[WARN] Puppet agent not found at /opt/puppetlabs/bin/puppet"
+                                exit 1
                             fi
-                        '
-                    """
+EOF
                 }
             }
         }
