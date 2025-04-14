@@ -21,6 +21,7 @@ services:
       - "80:80"
       - "443:443"
       - "8080:8080"
+      - "8082:8082"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /root/build/task-2/flask-app/traefik.yml:/etc/traefik/traefik.yml:ro
