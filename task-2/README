@@ -19,7 +19,7 @@ reverse proxy (Traefik), моніторингом (Prometheus + Grafana),
     Jenkinsfile-deploy: для деплою веб-додатку:
         Nginx + PHP-FPM (або Python FastAPI/Flask).
         Reverse proxy з Traefik.
-    Jenkinsfile-monitoring: для розгортання стеку моніторингу.
+    Jenkinsfile-monitoring: для розгортання стеку моніторингу. # уже реалізовано в task-1
 
 4. Контейнеризація (Docker + Swarm)
     Docker stack включає:
