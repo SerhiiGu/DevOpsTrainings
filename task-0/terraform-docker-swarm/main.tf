@@ -70,8 +70,8 @@ resource "null_resource" "init_swarm" {
 
 }
 
-resource "null_resource" "join_worker" {
-  depends_on = [null_resource.install_docker_worker1, null_resource.install_docker_worker2, null_resource.init_swarm]
+resource "null_resource" "join_worker1" {
+  depends_on = [null_resource.install_docker_worker1, null_resource.init_swarm]
 
   connection {
     type        = "ssh"
@@ -91,6 +91,10 @@ resource "null_resource" "join_worker" {
       "docker swarm join --token $SWARM_TOKEN ${var.swarm_manager_ip}:2377"
     ]
   }
+}
+
+resource "null_resource" "join_worker2" {
+  depends_on = [null_resource.install_docker_worker2, null_resource.init_swarm]
 
   connection {
     type        = "ssh"
