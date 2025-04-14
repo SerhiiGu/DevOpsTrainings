@@ -25,6 +25,10 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
