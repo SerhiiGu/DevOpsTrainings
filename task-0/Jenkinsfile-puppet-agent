@@ -22,7 +22,7 @@ pipeline {
             steps {
                 echo "Installing Puppet Agent at ${PUPPET_AGENT_IP}"
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
-                    sh '''
+                    sh """
                         ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} << EOF
                             set -e
                             apt install -y ntpdate
@@ -37,7 +37,7 @@ pipeline {
                             echo "server = puppet-master" >> /etc/puppetlabs/puppet/puppet.conf
                             echo "${PUPPET_MASTER_IP} puppet-master" >> /etc/hosts
                         EOF
-                    '''
+                    """
                 }
             }
         }
