@@ -3,7 +3,7 @@ version: '3.8'
 services:
   prometheus:
     image: prom/prometheus
-    user "0:996" # root@swarm-manager:~# getent group docker [docker:x:996:root]
+    user: "0:996" # getent group docker - docker group id
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - /var/run/docker.sock:/var/run/docker.sock
