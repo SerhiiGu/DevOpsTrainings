@@ -1,21 +1,11 @@
 В Jenkinsfile - автоконфіг puppet-master сервера.
 
-Агент вручну поки що:
-apt install -y ntpdate
-ntpdate pool.ntp.org
-wget https://apt.puppet.com/puppet7-release-bookworm.deb
-dpkg -i puppet7-release-bookworm.deb
-rm -f puppet7-release-bookworm.deb
-apt update
+Агент: через task0_puppet_agent_config.xml та Jenkinsfile-puppet-agent:
 
-apt install puppet-agent -y
-
-echo "server = puppet-master" >> /etc/puppetlabs/puppet/puppet.conf
-echo "192.168.1.191 puppet-master" >> /etc/hosts
-
+Запуск агента:
 /opt/puppetlabs/bin/puppet agent --test
 ================================================
-Далі на сервері підтверджуємо сертифікати клієнтів:
+На Puppet Mater підтверджуємо сертифікати клієнтів:
 /opt/puppetlabs/bin/puppetserver ca list
 # Потім схвалити:
 /opt/puppetlabs/bin/puppetserver ca sign --certname swarm-worker
