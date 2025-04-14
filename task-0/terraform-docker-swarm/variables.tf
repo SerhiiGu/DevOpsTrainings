@@ -4,13 +4,13 @@ variable "swarm_manager_ip" {
 }
 
 variable "swarm_worker1_ip" {
-  description = "Target IP for Docker Swarm Worker Server"
+  description = "Target IP for Docker Swarm Worker Server 1"
   type        = string
 }
 
 
 variable "swarm_worker2_ip" {
-  description = "Target IP for Docker Swarm Worker Server"
+  description = "Target IP for Docker Swarm Worker Server 2"
   type        = string
 }
 
