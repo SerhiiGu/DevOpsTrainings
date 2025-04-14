@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'PUPPET_AGENT_IP', defaultValue: '192.168.1.188', description: 'IP Address for the Puppet Agent Installation')
+        string(name: 'PUPPET_MESTER_IP', defaultValue: '192.168.1.191', description: 'IP Address of the Puppet Master(for config)')
+    }
+
+    environment {
+        PUPPET_AGENT_IP  = "${params.PUPPET_AGENT_IP}"
+        PUPPET_MASTER_IP = "${params.PUPPET_MASTER_IP}"
+    }
+
+    stages {
+       stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Installing Agent at ${PUPPET_AGENT_IP}') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} << 'EOF'
+                            apt install -y ntpdate  &&
+                            ntpdate pool.ntp.org
+                            wget https://apt.puppet.com/puppet7-release-bookworm.deb
+                            dpkg -i puppet7-release-bookworm.deb
+                            rm -f puppet7-release-bookworm.deb
+                            apt update
+
+                            apt install puppet-agent -y
+
+                            echo "server = puppet-master" >> /etc/puppetlabs/puppet/puppet.conf
+                            echo "${PUPPET_MASTER_IP} puppet-master" >> /etc/hosts
+                        EOF
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Puppet Agent at ${PUPPET_AGENT_IP}') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} '
+                            if [ -f /opt/puppetlabs/bin/puppet ]; then
+                                exit 0  #yes
+                            else
+                                exit 1  #no
+                            fi
+                        '
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Puppet Agent was installed successfully!"
+        }
+        failure {
+            echo "❌ Puppet Agent installation failed!"
+        }
+    }
+}
+

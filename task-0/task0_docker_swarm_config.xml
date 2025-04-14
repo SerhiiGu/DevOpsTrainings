@@ -6,8 +6,9 @@
       <jobProperties/>
       <triggers/>
       <parameters>
-        <string>SWARM_WORKER_SERVER_IP</string>
+        <string>SWARM_WORKER1_SERVER_IP</string>
         <string>SWARM_MANAGER_SERVER_IP</string>
+        <string>SWARM_WORKER2_SERVER_IP</string>
       </parameters>
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
@@ -27,6 +28,13 @@
         <removeLastBuild>false</removeLastBuild>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.43.0">
+          <spec></spec>
+        </com.cloudbees.jenkins.GitHubPushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -36,20 +44,19 @@
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>SWARM_WORKER_SERVER_IP</name>
-          <description>IP address of the Docker Swarm Worker Server</description>
+          <name>SWARM_WORKER1_SERVER_IP</name>
+          <description>IP address of the Docker Swarm Worker Server 1</description>
           <defaultValue>192.168.1.189</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SWARM_WORKER2_SERVER_IP</name>
+          <description>IP address of the Docker Swarm Worker Server 2</description>
+          <defaultValue>192.168.1.192</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.43.0">
-          <spec></spec>
-        </com.cloudbees.jenkins.GitHubPushTrigger>
-      </triggers>
-    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@4080.va_15b_44a_91525">
     <scm class="hudson.plugins.git.GitSCM" plugin="git@5.7.0">
