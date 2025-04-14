@@ -5,6 +5,7 @@ services:
     image: prom/prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /var/lib/docker/:/var/lib/docker:ro
     ports:
       - 9090:9090
     deploy:
@@ -34,9 +35,6 @@ services:
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    deploy:
-      placement:
-        constraints: [node.role == manager]
     networks:
       - monitoring
       
