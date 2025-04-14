@@ -28,10 +28,10 @@ services:
     image: gcr.io/cadvisor/cadvisor
     deploy:
       mode: global
-      labels:
-        - prometheus-job=cadvisor
       restart_policy:
         condition: on-failure
+    labels:
+      prometheus-job: cadvisor
     ports:
       - target: 8080
         published: 8081
