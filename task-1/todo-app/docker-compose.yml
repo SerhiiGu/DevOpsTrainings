@@ -17,7 +17,7 @@ services:
     environment:
       - MONGO_URL=mongodb://mongo:27017/todo
     deploy:
-      replicas: 2
+      mode: global
       restart_policy:
         condition: on-failure
 
