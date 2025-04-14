@@ -4,7 +4,7 @@ services:
   web:
     image: serhiih2025/task-1_web:latest
     ports:
-      - "80:80"
+      - "79:80"
     depends_on:
       - api
     deploy:
