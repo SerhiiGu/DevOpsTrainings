@@ -16,12 +16,28 @@ resource "null_resource" "install_docker_manager" {
   }
 }
 
-resource "null_resource" "install_docker_worker" {
+resource "null_resource" "install_docker_worker1" {
   connection {
     type        = "ssh"
     user        = var.ssh_user
     private_key = file(var.ssh_private_key_path)
-    host        = var.swarm_worker_ip
+    host        = var.swarm_worker1_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "curl -fsSL https://get.docker.com | sudo sh",
+      "sudo usermod -aG docker ${var.ssh_user}"
+    ]
+  }
+}
+
+resource "null_resource" "install_docker_worker2" {
+  connection {
+    type        = "ssh"
+    user        = var.ssh_user
+    private_key = file(var.ssh_private_key_path)
+    host        = var.swarm_worker2_ip
   }
 
   provisioner "remote-exec" {
@@ -55,13 +71,32 @@ resource "null_resource" "init_swarm" {
 }
 
 resource "null_resource" "join_worker" {
-  depends_on = [null_resource.install_docker_worker, null_resource.init_swarm]
+  depends_on = [null_resource.install_docker_worker1, null_resource.install_docker_worker2, null_resource.init_swarm]
 
   connection {
     type        = "ssh"
     user        = var.ssh_user
     private_key = file(var.ssh_private_key_path)
-    host        = var.swarm_worker_ip
+    host        = var.swarm_worker1_ip
+  }
+
+  provisioner "file" {
+    source      = "worker_token.txt"
+    destination = "/var/lib/docker/worker_token.txt"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "SWARM_TOKEN=$(cat /var/lib/docker/worker_token.txt)",
+      "docker swarm join --token $SWARM_TOKEN ${var.swarm_manager_ip}:2377"
+    ]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = var.ssh_user
+    private_key = file(var.ssh_private_key_path)
+    host        = var.swarm_worker2_ip
   }
 
   provisioner "file" {
