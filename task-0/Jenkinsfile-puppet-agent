@@ -23,7 +23,7 @@ pipeline {
                 echo "Installing Puppet Agent at ${PUPPET_AGENT_IP}"
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} << EOF
+                        ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} <<EOF
                             set -e
                             apt install -y ntpdate
                             ntpdate pool.ntp.org
