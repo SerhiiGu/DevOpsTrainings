@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'MANAGER_IP', defaultValue: '192.168.1.188', description: 'IP address of the Docker Swarm manager')
+    }
+
+    environment {
+        DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
+        PUPPET_HOST = 'puppet-master'
+        APP_DIR = 'task-3/django'
+        DJANGO_IMAGE = 'task-3_django:latest'
+    }
+
+    stages {
+        stage('Puppet Configuration') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} 'puppet agent --test'
+                }    """
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                dir("${APP_DIR}") {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        script {
+                            def BUILD_PATH = "/root/build/${APP_DIR}"
+
+                            sh """
+                                ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
+                                    mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/*'
+                            """
+
+                            echo "📦 SCP files to Swarm Manager"
+                            sh """
+                                scp -r -o StrictHostKeyChecking=no . root@${params.MANAGER_IP}:${BUILD_PATH}/
+                            """
+
+                            echo "🛠️  Build & Push Docker Image"
+                            sh """
+                                ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
+                                    echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
+                                    docker build -t ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE} ${BUILD_PATH} &&
+                                    docker push  ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE}   '
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy with Docker Stack') {
+            steps {
+                dir("${APP_DIR}") {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
+                            docker pull ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE}
+                            docker stack deploy -c ${APP_DIR}/docker-compose.yml task3-django
+                        '
+                }    """
+            }
+        }
+    }
+}
