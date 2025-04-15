@@ -8,7 +8,7 @@ accessLog:
 entryPoints:
   web:
     address: ":80"
-  traefik:
+  dashboard:
     address: ":8080"
   metrics:
     address: ":8082"
