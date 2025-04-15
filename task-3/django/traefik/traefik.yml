@@ -41,5 +41,5 @@ metrics:
     addServicesLabels: true
 
 api:
-  insecure: false
+  insecure: true
   dashboard: true
