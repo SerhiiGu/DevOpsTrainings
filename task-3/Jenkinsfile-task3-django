@@ -60,7 +60,7 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
                             docker pull ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE} &&
-                            docker stack deploy -c ${APP_DIR}/docker-compose.yml task3-django
+                            docker stack deploy -c docker-compose.yml task3-django
                         '
                     """
                 }
