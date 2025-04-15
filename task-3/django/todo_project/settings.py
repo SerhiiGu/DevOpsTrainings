@@ -1,5 +1,7 @@
 import os
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 ROOT_URLCONF = 'todo_project.urls'
 
 INSTALLED_APPS = [
@@ -9,6 +11,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'todo',
 ]
 
 DATABASES = {
@@ -21,3 +24,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432),
     }
 }
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
