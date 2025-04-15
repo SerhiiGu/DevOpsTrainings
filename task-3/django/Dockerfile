@@ -13,4 +13,4 @@ COPY . .
 RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 
-# CMD ["gunicorn", "todo_project.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "todo_project.wsgi:application", "--bind", "0.0.0.0:8000"]
