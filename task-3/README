@@ -27,14 +27,13 @@
     Gunicorn + PostgreSQL
     Dockerized, з docker-compose для локальної розробки
     Traefik для маршрутизації запитів
-5. Моніторинг
+5. Моніторинг # уже в task-1
     Prometheus + Grafana в окремому стеку
     Використати cadvisor, node-exporter для метрик
-    Додати графік навантаження на контейнер Django
+    Додати графік навантаження на контейнер Django # тут окремим файлом дашборд
 
 🚀 Бонусні фішки (якщо буде натхнення):
     GitHub Webhook → Jenkins Trigger
     Jenkinsfile з stages: terraform, puppet, build, deploy
-    Traefik з TLS (Let's Encrypt)
     Hiera в Puppet
     Grafana Dashboard з pre-provisioned dashboards
