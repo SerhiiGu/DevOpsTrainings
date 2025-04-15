@@ -3,6 +3,7 @@ pipeline {
 
     parameters {
         string(name: 'MANAGER_IP', defaultValue: '192.168.1.188', description: 'IP address of the Docker Swarm manager')
+        string(name: 'TLS_DOMAIN', defaultValue: 'flask.local', description: 'Domain name for TLS certificate')
     }
 
     environment {
@@ -23,6 +24,39 @@ pipeline {
             }
         }
 
+        stage('Generate TLS cert for domain if not exist') {
+            steps {
+                echo "Generate TLS cert for ${params.TLS_DOMAIN} if not exist"
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                            CERT_DIR="/etc/certs"
+                            CERT_FILE="${CERT_DIR}/selfsigned.crt"
+                            KEY_FILE="${CERT_DIR}/selfsigned.key"
+                            mkdir -p ${CERT_DIR}
+
+                            if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
+                                echo "🔐 TLS certificate for ${params.TLS_DOMAIN} already exists, skipping generation."
+                            else
+                                echo "📜 Generating self-signed certificate for ${params.TLS_DOMAIN}..."
+                                openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
+                                    -keyout /etc/certs/selfsigned.key \
+                                    -out /etc/certs/selfsigned.crt \
+                                    -subj "/CN=${params.TLS_DOMAIN}"
+                            fi
+
+                            if grep -q "${params.TLS_DOMAIN}" /etc/hosts; then
+                                echo "✔️  Domain ${params.TLS_DOMAIN} already exists in /etc/hosts"
+                            else
+                                echo "📝 Adding ${params.TLS_DOMAIN} to /etc/hosts"
+                                echo "127.0.0.1 ${params.TLS_DOMAIN}" >> /etc/hosts
+                            fi
+                        '
+                    """
+                }
+            }
+        }
+
         stage('Create Docker network @task3_django@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -31,6 +65,19 @@ pipeline {
                             docker network inspect task3_django >/dev/null 2>&1 && \
                             echo "Network @task3_django@ already exists" || \
                             (docker network create --driver=overlay --scope=swarm --attachable task3_django && echo "Network @task3_django@ created")'
+                    """
+                }
+            }
+        }
+
+        stage('Create Docker network @monitoring@ if not exists') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${MANAGER_HOST} '
+                            docker network inspect monitoring >/dev/null 2>&1 && \
+                            echo "Network @monitoring@ already exists" || \
+                            (docker network create --driver=overlay --scope=swarm --attachable monitoring && echo "Network @monitoting@ created")'
                     """
                 }
             }
