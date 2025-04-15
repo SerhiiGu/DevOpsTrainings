@@ -26,6 +26,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.django.rule=Host(`django.local`)"
+        - "traefik.http.routers.django.entrypoints=web"
         - "traefik.http.services.django.loadbalancer.server.port=8000"
     networks:
       - django_net
@@ -42,7 +43,6 @@ services:
     image: traefik:v2.10
     ports:
       - "80:80"
-      - "443:443"
       - "8080:8080"
       - "8082:8082"
     volumes:
