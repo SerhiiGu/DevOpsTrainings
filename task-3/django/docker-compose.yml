@@ -53,6 +53,7 @@ services:
         constraints:
           - node.role == manager
       labels:
+        - "traefik.enable=true"
         - "traefik.http.routers.traefik.rule=Host(`traefik.django.local`)"
         - "traefik.http.routers.traefik.entrypoints=dashboard"
         - "traefik.http.routers.traefik.service=api@internal"
