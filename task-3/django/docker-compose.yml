@@ -54,7 +54,7 @@ services:
           - node.role == manager
       labels:
         - "traefik.http.routers.traefik.rule=Host(`traefik.django.local`)"
-        - "traefik.http.routers.traefik.entrypoints=traefik"
+        - "traefik.http.routers.traefik.entrypoints=dashboard"
         - "traefik.http.routers.traefik.service=api@internal"
     networks:
       - django_net
