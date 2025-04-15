@@ -7,9 +7,6 @@ services:
       POSTGRES_PASSWORD: todo_pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - task3_django
-      - ingress
 
   web:
     image: serhiih2025/task-3_django:latest
@@ -35,9 +32,6 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       SECRET_KEY: "f439fh349ufg93fb08y43fvgyiufuy0sdgf0834ufgy0wefgdiusfbu"
-    networks:
-      - task3_django
-      - ingress
 
   traefik:
     image: traefik:v2.10
@@ -60,18 +54,5 @@ services:
         - "traefik.http.routers.traefik.entrypoints=traefik"
         - "traefik.http.routers.traefik.service=api@internal"
 
-    networks:
-      - task3_django
-      - monitoring
-      - ingress
-
 volumes:
   postgres_data:
-
-networks:
-  task3_django:
-    external: true
-  monitoring:
-    external: true
-  ingress:
-    driver: overlay
