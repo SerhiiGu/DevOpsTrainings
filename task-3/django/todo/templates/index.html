@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TODO App</title>
+</head>
+<body>
+    <h1>TODO List</h1>
+    <ul>
+        {% for task in tasks %}
+            <li>{{ task.title }} - {% if task.completed %}✔{% else %}❌{% endif %}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
