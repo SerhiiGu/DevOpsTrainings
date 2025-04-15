@@ -18,6 +18,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - traefik
     deploy:
       labels:
         - "traefik.enable=true"
