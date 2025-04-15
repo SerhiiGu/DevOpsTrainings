@@ -1,0 +1,15 @@
+http:
+  middlewares:
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$QSVpkRBZ$1WdzADmkRiJzZBOMeUr.i."
+
+  routers:
+    traefik-dashboard:
+      rule: "Host(`192.168.1.188`) && PathPrefix(`/dashboard`)"
+      service: api@internal
+      entryPoints:
+        - traefik
+      middlewares:
+        - dashboard-auth
