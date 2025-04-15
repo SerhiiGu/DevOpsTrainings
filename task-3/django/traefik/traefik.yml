@@ -41,7 +41,6 @@ metrics:
     addServicesLabels: true
 
 api:
-  dashboard: true
   insecure: false
   dashboard: true
   entryPoint: traefik
