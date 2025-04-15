@@ -20,11 +20,12 @@ services:
       - db
       - traefik
     deploy:
+      placement:
+        constraints:
+          - node.role == manager
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.django.rule=Host(`django.local`)"
-        - "traefik.http.routers.django.entrypoints=websecure"
-        - "traefik.http.routers.django.tls=true"
         - "traefik.http.services.django.loadbalancer.server.port=8000"
     networks:
       - django_net
