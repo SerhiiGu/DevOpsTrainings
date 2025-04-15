@@ -7,6 +7,8 @@ services:
       POSTGRES_PASSWORD: todo_pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - django_net
 
   web:
     image: serhiih2025/task-3_django:latest
@@ -24,6 +26,8 @@ services:
         - "traefik.http.routers.django.entrypoints=websecure"
         - "traefik.http.routers.django.tls=true"
         - "traefik.http.services.django.loadbalancer.server.port=8000"
+    networks:
+      - django_net
     environment:
       DEBUG: '1'
       DB_NAME: todo_db
@@ -53,6 +57,12 @@ services:
         - "traefik.http.routers.traefik.rule=Host(`traefik.django.local`)"
         - "traefik.http.routers.traefik.entrypoints=traefik"
         - "traefik.http.routers.traefik.service=api@internal"
+      networks:
+        - django_net
 
 volumes:
   postgres_data:
+
+networks:
+  django_net:
+    driver: overlay
