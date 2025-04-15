@@ -24,6 +24,7 @@ services:
       DB_PASSWORD: todo_pass
       DB_HOST: db
       DB_PORT: 5432
+      SECRET_KEY: "f439fh349ufg93fb08y43fvgyiufuy0sdgf0834ufgy0wefgdiusfbu"
 
 volumes:
   postgres_data:
