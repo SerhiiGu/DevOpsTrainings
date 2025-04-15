@@ -56,7 +56,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('Create Docker network @task3_django@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -69,7 +69,7 @@ pipeline {
                 }
             }
         }
-*/
+
 /*
         stage('Create Docker network @monitoring@ if not exists') {
             steps {
