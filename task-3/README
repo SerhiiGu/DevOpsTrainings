@@ -19,7 +19,6 @@
 3. CI/CD (Jenkins)
     Jenkins job:
         параметризований IP/hostname manager
-        запускає Terraform
         викликає Puppet для конфігурації
         будує Docker-образ для Django і пушить в DockerHub
         деплоїть стек через docker stack deploy
