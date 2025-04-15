@@ -1,5 +1,7 @@
 import os
 
+ROOT_URLCONF = 'todo_project.urls'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
