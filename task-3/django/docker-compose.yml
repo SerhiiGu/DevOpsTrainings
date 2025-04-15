@@ -9,6 +9,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - task3_django
+      - ingress
 
   web:
     image: serhiih2025/task-3_django:latest
@@ -36,6 +37,7 @@ services:
       SECRET_KEY: "f439fh349ufg93fb08y43fvgyiufuy0sdgf0834ufgy0wefgdiusfbu"
     networks:
       - task3_django
+      - ingress
 
   traefik:
     image: traefik:v2.10
@@ -61,6 +63,7 @@ services:
     networks:
       - task3_django
       - monitoring
+      - ingress
 
 volumes:
   postgres_data:
@@ -70,3 +73,5 @@ networks:
     external: true
   monitoring:
     external: true
+  ingress:
+    driver: overlay
