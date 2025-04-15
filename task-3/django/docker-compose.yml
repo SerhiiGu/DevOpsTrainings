@@ -8,7 +8,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - django_net
+      - task3_django
 
   django:
     image: serhiih2025/task-3_django:latest
