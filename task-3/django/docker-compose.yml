@@ -18,6 +18,13 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.django.rule=Host(`django.local`)"
+        - "traefik.http.routers.django.entrypoints=websecure"
+        - "traefik.http.routers.django.tls=true"
+        - "traefik.http.services.django.loadbalancer.server.port=8000"
     environment:
       DEBUG: '1'
       DB_NAME: todo_db
@@ -31,7 +38,6 @@ services:
 
   traefik:
     image: traefik:v2.10
-    command: []
     ports:
       - "80:80"
       - "443:443"
