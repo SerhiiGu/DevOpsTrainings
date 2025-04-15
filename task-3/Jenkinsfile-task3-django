@@ -70,7 +70,7 @@ pipeline {
             }
         }
 
-/*
+
         stage('Create Docker network @monitoring@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -83,7 +83,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Build & Push Docker Image') {
             steps {
                 dir("${APP_DIR}") {
