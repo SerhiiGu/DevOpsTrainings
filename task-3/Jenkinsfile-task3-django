@@ -45,7 +45,8 @@ pipeline {
                                 ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
                                     echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
                                     docker build -t ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE} ${BUILD_PATH} &&
-                                    docker push  ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE}   '
+                                    docker push ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE}
+                                '
                             """
                         }
                     }
@@ -58,10 +59,11 @@ pipeline {
                 dir("${APP_DIR}") {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
-                            docker pull ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE}
+                            docker pull ${DOCKERHUB_CREDS_USR}/${DJANGO_IMAGE} &&
                             docker stack deploy -c ${APP_DIR}/docker-compose.yml task3-django
                         '
-                }    """
+                    """
+                }
             }
         }
     }
