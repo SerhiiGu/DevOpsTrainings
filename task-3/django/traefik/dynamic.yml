@@ -12,4 +12,4 @@ http:
       entryPoints:
         - traefik
       middlewares:
-        - dashboard-auth
+        - dashboard-auth@file
