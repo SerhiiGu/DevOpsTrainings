@@ -31,25 +31,25 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
                             CERT_DIR="/etc/certs"
-                            CERT_FILE="${CERT_DIR}/selfsigned.crt"
-                            KEY_FILE="${CERT_DIR}/selfsigned.key"
-                            mkdir -p ${CERT_DIR}
+                            CERT_FILE="\\\${CERT_DIR}/selfsigned.crt"
+                            KEY_FILE="\\\${CERT_DIR}/selfsigned.key"
+                            mkdir -p \\\${CERT_DIR}
 
-                            if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
-                                echo "🔐 TLS certificate for ${params.TLS_DOMAIN} already exists, skipping generation."
+                            if [[ -f "\\\${CERT_FILE}" && -f "$\\\{KEY_FILE}" ]]; then
+                                echo "🔐 TLS certificate for \\\${params.TLS_DOMAIN} already exists, skipping generation."
                             else
-                                echo "📜 Generating self-signed certificate for ${params.TLS_DOMAIN}..."
+                                echo "📜 Generating self-signed certificate for \\\${params.TLS_DOMAIN}..."
                                 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
                                     -keyout /etc/certs/selfsigned.key \
                                     -out /etc/certs/selfsigned.crt \
-                                    -subj "/CN=${params.TLS_DOMAIN}"
+                                    -subj "/CN=\\\${params.TLS_DOMAIN}"
                             fi
 
-                            if grep -q "${params.TLS_DOMAIN}" /etc/hosts; then
-                                echo "✔️  Domain ${params.TLS_DOMAIN} already exists in /etc/hosts"
+                            if grep -q "\\\${params.TLS_DOMAIN}" /etc/hosts; then
+                                echo "✔️  Domain \\\${params.TLS_DOMAIN} already exists in /etc/hosts"
                             else
-                                echo "📝 Adding ${params.TLS_DOMAIN} to /etc/hosts"
-                                echo "127.0.0.1 ${params.TLS_DOMAIN}" >> /etc/hosts
+                                echo "📝 Adding \\\${params.TLS_DOMAIN} to /etc/hosts"
+                                echo "127.0.0.1 \\\${params.TLS_DOMAIN}" >> /etc/hosts
                             fi
                         '
                     """
