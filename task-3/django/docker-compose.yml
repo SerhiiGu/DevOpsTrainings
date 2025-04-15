@@ -24,7 +24,8 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.django.rule=Host(`django.local`)"
-        - "traefik.http.routers.django.entrypoints=web"
+        - "traefik.http.routers.flask.entrypoints=websecure"
+        - "traefik.http.routers.flask.tls=true"
         - "traefik.http.routers.flask.service=django"
         - "traefik.http.services.django.loadbalancer.server.port=8000"
     networks:
