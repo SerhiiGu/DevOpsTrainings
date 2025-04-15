@@ -10,8 +10,6 @@ entryPoints:
     address: ":80"
   websecure:
     address: ":443"
-  dashboard:
-    address: ":8080"
   metrics:
     address: ":8082"
 
