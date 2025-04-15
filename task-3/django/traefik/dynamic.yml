@@ -3,7 +3,7 @@ http:
     dashboard-auth:
       basicAuth:
         users:
-          - "admin:$apr1$QSVpkRBZ$1WdzADmkRiJzZBOMeUr.i."
+          - "admin:$apr1$QSVpkRBZ$1WdzADmkRiJzZBOMeUr.i."  # htpasswd -nb admin <PASSWORD>
 
   routers:
     traefik-dashboard:
