@@ -4,6 +4,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DEBUG = True
 
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console':{
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
 ROOT_URLCONF = 'todo_project.urls'
 
 SECRET_KEY = os.getenv("SECRET_KEY")
