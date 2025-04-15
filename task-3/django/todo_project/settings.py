@@ -6,6 +6,10 @@ DEBUG = True
 
 ROOT_URLCONF = 'todo_project.urls'
 
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured("The SECRET_KEY setting must not be empty.")
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.1.188', '*']
 
 TEMPLATES = [
