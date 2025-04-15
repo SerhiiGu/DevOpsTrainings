@@ -39,8 +39,8 @@ services:
       - "8082:8082"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /root/build/task-2/flask-app/traefik.yml:/etc/traefik/traefik.yml:ro
-      - /root/build/task-2/flask-app/logs:/logs
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/logs:/logs
       - /etc/certs:/certs
     deploy:
       placement:
