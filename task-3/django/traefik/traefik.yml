@@ -1,5 +1,5 @@
 log:
-  level: ERROR
+  level: DEBUG # was ERROR
   filePath: "/logs/traefik.log"
 
 accessLog:
