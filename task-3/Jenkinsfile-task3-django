@@ -18,7 +18,8 @@ pipeline {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} 'puppet agent --test'
-                }    """
+                    """
+                }
             }
         }
 
