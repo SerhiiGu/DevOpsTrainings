@@ -3,7 +3,7 @@ pipeline {
 
     parameters {
         string(name: 'MANAGER_IP', defaultValue: '192.168.1.188', description: 'IP address of the Docker Swarm manager')
-        string(name: 'TLS_DOMAIN', defaultValue: 'flask.local', description: 'Domain name for TLS certificate')
+        string(name: 'TLS_DOMAIN', defaultValue: 'django.local', description: 'Domain name for TLS certificate')
     }
 
     environment {
