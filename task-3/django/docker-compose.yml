@@ -26,9 +26,6 @@ services:
         - "traefik.http.routers.django.entrypoints=websecure"
         - "traefik.http.routers.django.tls=true"
         - "traefik.http.services.django.loadbalancer.server.port=8000"
-        - "traefik.http.routers.traefik.rule=Host(`traefik.django.local`)"
-        - "traefik.http.routers.traefik.entrypoints=traefik"
-        - "traefik.http.routers.traefik.service=api@internal
     environment:
       DEBUG: '1'
       DB_NAME: todo_db
@@ -56,6 +53,12 @@ services:
       placement:
         constraints:
           - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik.rule=Host(`traefik.django.local`)"
+        - "traefik.http.routers.traefik.entrypoints=traefik"
+        - "traefik.http.routers.traefik.service=api@internal"
+
     networks:
       - task3_django
       - monitoring
