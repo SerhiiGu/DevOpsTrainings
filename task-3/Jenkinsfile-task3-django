@@ -26,12 +26,12 @@ pipeline {
         stage('Create Docker network @task3_django@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
-                    sh '''
+                    sh """
                         ssh -o StrictHostKeyChecking=no root@${params.MANAGER_IP} '
                             docker network inspect task3_django >/dev/null 2>&1 && \
                             echo "Network @task3_django@ already exists" || \
                             (docker network create --driver=overlay --scope=swarm --attachable task3_django && echo "Network @task3_django@ created")'
-                    '''
+                    """
                 }
             }
         }
