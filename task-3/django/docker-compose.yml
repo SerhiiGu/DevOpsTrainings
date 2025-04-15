@@ -54,10 +54,13 @@ services:
           - node.role == manager
     networks:
       - task3_django
+      - monitoring
 
 volumes:
   postgres_data:
 
 networks:
   task3_django:
+    external: true
+  monitoring:
     external: true
