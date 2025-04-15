@@ -8,7 +8,8 @@ done
 
 echo "PostgreSQL started"
 
-# Run migrations and start app
+# Make, run migrations and start app
+python manage.py makemigrations
 python manage.py migrate
 python manage.py collectstatic --noinput
 exec "$@"
