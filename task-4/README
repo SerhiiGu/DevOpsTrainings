@@ -42,6 +42,7 @@ Traefik
     Middlewares (Rate Limiting, Redirects)
     Виведення логів у окремий файл
     Labels у docker stack deploy для сервісів
+    Middlewares (Rate Limiting, Redirects)
 
 📊 Monitoring
     Predefined dashboard у Grafana:
@@ -57,4 +58,3 @@ Security
 Бонусне завдання
     Зробити Jenkins pipeline параметризованим по IP Swarm Manager
     Додати кнопку в Grafana, що показує лише Go Rust лоґи
-    Автоматизувати backup даних (PostgreSQL або інше)
