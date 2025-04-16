@@ -7,10 +7,12 @@ import (
 )
 
 func main() {
-	app := fiber.New()
-
-	
-	app.EnableProxyHeaders()
+	app := fiber.New(fiber.Config{
+		EnableTrustedProxyCheck: true,
+		EnableIPValidation:      true,
+		ProxyHeader:             fiber.HeaderXForwardedFor,
+		EnablePrintRoutes:       true,
+	})
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello from Go App 🐹")
