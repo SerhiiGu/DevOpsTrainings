@@ -12,7 +12,7 @@ services:
         - "traefik.http.routers.goapp.tls=true"
         - "traefik.http.routers.goapp.entrypoints=websecure"
         - "traefik.http.services.goapp.loadbalancer.server.port=4000"
-        - "traefik.http.routers.goapp.middlewares=ratelimit@file"
+        - "traefik.http.routers.goapp.middlewares=ratelimit@file,ip-whitelist@file"
         - "traefik.docker.network=goapp-public"
     environment:
       - PORT=4000
