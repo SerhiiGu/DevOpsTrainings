@@ -1,0 +1,23 @@
+http:
+  middlewares:
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$QSVpkRBZ$1WdzADmkRiJzZBOMeUr.i."  # htpasswd -nb admin <PASSWORD>
+
+  routers:
+    dashboard:
+      rule: "PathPrefix(`/dashboard`)"
+      service: api@internal
+      entryPoints:
+        - traefik
+      middlewares:
+        - dashboard-auth
+
+    dashboard-api:
+      rule: "PathPrefix(`/api`)"
+      service: api@internal
+      entryPoints:
+        - traefik
+      middlewares:
+        - dashboard-auth
