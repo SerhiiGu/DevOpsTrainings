@@ -4,6 +4,7 @@ services:
     depends_on:
       - traefik
     deploy:
+      replicas: 2
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.goapp.rule=Host(`go.local`)"
