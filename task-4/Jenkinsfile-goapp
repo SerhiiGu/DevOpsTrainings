@@ -28,7 +28,7 @@ pipeline {
                 echo "Generate TLS cert for ${TLS_DOMAIN} if not exist"
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                        ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                             CERT_DIR="/etc/certs"
                             CERT_FILE="${CERT_DIR}/selfsigned.crt"
                             KEY_FILE="${CERT_DIR}/selfsigned.key"
