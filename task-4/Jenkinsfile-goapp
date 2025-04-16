@@ -13,7 +13,6 @@ pipeline {
     }
 
     stages {
-/*
         stage('Puppet Configuration') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -69,7 +68,20 @@ pipeline {
                 }
             }
         }
-*/
+
+        stage('Create Docker network @monitoring@ if not exists') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
+                            docker network inspect monitoring >/dev/null 2>&1 && \
+                            echo "Network @monitoring@ already exists" || \
+                            (docker network create --driver=overlay --scope=swarm --attachable monitoring && echo "Network @monitoring@ created")'
+                    """
+                }
+            }
+        }
+
         stage('Build & Push Docker Image') {
             steps {
                 dir("${APP_DIR}") {
@@ -108,7 +120,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                             cd /root/build/${APP_DIR} &&
                             docker pull ${DOCKERHUB_CREDS_USR}/${IMAGE} &&
-                            docker stack deploy -c swarm-deploy.yml task3-goapp
+                            docker stack deploy -c swarm-deploy.yml task4-goapp
                         '
                     """
                 }
