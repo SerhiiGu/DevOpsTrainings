@@ -44,6 +44,8 @@ Traefik
     Labels у docker stack deploy для сервісів
     Middlewares (Rate Limiting, Redirects)
     IP-based allow/deny middleware
+    Nginx зовні Swarm як проксі для резолва білих IP та заборона прямого доступу 
+	до додатку не через проксі (через iptables та Puppet)
 
 📊 Monitoring
     Predefined dashboard у Grafana:
