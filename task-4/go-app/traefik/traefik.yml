@@ -7,7 +7,7 @@ accessLog:
 
 entryPoints:
   web:
-    address: ":80"
+    address: ":8900"
     forwardedHeaders:
       insecure: true
       trustedIPs:
