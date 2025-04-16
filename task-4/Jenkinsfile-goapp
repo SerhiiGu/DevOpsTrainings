@@ -97,7 +97,7 @@ pipeline {
                             sh """
                                 scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
                             """
-
+/*
                             echo "🛠️  Build & Push Docker Image"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
@@ -107,7 +107,7 @@ pipeline {
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
-
+*/
                         }
                     }
                 }
