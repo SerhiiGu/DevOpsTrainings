@@ -13,11 +13,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 /*
         stage('Puppet Configuration') {
             steps {
@@ -28,7 +23,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Generate TLS cert for domain if not exist') {
             steps {
                 echo "Generate TLS cert for ${TLS_DOMAIN} if not exist"
@@ -74,14 +69,14 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Build & Push Docker Image') {
             steps {
                 dir("${APP_DIR}") {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         script {
                             def BUILD_PATH = "/root/build/${APP_DIR}"
-
+                            echo "Local: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/*'
@@ -89,7 +84,7 @@ pipeline {
 
                             echo "📦 SCP files to Swarm Manager"
                             sh """
-                                pwd && ip a | grep 192.168 && ls -la &&
+                                echo 'Local2: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}' && pwd && ip a | grep 192.168 && ls -la &&
                                 scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
                             """
 
@@ -98,6 +93,7 @@ pipeline {
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
                                     cd ${BUILD_PATH} && 
+                                    echo 'Remote: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH} IMAGE=${IMAGE}' &&
                                     ip a | grep 192.168 && pwd && ls -la &&
                                     docker build -t ${DOCKERHUB_CREDS_USR}/${IMAGE} . &&
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
