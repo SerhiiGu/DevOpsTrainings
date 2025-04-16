@@ -8,6 +8,8 @@ accessLog:
 entryPoints:
   web:
     address: ":80"
+    forwardedHeaders:
+      insecure: true
     http:
       redirections:
         entryPoint:
@@ -15,6 +17,8 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
+    forwardedHeaders:
+      insecure: true
     http:
       tls: {}
   traefik:
