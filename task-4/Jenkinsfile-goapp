@@ -77,16 +77,12 @@ pipeline {
                         script {
                             def BUILD_PATH = "/root/build/${APP_DIR}"
                             sh """
-                                echo 'Local-1: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}' && pwd && ls -la
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
-                                    echo 'Remote 1: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH} IMAGE=${IMAGE}' &&
-                                    ip a | grep 192.168 && pwd && ls -la &&
                                     mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/*'
                             """
 
                             echo "📦 SCP files to Swarm Manager"
                             sh """
-                                echo 'Local-2: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}' && pwd && ip a | grep 192.168 && ls -la &&
                                 scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
                             """
 
@@ -95,8 +91,6 @@ pipeline {
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
                                     cd ${BUILD_PATH} && 
-                                    echo 'Remote 2: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH} IMAGE=${IMAGE}' &&
-                                    ip a | grep 192.168 && pwd && ls -la &&
                                     docker build -t ${DOCKERHUB_CREDS_USR}/${IMAGE} . &&
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
