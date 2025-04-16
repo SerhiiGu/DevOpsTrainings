@@ -1,0 +1,14 @@
+services:
+  go-app:
+    image: serhiih2025/task-4_go:latest
+    deploy:
+      replicas: 2
+      labels:
+        - "traefik.http.routers.go.rule=Host(`go.local`)"
+        - "traefik.http.services.go.loadbalancer.server.port=4000"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
