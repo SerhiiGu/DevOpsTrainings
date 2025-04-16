@@ -1,6 +1,6 @@
 services:
   goapp:
-    image: serhiih2025/task-4_go:latest
+    image: serhiih2025/task-4_goapp:latest
     deploy:
       replicas: 2
       labels:
