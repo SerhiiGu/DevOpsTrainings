@@ -1,0 +1,60 @@
+🧠 Мета проекту
+
+Реалізувати повний DevOps цикл для  Go + Fiber-додатку на Docker Swarm кластері з двома інстансами, 
+балансуванням навантаження, TLS, автонастроюванням через Puppet і моніторингом.
+
+Склад проекту:
+📁 1. infrastructure/terraform
+    Розгортає три VM (може бути в VirtualBox або Proxmox/Cloud).
+    Ініціалізує Swarm cluster.
+    Встановлює Docker.
+    Проксує IP для Puppet Agent.
+📁 2. puppet/
+    Puppet server (окремий контейнер або сервер).
+    Hiera для конфігурацій.
+    Модулі
+    Puppet агент на всіх нодах, автоналаштовує системи.
+📁 3.  go-fiber/
+    Базовий проєкт
+    Продакшн-сервер.
+    Dockerfile
+    docker-compose.yml для локального запуску.
+    swarm-deploy.yml для продакшн.
+📁 4. monitoring-stack/
+    Prometheus
+    Grafana
+    Node Exporter
+    cAdvisor
+    Pre-provisioned dashboards (з CPU/Memory по Go + Fiber)
+📁 5. jenkins/
+    Jenkinsfile з етапами:
+        terraform apply
+        Puppet provision
+        Build & Push образу Django
+        docker stack deploy
+    GitHub Webhook для тригера
+    Jenkins Agent через Docker або SSH
+
+Traefik
+    Centralized reverse proxy
+    TLS через Let's Encrypt
+    Basic Auth для dashboard
+    Middlewares (Rate Limiting, Redirects)
+    Виведення логів у окремий файл
+    Labels у docker stack deploy для сервісів
+
+📊 Monitoring
+    Predefined dashboard у Grafana:
+        CPU / Memory / Disk I/O по Go + Fiber
+        Контейнерні метрики (cAdvisor)
+        Node метрики (node-exporter)
+    Alerting при high CPU
+Security
+    Traefik TLS
+    Basic Auth
+    Fail2Ban із Puppet + кастомним fact (перевіряє наявність логів)
+	
+Бонусне завдання
+    Зробити Jenkins pipeline параметризованим по IP Swarm Manager
+    Додати кнопку в Grafana, що показує лише Go Rust лоґи
+    Автоматизувати backup даних (PostgreSQL або інше)
