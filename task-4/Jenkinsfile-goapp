@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
+        TLS_DOMAIN = 'go.local'
         APP_DIR = 'task-4/goapp'
         IMAGE = 'task-4_goapp:latest'
     }
@@ -18,6 +19,39 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} 'puppet agent --test || [ \$? -eq 2 ]'
                     """
+                }
+            }
+        }
+
+        stage('Generate TLS cert for domain if not exist') {
+            steps {
+                echo "Generate TLS cert for ${TLS_DOMAIN} if not exist"
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@${MANAGER_IP} '
+                            CERT_DIR="/etc/certs"
+                            CERT_FILE="${CERT_DIR}/selfsigned.crt"
+                            KEY_FILE="${CERT_DIR}/selfsigned.key"
+                            mkdir -p ${CERT_DIR}
+
+                            if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
+                                echo "🔐 TLS certificate for ${TLS_DOMAIN} already exists, skipping generation."
+                            else
+                                echo "📜 Generating self-signed certificate for ${TLS_DOMAIN}..."
+                                openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
+                                    -keyout /etc/certs/selfsigned.key \
+                                    -out /etc/certs/selfsigned.crt \
+                                    -subj "/CN=${TLS_DOMAIN}"
+                            fi
+
+                            if grep -q "${TLS_DOMAIN}" /etc/hosts; then
+                                echo "✔️  Domain ${TLS_DOMAIN} already exists in /etc/hosts"
+                            else
+                                echo "📝 Adding ${TLS_DOMAIN} to /etc/hosts"
+                                echo "127.0.0.1 ${TLS_DOMAIN}" >> /etc/hosts
+                            fi
+                        '
+                    '''
                 }
             }
         }
@@ -35,6 +69,50 @@ pipeline {
             }
         }
 
+        stage('Build & Push Docker Image') {
+            steps {
+                dir("${APP_DIR}") {
+                    sshagent (credentials: ['swarm-manager-ssh-key']) {
+                        script {
+                            def BUILD_PATH = "/root/build/${APP_DIR}"
+
+                            sh """
+                                ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
+                                    mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/*'
+                            """
+
+                            echo "📦 SCP files to Swarm Manager"
+                            sh """
+                                scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
+                            """
+
+                            echo "🛠️  Build & Push Docker Image"
+                            sh """
+                                ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
+                                    echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
+                                    docker build -t ${DOCKERHUB_CREDS_USR}/${IMAGE} ${BUILD_PATH} &&
+                                    docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
+                                '
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy with Docker Stack') {
+            steps {
+                dir("${APP_DIR}") {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
+                            cd /root/build/${APP_DIR} &&
+                            docker pull ${DOCKERHUB_CREDS_USR}/${IMAGE} &&
+                            docker stack deploy -c swarm-deploy.yml task3-goapp
+                        '
+                    """
+                }
+            }
+        }
 
       
     }
