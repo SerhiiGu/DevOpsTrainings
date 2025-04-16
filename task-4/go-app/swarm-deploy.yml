@@ -13,6 +13,8 @@ services:
         - "traefik.http.routers.goapp.service=goapp"
         - "traefik.http.routers.goapp.tls=true"
         - "traefik.http.routers.goapp.entrypoints=websecure"
+        - "traefik.http.routers.goapp.middlewares=redirect-to-https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         - "traefik.http.services.goapp.loadbalancer.server.port=4000"
     environment:
       - PORT=4000
