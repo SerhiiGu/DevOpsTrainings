@@ -4,6 +4,14 @@ http:
       rateLimit:
         average: 10
         burst: 20
+    ip-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "192.168.0.0/24"     # локальна мережа
+          - "203.0.113.5/32"     # приклад публічного IP
+          - "176.122.123.0/24"
+        ipStrategy:
+          depth: 2     
     dashboard-auth:
       basicAuth:
         users:
