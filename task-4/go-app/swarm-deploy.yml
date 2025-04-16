@@ -27,6 +27,7 @@ services:
     ports:
       - "8080:8080"
       - "8082:8082"
+      - "8900:8900"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
