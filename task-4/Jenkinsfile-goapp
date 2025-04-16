@@ -30,7 +30,6 @@ pipeline {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no root@${SWARM_MANAGER_IP} '
-                            echo 'TLS_DOMAIN_TWO=${TLS_DOMAIN}' && ip a | grep 192.168
                             CERT_DIR="/etc/certs"
                             CERT_FILE="${CERT_DIR}/selfsigned.crt"
                             KEY_FILE="${CERT_DIR}/selfsigned.key"
@@ -92,7 +91,8 @@ pipeline {
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
-                                    cd ${BUILD_PATH}
+                                    cd ${BUILD_PATH} && 
+                                    ip a | grep 192.168 && pwd && ls -la &&
                                     docker build -t ${DOCKERHUB_CREDS_USR}/${IMAGE} . &&
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
