@@ -23,6 +23,8 @@ resource "null_resource" "install_puppet_server" {
 
       "sed -i 's/2g/1g/' /etc/default/puppetserver",
 
+      "/opt/puppetlabs/bin/puppet module install puppetlabs-stdlib",
+
       "systemctl enable puppetserver",
       "systemctl start puppetserver"
     ]
