@@ -30,7 +30,6 @@ pipeline {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no root@${SWARM_MANAGER_IP} '
-                            echo "TLS_DOMAIN_ONE=${TLS_DOMAIN}" && ip a | grep 192.168
                             echo 'TLS_DOMAIN_TWO=${TLS_DOMAIN}' && ip a | grep 192.168
                             CERT_DIR="/etc/certs"
                             CERT_FILE="${CERT_DIR}/selfsigned.crt"
@@ -38,20 +37,20 @@ pipeline {
                             mkdir -p ${CERT_DIR}
 
                             if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
-                                echo "🔐 TLS certificate for ${TLS_DOMAIN} already exists, skipping generation."
+                                echo '🔐 TLS certificate for ${TLS_DOMAIN} already exists, skipping generation.'
                             else
-                                echo "📜 Generating self-signed certificate for ${TLS_DOMAIN}..."
+                                echo '📜 Generating self-signed certificate for ${TLS_DOMAIN}...'
                                 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
                                     -keyout /etc/certs/selfsigned.key \
                                     -out /etc/certs/selfsigned.crt \
-                                    -subj "/CN=${TLS_DOMAIN}"
+                                    -subj '/CN=${TLS_DOMAIN}'
                             fi
 
-                            if grep -q "${TLS_DOMAIN}" /etc/hosts; then
-                                echo "✔️  Domain ${TLS_DOMAIN} already exists in /etc/hosts"
+                            if grep -q '${TLS_DOMAIN}' /etc/hosts; then
+                                echo '✔️  Domain ${TLS_DOMAIN} already exists in /etc/hosts'
                             else
-                                echo "📝 Adding ${TLS_DOMAIN} to /etc/hosts"
-                                echo "127.0.0.1 ${TLS_DOMAIN}" >> /etc/hosts
+                                echo '📝 Adding ${TLS_DOMAIN} to /etc/hosts'
+                                echo '127.0.0.1 ${TLS_DOMAIN}' >> /etc/hosts
                             fi
                         '
                     '''
