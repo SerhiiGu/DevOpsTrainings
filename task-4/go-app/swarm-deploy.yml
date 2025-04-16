@@ -1,11 +1,14 @@
 services:
-  go-app:
+  goapp:
     image: serhiih2025/task-4_go:latest
     deploy:
       replicas: 2
       labels:
-        - "traefik.http.routers.go.rule=Host(`go.local`)"
-        - "traefik.http.services.go.loadbalancer.server.port=4000"
+        - "traefik.enable=true"
+        - "traefik.http.routers.goapp.rule=Host(`go.local`)"
+        - "traefik.http.routers.goapp.entrypoints=websecure"
+        - "traefik.http.routers.goapp.tls.certresolver=letsencrypt"
+        - "traefik.http.services.goapp.loadbalancer.server.port=4000"
     networks:
       - traefik-public
 
