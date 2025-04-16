@@ -7,10 +7,11 @@ accessLog:
 
 entryPoints:
   web:
-    address: "127.0.0.1:80"
+    address: ":80"
     forwardedHeaders:
       insecure: true
       trustedIPs:
+        - "192.168.1.0/24"
         - "127.0.0.1"
         - "::1"
   traefik:
