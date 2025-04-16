@@ -9,6 +9,9 @@ import (
 func main() {
 	app := fiber.New()
 
+	
+	app.EnableProxyHeaders()
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello from Go App 🐹")
 	})
