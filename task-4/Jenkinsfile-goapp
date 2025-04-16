@@ -8,7 +8,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
         TLS_DOMAIN = 'go.local'
-        APP_DIR = 'task-4/goapp'
+        APP_DIR = 'task-4/go-app'
         IMAGE = 'task-4_goapp:latest'
     }
 
