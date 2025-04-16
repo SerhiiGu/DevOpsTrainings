@@ -43,6 +43,7 @@ Traefik
     Виведення логів у окремий файл
     Labels у docker stack deploy для сервісів
     Middlewares (Rate Limiting, Redirects)
+    IP-based allow/deny middleware
 
 📊 Monitoring
     Predefined dashboard у Grafana:
