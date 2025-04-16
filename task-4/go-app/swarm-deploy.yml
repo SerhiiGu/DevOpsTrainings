@@ -6,23 +6,32 @@ services:
     depends_on:
       - traefik
     deploy:
-      replicas: 2
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.goapp.rule=Host(`go.local`)"
         - "traefik.http.routers.goapp.service=goapp"
         - "traefik.http.routers.goapp.tls=true"
         - "traefik.http.routers.goapp.entrypoints=websecure"
-        - "traefik.http.routers.goapp.middlewares=redirect-to-https"
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         - "traefik.http.services.goapp.loadbalancer.server.port=4000"
     environment:
       - PORT=4000
     networks:
       - goapp-public
 
+  whoami:
+    image: traefik/whoami
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.test.rule=Host(`whoami.local`)"
+        - "traefik.http.routers.test.entrypoints=websecure"
+        - "traefik.http.routers.test.tls=true"
+    networks:
+      - goapp-public
+
   traefik:
-    image: traefik:v3.3.5
+    image: traefik:v2.10
     deploy:
       placement:
         constraints:
