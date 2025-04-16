@@ -1,7 +1,5 @@
 services:
   goapp:
-    ports:
-      - "4000:4000"
     image: serhiih2025/task-4_goapp:latest
     depends_on:
       - traefik
