@@ -19,18 +19,6 @@ services:
     networks:
       - goapp-public
 
-  whoami:
-    image: traefik/whoami
-    deploy:
-      replicas: 1
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.test.rule=Host(`whoami.local`)"
-        - "traefik.http.routers.test.entrypoints=websecure"
-        - "traefik.http.routers.test.tls=true"
-    networks:
-      - goapp-public
-
   traefik:
     image: traefik:v2.10
     deploy:
