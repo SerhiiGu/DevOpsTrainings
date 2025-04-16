@@ -6,12 +6,13 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.goapp.rule=Host(`go.local`)"
+        - "traefik.http.routers.goapp.service=goapp"
+        - "traefik.http.routers.goapp.tls=true"
         - "traefik.http.routers.goapp.entrypoints=websecure"
-        - "traefik.http.routers.goapp.tls.certresolver=letsencrypt"
         - "traefik.http.services.goapp.loadbalancer.server.port=4000"
     networks:
-      - traefik-public
+      - goapp-public
 
 networks:
-  traefik-public:
+  goapp-public:
     external: true
