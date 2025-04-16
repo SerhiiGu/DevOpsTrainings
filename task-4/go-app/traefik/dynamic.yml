@@ -4,6 +4,7 @@ http:
       rateLimit:
         average: 10
         burst: 20
+        
     ip-whitelist:
       ipWhiteList:
         sourceRange:
@@ -13,7 +14,8 @@ http:
           - "127.0.0.0/8"
           - "::1"
         ipStrategy:
-          depth: 2     
+          depth: 2  # глибина X-Forwarded-For, використовується тільки з proxy
+              
     dashboard-auth:
       basicAuth:
         users:
@@ -27,6 +29,7 @@ http:
         - traefik
       middlewares:
         - dashboard-auth
+        - ip-whitelist
 
     dashboard-api:
       rule: "PathPrefix(`/api`)"
@@ -35,4 +38,5 @@ http:
         - traefik
       middlewares:
         - dashboard-auth
+        - ip-whitelist
 
