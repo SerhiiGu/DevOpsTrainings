@@ -76,8 +76,8 @@ pipeline {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         script {
                             def BUILD_PATH = "/root/build/${APP_DIR}"
-                            echo "Local-1: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}"
                             sh """
+                                echo "Local-1: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}"
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     echo 'Remote 1: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH} IMAGE=${IMAGE}' &&
                                     ip a | grep 192.168 && pwd && ls -la &&
