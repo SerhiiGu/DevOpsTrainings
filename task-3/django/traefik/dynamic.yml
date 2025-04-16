@@ -13,3 +13,11 @@ http:
         - traefik
       middlewares:
         - dashboard-auth
+
+    dashboard-api:
+      rule: "PathPrefix(`/api`)"
+      service: api@internal
+      entryPoints:
+        - traefik
+      middlewares:
+        - dashboard-auth
