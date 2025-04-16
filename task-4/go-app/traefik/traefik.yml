@@ -7,9 +7,10 @@ accessLog:
 
 entryPoints:
   web:
-    address: "127.0.0.1:80"
+    address: ":80"
     forwardedHeaders:
       trustedIPs:
+        - "0.0.0.0/0"
         - "127.0.0.1"
         - "::1"
     http:
@@ -18,9 +19,10 @@ entryPoints:
           to: websecure
           scheme: https
   websecure:
-    address: "127.0.0.1:443"
+    address: ":443"
     forwardedHeaders:
       trustedIPs:
+        - "0.0.0.0/0"
         - "127.0.0.1"
         - "::1"
     http:
@@ -55,3 +57,4 @@ metrics:
 api:
   dashboard: true
   insecure: false
+
