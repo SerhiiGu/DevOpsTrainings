@@ -84,6 +84,7 @@ pipeline {
 
                             echo "📦 SCP files to Swarm Manager"
                             sh """
+                                pwd && ip a | grep 192.168 && ls -la &&
                                 scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
                             """
 
