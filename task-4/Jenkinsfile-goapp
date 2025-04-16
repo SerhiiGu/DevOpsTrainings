@@ -72,7 +72,7 @@ pipeline {
 */
         stage('Build & Push Docker Image') {
             steps {
-                dir("${APP_DIR}") {
+                dir("task-4/goapp") {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         script {
                             def BUILD_PATH = "/root/build/${APP_DIR}"
@@ -85,7 +85,8 @@ pipeline {
                             echo "📦 SCP files to Swarm Manager"
                             sh """
                                 echo 'Local2: APP_DIR=${APP_DIR} BUILD_PATH=${BUILD_PATH}' && pwd && ip a | grep 192.168 && ls -la &&
-                                scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
+                                scp -r -o StrictHostKeyChecking=no ${APP_DIR}/* root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
+                                // scp -o StrictHostKeyChecking=no ${APP_DIR}/Dockerfile root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
                             """
 
                             echo "🛠️  Build & Push Docker Image"
