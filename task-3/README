@@ -33,7 +33,8 @@
     Додати графік навантаження на контейнер Django # тут окремим файлом дашборд
 
 🚀 Бонусні фішки (якщо буде натхнення):
-    GitHub Webhook → Jenkins Trigger
+    GitHub Webhook → Jenkins Trigger № згадати
     Jenkinsfile з stages: terraform, puppet, build, deploy
     Hiera в Puppet
     Grafana Dashboard з pre-provisioned dashboards
+    Захист дашборда Traefik: авторизації та fail2ban
