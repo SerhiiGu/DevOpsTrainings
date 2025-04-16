@@ -81,7 +81,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Build & Push Docker Image') {
             steps {
                 dir("${APP_DIR}") {
@@ -112,7 +112,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Deploy with Docker Stack') {
             steps {
                 dir("${APP_DIR}") {
