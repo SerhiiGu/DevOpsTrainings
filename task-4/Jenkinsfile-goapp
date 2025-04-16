@@ -92,7 +92,8 @@ pipeline {
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     echo "${DOCKERHUB_CREDS_PSW}" | docker login -u "${DOCKERHUB_CREDS_USR}" --password-stdin &&
-                                    docker build -t ${DOCKERHUB_CREDS_USR}/${IMAGE} ${BUILD_PATH} &&
+                                    cd ${BUILD_PATH}
+                                    docker build -t ${DOCKERHUB_CREDS_USR}/${IMAGE} . &&
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
