@@ -1,5 +1,9 @@
 http:
   middlewares:
+    ratelimit:
+      rateLimit:
+        average: 10
+        burst: 20
     dashboard-auth:
       basicAuth:
         users:
