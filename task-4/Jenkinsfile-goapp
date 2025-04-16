@@ -81,7 +81,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('Build & Push Docker Image') {
             steps {
                 dir("${APP_DIR}") {
@@ -97,7 +97,7 @@ pipeline {
                             sh """
                                 scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
                             """
-
+/*
                             echo "🛠️  Build & Push Docker Image"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
@@ -107,12 +107,13 @@ pipeline {
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
+*/
                         }
                     }
                 }
             }
         }
-*/
+
         stage('Deploy with Docker Stack') {
             steps {
                 dir("${APP_DIR}") {
