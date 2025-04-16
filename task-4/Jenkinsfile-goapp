@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'SWARM_MANAGER_IP', defaultValue: '192.168.1.188', description: 'Swarm Manager IP')
+    }
+
+    environment {
+        DOCKERHUB_CREDS = credentials('DockerHub_User_Pass')
+        APP_DIR = 'task-4/goapp'
+        IMAGE = 'task-4_goapp:latest'
+    }
+
+    stages {
+        stage('Puppet Configuration') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} 'puppet agent --test || [ \$? -eq 2 ]'
+                    """
+                }
+            }
+        }
+
+        stage('Create Docker network @goapp-public@ if not exists') {
+            steps {
+                sshagent (credentials: ['swarm-manager-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
+                            docker network inspect goapp-public >/dev/null 2>&1 && \
+                            echo "Network @goapp-public@ already exists" || \
+                            (docker network create --driver=overlay --scope=swarm --attachable goapp-public && echo "Network @goapp-public@ created")'
+                    """
+                }
+            }
+        }
+
+
+      
+    }
+}
