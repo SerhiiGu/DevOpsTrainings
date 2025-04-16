@@ -9,7 +9,9 @@ entryPoints:
   web:
     address: ":80"
     forwardedHeaders:
-      insecure: true
+      trustedIPs:
+        - "127.0.0.1"
+        - "::1"
     http:
       redirections:
         entryPoint:
@@ -18,7 +20,9 @@ entryPoints:
   websecure:
     address: ":443"
     forwardedHeaders:
-      insecure: true
+      trustedIPs:
+        - "127.0.0.1"
+        - "::1"
     http:
       tls: {}
   traefik:
