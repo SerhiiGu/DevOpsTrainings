@@ -12,6 +12,8 @@ services:
         - "traefik.http.routers.goapp.tls=true"
         - "traefik.http.routers.goapp.entrypoints=websecure"
         - "traefik.http.services.goapp.loadbalancer.server.port=4000"
+    environment:
+      - PORT=4000
     networks:
       - goapp-public
 
