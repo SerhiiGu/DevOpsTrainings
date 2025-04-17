@@ -49,9 +49,9 @@ Traefik
 
 📊 Monitoring
     Predefined dashboard у Grafana:
-        CPU / Memory / Disk I/O по Go + Fiber
-        Контейнерні метрики (cAdvisor)
-        Node метрики (node-exporter)
+       - CPU / Memory / Disk I/O по Go + Fiber
+       + Контейнерні метрики (cAdvisor)
+       + Node метрики (node-exporter)
     Alerting при high CPU
 Security
     Traefik TLS
