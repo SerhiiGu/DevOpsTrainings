@@ -1,3 +1,6 @@
+# for puppet-code
+**/modules/stdlib*
+
 # Local .terraform directories
 **/.terraform/*
 
