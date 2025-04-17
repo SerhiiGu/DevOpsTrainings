@@ -49,7 +49,7 @@ Traefik
 
 📊 Monitoring
     Predefined dashboard у Grafana:
-       - CPU / Memory / Disk I/O по Go + Fiber
+       - CPU / Memory / Disk I/O по Go + Fiber # ID  13502 (Go Application Metrics)
        + Контейнерні метрики (cAdvisor)
        + Node метрики (node-exporter)
     Alerting при high CPU
