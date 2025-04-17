@@ -1,0 +1,14 @@
+Активація й робота з конфігурацією Puppet через git репозиторій:
+
+
+systemctl stop puppet
+systemctl disable puppet
+systemctl stop puppetserver
+cd /etc/puppetlabs
+mv code code_bak
+git clone git@github.com:SerhiiGu/DevOpsTrainings.git # gitclone, якщо налаштовано
+ln -s DevOpsTrainings/puppet-code code
+mkdir code/modules
+puppet module install puppetlabs-stdlib
+systemctl start puppetserver
+
