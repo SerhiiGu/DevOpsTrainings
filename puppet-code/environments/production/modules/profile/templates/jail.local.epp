@@ -1,0 +1,16 @@
+[DEFAULT]
+bantime  = <%= $bantime %>
+findtime = <%= $findtime %>
+maxretry = <%= $maxretry %>
+
+[sshd]
+enabled = true
+
+<% $custom_jails.each |$name, $params| { -%>
+[<%= $name %>]
+<% $params.each |$k, $v| { -%>
+<%= $k %> = <%= $v %>
+<% } -%>
+
+<% } -%>
+

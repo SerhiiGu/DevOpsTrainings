@@ -1,0 +1,13 @@
+base_server::ip: "192.168.1.188"
+base_server::hostname: "swarm-manager"
+base_server::fqdn: "swarm-manager"
+base_server::type: "docker-swarm-manager"
+base_server::os: "debian"
+base_server::os_ver: 12
+profile::firewall::allowed_ports:
+  - 22      # SSH
+  - 2377    # Docker Swarm management
+  - 7946    # Container networking
+  - 4789    # Overlay networking
+profile::fail2ban::maxretry: 6
+

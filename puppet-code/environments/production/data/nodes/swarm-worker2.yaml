@@ -1,0 +1,11 @@
+base_server::ip: "192.168.1.192"
+base_server::hostname: "swarm-worker2"
+base_server::fqdn: "swarm-worker2"
+base_server::type: "docker-swarm-worker"
+base_server::os: "debian"
+base_server::os_ver: 12
+
+profile::fail2ban::custom_jails:
+  nginx-http-auth:
+    enabled: false
+

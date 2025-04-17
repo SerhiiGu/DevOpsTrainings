@@ -1,0 +1,19 @@
+profile::timezone::timezone: "Europe/Kyiv"
+profile::firewall::allowed_ports:
+  - 22      # SSH
+profile::fail2ban::bantime: 1800
+profile::fail2ban::maxretry: 5
+profile::fail2ban::custom_jails:
+  nginx-http-auth:
+    enabled: true
+    filter: nginx-http-auth
+    action: iptables[name=HTTP, port=http, protocol=tcp]
+    logpath: /var/log/nginx/error.log
+    maxretry: 3
+
+  docker:
+    enabled: false
+    filter: sieve
+    logpath: /var/log/docker.log
+    bantime: 1800
+    maxretry: 5
