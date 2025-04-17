@@ -20,6 +20,7 @@ resource "null_resource" "install_puppet_server" {
       "apt update -y",
 
       "apt install -y puppetserver",
+      "/opt/puppetlabs/bin/puppet module install puppetlabs-stdlib",
 
       "sed -i 's/2g/1g/' /etc/default/puppetserver",
 
