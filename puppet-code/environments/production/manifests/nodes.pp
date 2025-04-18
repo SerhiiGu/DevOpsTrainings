@@ -10,3 +10,6 @@ node 'swarm-worker2' {
   include role::swarm_worker
 }
 
+node 'pxe-server' {
+  include role::pxe_server
+}

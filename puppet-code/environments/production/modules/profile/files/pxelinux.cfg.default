@@ -1,0 +1,21 @@
+DEFAULT menu.c32
+PROMPT 0
+TIMEOUT 50
+ONTIMEOUT debian
+
+MENU TITLE PXE Boot Menu
+
+LABEL debian
+  MENU LABEL Install Debian 12 (Auto)
+  KERNEL debian-installer/amd64/linux
+  APPEND vga=788 initrd=debian-installer/amd64/initrd.gz auto=true priority=critical preseed/url=http://192.168.1.10/preseed/debian12.cfg
+
+LABEL memtest
+  MENU LABEL Memtest86+
+  KERNEL memtest
+
+LABEL rescue
+  MENU LABEL SystemRescue
+  KERNEL rescue/vmlinuz
+  APPEND initrd=rescue/initrd.img boot=live docheck
+

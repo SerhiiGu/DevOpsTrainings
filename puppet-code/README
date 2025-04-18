@@ -10,5 +10,12 @@ git clone git@github.com:SerhiiGu/DevOpsTrainings.git # gitclone, якщо на�
 ln -s DevOpsTrainings/puppet-code code
 mkdir code/modules
 puppet module install puppetlabs-stdlib
+mkdir /etc/puppetlabs/facter
+cd /etc/puppetlabs/facter
+ln -s ../DevOpsTrainings/puppet-code/facts.d facts.d
+
 systemctl start puppetserver
 
+
+=== Примітки ===
+Директорія facts.d читає тільки прості *.sh, *.txt, *.json, *.yaml файли

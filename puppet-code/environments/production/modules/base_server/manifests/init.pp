@@ -29,6 +29,14 @@ class base_server (
     mode   => '0644',
   }
 
+   file { '/etc/puppetlabs/facter':
+    ensure => directory,
+  }
+  file { '/etc/puppetlabs/facter/facts.d':
+    ensure => directory,
+    require => File['/etc/puppetlabs/facter'],
+  }
+
   file { '/etc/hostname':
     content => "${hostname}\n",
     notify  => Exec['set-hostname'],
@@ -38,5 +46,19 @@ class base_server (
     command     => "/bin/hostnamectl set-hostname ${hostname}",
     refreshonly => true,
   }
+
+  file_line { 'PermitRootLogin yes':
+    path   => '/etc/ssh/sshd_config',
+    line   => 'PermitRootLogin yes',
+    match  => '^\s*#?\s*PermitRootLogin\s+.*$',
+    notify => Service['ssh'],
+  }
+
+  service { 'ssh':
+    ensure => running,
+    enable => true,
+ }
+
+
 }
 

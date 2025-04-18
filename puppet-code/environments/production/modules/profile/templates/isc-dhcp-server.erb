@@ -1,0 +1,8 @@
+# This file is managed by Puppet
+
+<% if @dhcp_iface -%>
+INTERFACESv4="<%= @dhcp_iface %>"
+<% else -%>
+# No matching enp* interface found
+<% end -%>
+
