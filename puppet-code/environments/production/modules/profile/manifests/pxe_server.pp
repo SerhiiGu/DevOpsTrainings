@@ -66,7 +66,7 @@ class profile::pxe_server {
     replace => false,
   }
 
-  # Debian autoinstaller full automated install file
+  # Debian12 autoinstaller full automated answer file
   file { '/var/www/html/preseed/debian12.cfg':
     ensure  => file,
     source  => 'puppet:///modules/profile/pxe_debian12.cfg',
@@ -87,7 +87,7 @@ class profile::pxe_server {
 
   file_line { 'TFTP_OPTIONS':
     path    => '/etc/default/tftpd-hpa',
-    line    => 'TFTP_OPTIONS="--secure --blocksize 1468 --verbosity 3"',
+    line    => 'TFTP_OPTIONS="--secure --blocksize 1450 --verbosity 3"',
     match   => '^\s*TFTP_OPTIONS\s*=\s*".*"$',
     notify  => Service['tftpd-hpa'],
     require => Package['tftpd-hpa'],

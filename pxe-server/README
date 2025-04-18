@@ -10,6 +10,73 @@
   2) memtest
   3) SystemRescue: https://www.system-rescue.org/Download/
 
-=== Додаткові умови ===
-  1) потрібно передбачити обмеження завантаження лише зі списку тих MAC-адрес, що дозволені на PXE сервері
-  2) потрібно передбачити задання розбивки диска як окремого конфігураційного файла
+=== Додаткова умова ===
+    потрібно передбачити обмеження завантаження лише зі списку тих MAC-адрес, що дозволені на PXE сервері
+    # /etc/dhcp/mac_filter.conf
+
+
+
+========= Інструкція ========= 
+
+            Більшість процесів і налаштувань автоматизовано через puppet
+
+- Спочатку ставимо puppet-agent (можна через Jenkins задачу "task0_puppet_agent").
+- Уважно перевіряємо hostname.
+- Запускаємо витягування конфігурації (не забути підтвердити сертифікат на puppet сервері), мінімум двічі, щоб усе підтяглося.
+
+- Додаткові ручні налаштування:
+    Файли (initrd.gz, linux, memtest)
+
+  mkdir /mnt/iso
+  mount -o loop debian-12-amd64-netinst.iso /mnt/iso # для CD у VirtualBox: "mount /dev/sr0 /mnt/iso"
+  cp /mnt/iso/install.amd/vmlinuz /srv/tftp/debian-installer/
+
+    Стабільна версія Debian 12 NetInstall ISO: 
+    https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.*-amd64-netinst.iso
+
+  mkdir /tmp/netboot
+  cd /tmp/netboot
+  wget http://ftp.debian.org/debian/dists/bookworm/main/installer-amd64/current/images/netboot/netboot.tar.gz
+  tar xf netboot.tar.gz
+  cp debian-installer/amd64/initrd.gz /srv/tftp/debian-installer/
+  cd ~
+  rm -rf /tmp/netboot
+
+  apt install -y memtest86+
+  cp /boot/memtest86+x64.bin /srv/tftp/
+
+
+    Переходимо до https://www.system-rescue.org/Download/ , завантажуємо, монтуємо як і вище
+
+  cp /mnt/iso/sysresccd/boot/x86_64/sysresccd.img /srv/tftp/rescue/
+  cp /mnt/iso/sysresccd/boot/syslinux/memdisk /srv/tftp/rescue/
+
+
+=== Важливо! ===
+ПІсля всього цього потрібно запустити 
+  /srv/tftp/make_initrd.sh
+для інтеграції файла 
+   /var/www/html/preseed/debian12.cfg (як preseed.cfg)
+в inirtd для автоматизації процесу установки. Також, його треба запускати після кожної зміни цього файлу(і він під puppet'ом)
+
+
+
+
+====== В кінці має бути такий вигляд ======
+/srv/tftp/
+├── pxelinux.0
+├── ldlinux.c32
+├── make_initrd.sh
+├── menu.c32
+├── memtest86+x64.bin
+├── libcom32.c32
+├── libutil.c32
+├── debian-installer/
+│   ├── initrd.gz
+│   └── vmlinuz
+├── pxelinux.cfg/
+│   └── default
+├── rescue
+│   └──memdisk
+│   └── sysresccd.img
+
