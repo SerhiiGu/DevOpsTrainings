@@ -15,11 +15,15 @@ class profile::pxe_server {
     ensure => directory,
   }
 
-  file { '/var/www/html/debian-installer':
+  file { '/var/www/html/debian12':
     ensure => directory,
   }
 
-  file { '/var/www/html/rescue':
+  file { '/srv/tftp/rescue':
+    ensure => directory,
+  }
+
+  file { '/srv/tftp/debian-installer':
     ensure => directory,
   }
 
@@ -62,24 +66,31 @@ class profile::pxe_server {
     replace => false,
   }
 
-  # Debian autoinstaller partitioning script
-  file { '/var/www/html/preseed/partitioning.cfg':
-    ensure  => file,
-    source  => 'puppet:///modules/profile/pxe_partitioning.cfg',
-    replace => false,
-  }
-
   # Debian autoinstaller full automated install file
   file { '/var/www/html/preseed/debian12.cfg':
     ensure  => file,
     source  => 'puppet:///modules/profile/pxe_debian12.cfg',
-    replace => false,
   }
+
+  file { '/srv/tftp/make_initrd.sh':
+    ensure  => file,
+    source  => 'puppet:///modules/profile/make_initrd.sh',
+    mode    => '0755',
+  }
+
 
   file { '/etc/puppetlabs/facter/facts.d/dhcp_iface.sh':
     ensure  => file,
     source  => 'puppet:///modules/profile/facts_dhcp_iface.sh',
     mode    => '0755',
+  }
+
+  file_line { 'TFTP_OPTIONS':
+    path    => '/etc/default/tftpd-hpa',
+    line    => 'TFTP_OPTIONS="--secure --blocksize 1468 --verbosity 3"',
+    match   => '^\s*TFTP_OPTIONS\s*=\s*".*"$',
+    notify  => Service['tftpd-hpa'],
+    require => Package['tftpd-hpa'],
   }
 
   file { '/etc/default/isc-dhcp-server':
@@ -90,6 +101,11 @@ class profile::pxe_server {
   }
 
   service { 'isc-dhcp-server':
+    ensure => running,
+    enable => true,
+  }
+
+  service { 'tftpd-hpa':
     ensure => running,
     enable => true,
   }

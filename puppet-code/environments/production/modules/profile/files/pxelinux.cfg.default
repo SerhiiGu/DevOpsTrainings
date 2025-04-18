@@ -5,19 +5,19 @@ ONTIMEOUT debian
 
 MENU TITLE PXE Boot Menu
 
-LABEL debian
+LABEL debian12
   MENU LABEL Install Debian 12 (Auto)
-  KERNEL http://192.168.1.193/debian-installer/vmlinuz
-  INITRD http://192.168.1.193/debian-installer/initrd.gz
-  APPEND vga=788 auto=true priority=critical preseed/url=http://192.168.1.193/preseed/debian12.cfg
+  KERNEL debian-installer/vmlinuz
+  INITRD debian-installer/initrd.gz
+  APPEND vga=788 initrd=debian-installer/initrd.gz auto=true priority=critical DEBCONF_DEBUG=5
 
 LABEL memtest
   MENU LABEL Memtest86+
-  KERNEL http://192.168.1.193/memtest86+x64.bin
+  KERNEL memtest86+x64.bin
 
 LABEL systemrescue
   MENU LABEL SystemRescue
-  KERNEL memdisk
-  INITRD http://192.168.1.193/rescue/sysresccd.img
+  KERNEL rescue/memdisk
+  INITRD rescue/sysresccd.img
   APPEND iso raw live
 
