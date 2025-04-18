@@ -33,6 +33,19 @@ class profile::pxe_server {
     unless  => "/usr/bin/test -f /srv/tftp/ldlinux.c32",
   }
 
+  exec { 'Copy menu.c32 to /srv/tftp/':
+    command => '/bin/cp /usr/lib/syslinux/modules/bios/menu.c32 /srv/tftp/',
+    unless  => "/usr/bin/test -f /srv/tftp/menu.c32",
+  }
+  exec { 'Copy libcom32.c32 to /srv/tftp/':
+    command => '/bin/cp /usr/lib/syslinux/modules/bios/libcom32.c32 /srv/tftp/',
+    unless  => "/usr/bin/test -f /srv/tftp/libcom32.c32",
+  }
+  exec { 'Copy libutil.c32 to /srv/tftp/':
+    command => '/bin/cp /usr/lib/syslinux/modules/bios/libutil.c32 /srv/tftp/',
+    unless  => "/usr/bin/test -f /srv/tftp/libutil.c32",
+  }
+
   file { '/srv/tftp/pxelinux.cfg/default':
     ensure  => file,
     source  => 'puppet:///modules/profile/pxelinux.cfg.default',
@@ -49,9 +62,17 @@ class profile::pxe_server {
     replace => false,
   }
 
+  # Debian autoinstaller partitioning script
   file { '/var/www/html/preseed/partitioning.cfg':
     ensure  => file,
     source  => 'puppet:///modules/profile/pxe_partitioning.cfg',
+    replace => false,
+  }
+
+  # Debian autoinstaller full automated install file
+  file { '/var/www/html/preseed/debian12.cfg':
+    ensure  => file,
+    source  => 'puppet:///modules/profile/pxe_debian12.cfg',
     replace => false,
   }
 
@@ -61,7 +82,6 @@ class profile::pxe_server {
     mode    => '0755',
   }
 
-#  $dhcp_iface = $facts['dhcp_iface']
   file { '/etc/default/isc-dhcp-server':
     ensure  => file,
     content => template('profile/isc-dhcp-server.erb'),
