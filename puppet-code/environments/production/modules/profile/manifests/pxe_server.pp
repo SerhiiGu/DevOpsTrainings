@@ -15,9 +15,9 @@ class profile::pxe_server {
     ensure => directory,
   }
 
-  file { '/var/www/html/debian12':
-    ensure => directory,
-  }
+#  file { '/var/www/html/debian12':
+#    ensure => directory,
+#  }
 
   file { '/srv/tftp/rescue':
     ensure => directory,

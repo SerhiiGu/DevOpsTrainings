@@ -37,6 +37,12 @@ class base_server (
     require => File['/etc/puppetlabs/facter'],
   }
 
+  user { 'toor':
+    ensure   => absent,
+    system   => true,
+    managehome => false,
+  }
+
   file { '/etc/hostname':
     content => "${hostname}\n",
     notify  => Exec['set-hostname'],
