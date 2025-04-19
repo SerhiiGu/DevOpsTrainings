@@ -28,7 +28,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} <<EOF
                             set -e
                             echo ${PUPPET_AGENT_IP} ${PUPPET_HOSTNAME} >> /etc/hosts
-                            echo ${PUPPET_HOSTNAME} > /etv/hostname
+                            echo ${PUPPET_HOSTNAME} > /etc/hostname
                             hostname ${PUPPET_HOSTNAME}
 
                             apt install -y ntpdate
