@@ -1,7 +1,7 @@
 DEFAULT menu.c32
 PROMPT 0
-TIMEOUT 50
-ONTIMEOUT debian
+TIMEOUT 100
+ONTIMEOUT debian12
 
 MENU TITLE PXE Boot Menu
 
@@ -20,4 +20,10 @@ LABEL systemrescue
   KERNEL rescue/memdisk
   INITRD rescue/sysresccd.img
   APPEND iso raw live
+
+LABEL --------------------
+
+LABEL local
+  MENU LABEL Boot from local hard drive
+  LOCALBOOT 0
 
