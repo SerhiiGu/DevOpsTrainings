@@ -1,0 +1,76 @@
+!Не завершено! Не тестовано
+
+            ========= Задача =========
+1) створити і налаштувати репозиторій для deb-пакетів під Debian12
+2) створити і налаштувати середовище для збірки цих пакетів.
+
+====================================================
+
+Встановлювалося все на одну машину, проте розбито посекційно, і легко розноситься на дві.
+Звісно ж, спочатку потрібно підключити до puppet, його налаштувати і прогнати, щоб підготувати базу. 
+Лише опісля можна переходити нижче.
+
+            ========= Debian Builder part =========
+    Приклад на основі: https://github.com/ClausKlein/tftp-hpa
+
+mkdir /var/builds
+cd /var/builds
+git clone https://github.com/ClausKlein/tftp-hpa.git
+cd tftp-hpa
+
+    Симулюємо білд, що побачити файли, які зібрані, і розкидати їх потім в пакет
+	
+./autogen.sh #якщо є
+./configure --build=x86_64-linux-gnu --prefix=/usr --includedir=\${prefix}/include --mandir=\${prefix}/share/man --infodir=\${prefix}/share/info --sysconfdir=/etc --localstatedir=/var --disable-option-checking --disable-silent-rules --libdir=\${prefix}/lib/x86_64-linux-gnu --runstatedir=/run --disable-maintainer-mode --disable-dependency-tracking
+make
+
+    Ініціалізуємо структури для DEB-збірки (версію вказуємо самі):
+	
+dh_make --createorig -s -y -p tftpd-hpa_5.2-20250419
+
+    Заповняємо control-файли (мінімально): debian/control, debian/rules, debian/compat. Створювати не варто, якщо відсутні.
+
+	Додаємо/редагуємо файл debian/install, де прописуємо всі файли, що треба додати в пакет, звідки й куди
+
+mkdir -p debian/tftpd-hpa
+echo "tftpd/tftpd /usr/sbin/" > debian/install
+===============================
+/etc/init/tftpd-hpa.conf
+/etc/init.d/tftpd-hpa
++/usr/sbin/in.tftpd
+
+	Збірка пакету:
+
+debuild -us -uc
+
+
+            ========= Debian Repo part =========
+			
+	Створюємо структуру репозиторію "deb12-local"
+	
+mkdir -p /var/www/html/deb12-local/{conf,incoming}
+cd /var/www/html/deb12-local/ # корінь репо
+
+	Задати конфігурацію
+
+cat > conf/distributions << EOF
+Codename: stable
+Components: main
+Architectures: amd64
+Suite: stable
+Description: Local Debian 12 Repo
+EOF
+
+	Пакет копіювати в inconimg
+	
+	Реініціалізувати/створити репо (запуск в його корені)
+	
+cd /var/www/html/deb12-local/
+dpkg-scanpackages incoming /dev/null | gzip -9c > incoming/Packages.gz
+
+	=== Конфігурація віддаленого сервера для роботи з репозиторієм ===
+echo "deb [trusted=yes] http://<YOUR_SERVER_IP>/deb12-local stable main" | sudo tee /etc/apt/sources.list.d/local.list
+
+apt update
+apt install tftpd-hpa
+

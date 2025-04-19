@@ -1,7 +1,7 @@
 class profile::pxe_server {
   include profile::packages
   include profile::timezone
-
+  include profile::logging
 
   package { ['tftpd-hpa', 'isc-dhcp-server', 'nginx', 'syslinux', 'pxelinux', 'facter']:
     ensure => installed,

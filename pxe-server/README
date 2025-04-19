@@ -58,6 +58,7 @@
 для інтеграції файла 
    /var/www/html/preseed/debian12.cfg (як preseed.cfg)
 в inirtd для автоматизації процесу установки. Також, його треба запускати після кожної зміни цього файлу(і він під puppet'ом)
+Важливо! Файл повинен бути в ASCII (file preseed.cfg ==> ASCII text).
 
 
 

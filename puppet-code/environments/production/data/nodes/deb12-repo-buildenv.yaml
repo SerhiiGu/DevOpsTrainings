@@ -1,0 +1,11 @@
+base_server::ip: "192.168.1.186"
+base_server::hostname: "deb12-repo-buildenv"
+base_server::fqdn: "deb12-repo-buildenv"
+base_server::type: "repo-and-buildenv"
+base_server::os: "debian"
+base_server::os_ver: 12
+
+profile::fail2ban::custom_jails:
+  nginx-http-auth:
+    enabled: false
+

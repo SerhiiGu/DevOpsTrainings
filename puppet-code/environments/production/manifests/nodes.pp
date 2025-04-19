@@ -13,3 +13,8 @@ node 'swarm-worker2' {
 node 'pxe-server' {
   include role::pxe_server
 }
+
+node 'deb12-repo-buildenv' {
+  include role::dpkg_repo_builder_server
+}
+

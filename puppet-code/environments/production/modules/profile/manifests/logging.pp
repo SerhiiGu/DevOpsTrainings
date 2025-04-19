@@ -1,9 +1,5 @@
 class profile::logging {
 
-  package { 'rsyslog':
-    ensure => installed,
-  }
-
   file { '/etc/rsyslog.d/custom.conf':
     ensure  => file,
     source  => 'puppet:///modules/profile/custom.conf',
@@ -21,6 +17,14 @@ class profile::logging {
     ensure  => file,
     source  => 'puppet:///modules/profile/logrotate-custom',
     mode    => '0644',
+  }
+
+  file { '/var/log/auth.log':
+    ensure => present,
+    mode   => '0640',
+    owner  => 'root',
+    group  => 'adm',
+    replace => false,
   }
 
   service { 'rsyslog':
