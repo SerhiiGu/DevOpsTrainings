@@ -4,11 +4,13 @@ pipeline {
     parameters {
         string(name: 'PUPPET_AGENT_IP', defaultValue: '192.168.1.188', description: 'IP Address for the Puppet Agent Installation')
         string(name: 'PUPPET_MASTER_IP', defaultValue: '192.168.1.191', description: 'IP Address of the Puppet Master(for config)')
+        string(name: 'PUPPET_HOSTNAME', defaultValue: 'puppet-agent', description: 'Set hostname for Puppet Agent server')
     }
 
     environment {
         PUPPET_AGENT_IP  = "${params.PUPPET_AGENT_IP}"
         PUPPET_MASTER_IP = "${params.PUPPET_MASTER_IP}"
+        PUPPET_HOSTNAME = "${params.PUPPET_HOSTNAME}"
     }
 
     stages {
@@ -25,6 +27,10 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} <<EOF
                             set -e
+                            echo ${PUPPET_AGENT_IP} ${PUPPET_HOSTNAME} >> /etc/hosts
+                            echo ${PUPPET_HOSTNAME} > /etv/hostname
+                            hostname ${PUPPET_HOSTNAME}
+
                             apt install -y ntpdate
                             ntpdate pool.ntp.org
                             wget https://apt.puppet.com/puppet7-release-bookworm.deb
@@ -33,6 +39,8 @@ pipeline {
                             apt update
 
                             apt install puppet-agent -y
+                            systemctl disable puppet
+                            systemctl stop puppet
 
                             echo "server = puppet-master" > /etc/puppetlabs/puppet/puppet.conf
                             echo "${PUPPET_MASTER_IP} puppet-master" >> /etc/hosts
@@ -50,7 +58,7 @@ EOF
                         ssh -o StrictHostKeyChecking=no root@${PUPPET_AGENT_IP} <<EOF
                             if [ -f /opt/puppetlabs/bin/puppet ]; then
                                 echo "[INFO] Puppet agent found. Updating crontab..."
-                                (crontab -l 2>/dev/null | grep -v '/opt/puppetlabs/bin/puppet'; echo '*/10 * * * * /opt/puppetlabs/bin/puppet agent --test >/dev/null 2>&1') | crontab -
+                                (crontab -l 2>/dev/null | grep -v '/opt/puppetlabs/bin/puppet'; echo '*/18 * * * * /opt/puppetlabs/bin/puppet agent --test >/dev/null 2>&1') | crontab -
                             else
                                 echo "[WARN] Puppet agent not found at /opt/puppetlabs/bin/puppet"
                                 exit 1
