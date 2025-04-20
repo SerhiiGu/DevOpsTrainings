@@ -17,9 +17,9 @@ class profile::ipxe_server {
     group  => 'www-data',
   }
 
-#  file { '/srv/tftp/rescue':
-#    ensure => directory,
-#  }
+  file { '/srv/httpboot/systemrescue':
+    ensure => directory,
+  }
 
   file { '/etc/dhcp/dhcpd.conf':
     ensure  => file,
@@ -40,11 +40,11 @@ class profile::ipxe_server {
     path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
   }
 
-  exec { 'download-undionly-kpxe-ipxe-bios':
-    command => 'wget https://boot.ipxe.org/undionly.kpxe -O /srv/tftp/undionly.kpxe',
-    creates => '/srv/tftp/undionly.kpxe',
-    path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
-  }
+#  exec { 'download-undionly-kpxe-ipxe-bios':
+#    command => 'wget https://boot.ipxe.org/undionly.kpxe -O /srv/tftp/undionly.kpxe',
+#    creates => '/srv/tftp/undionly.kpxe',
+#    path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
+#  }
 
   exec { 'download-ipxe-efi':
     command => 'wget https://boot.ipxe.org/ipxe.efi -O /srv/tftp/ipxe.efi',
@@ -70,12 +70,11 @@ class profile::ipxe_server {
     path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
   }
 
-#  file { '/srv/tftp/make_initrd.sh':
-#    ensure  => file,
-#    source  => 'puppet:///modules/profile/make_initrd.sh',
-#    mode    => '0755',
-#  }
-
+  exec { 'download-and-extract-memtst':
+    command => "/bin/bash -c 'cd /tmp && wget https://memtest.org/download/v7.20/mt86plus_7.20.binaries.zip && unzip -j mt86plus_7.20.binaries.zip 'memtest64.bin' -d /srv/httpboot/ && rm -f mt86plus_7.20.binaries.zip'",
+    creates => '/srv/httpboot/memtest64.bin',
+    path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
+  }
 
   file { '/etc/puppetlabs/facter/facts.d/dhcp_iface.sh':
     ensure  => file,

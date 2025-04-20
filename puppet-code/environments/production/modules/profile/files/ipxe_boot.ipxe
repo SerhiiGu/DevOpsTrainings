@@ -1,8 +1,40 @@
 #!ipxe
 
-echo Booting Debian Installer...
+set menu-timeout 10000  # 10 секунд (в мілісекундах)
+set default-option debian
 
+:start
+menu PXE Boot Menu (auto-boot in 15s)
+item --key d debian        Install Debian 12 (Default)
+item --key m memtest       Run Memtest86+
+item --key s systemrescue  SystemRescue
+item --key h localboot     Boot from local disk
+choose --timeout ${menu-timeout} --default ${default-option} selected || goto cancel
+
+goto ${selected}
+
+:debian
+echo Booting Debian Installer...
 kernel http://192.168.1.195/vmlinuz auto=true priority=critical interface=auto ip=dhcp url=http://192.168.1.195/debian12.cfg
 initrd http://192.168.1.195/initrd.gz
 boot
+
+:memtest
+echo Booting Memtest86+(64-bit)...
+kernel http://192.168.1.195/memtest64.bin
+boot
+
+:systemrescue
+echo Booting SystemRescue...
+kernel http://192.168.1.195/systemrescue/sysresccd/boot/x86_64/vmlinuz archisobasedir=sysresccd ip=dhcp
+initrd http://192.168.1.195/systemrescue/sysresccd/boot/x86_64/sysresccd.img
+boot
+
+:localboot
+echo Booting from local drive...
+exit
+
+:cancel
+echo Boot cancelled by user
+exit
 
