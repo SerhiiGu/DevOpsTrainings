@@ -1,0 +1,8 @@
+base_server::ip: "192.168.1.195"
+base_server::hostname: "ipxe-server"
+base_server::fqdn: "ipxe-server"
+base_server::type: "ipxe_server"
+base_server::os: "debian"
+base_server::os_ver: 12
+profile::fail2ban::maxretry: 6
+

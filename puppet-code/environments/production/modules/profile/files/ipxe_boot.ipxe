@@ -1,0 +1,8 @@
+#!ipxe
+
+echo Booting Debian Installer...
+
+kernel http://192.168.1.195/vmlinuz auto=true priority=critical interface=auto ip=dhcp url=http://192.168.1.195/debian12.cfg
+initrd http://192.168.1.195/initrd.gz
+boot
+
