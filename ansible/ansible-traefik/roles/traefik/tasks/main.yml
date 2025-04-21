@@ -1,0 +1,22 @@
+- name: Ensure Traefik config dir exists
+  file:
+    path: /etc/traefik
+    state: directory
+
+- name: Deploy traefik.yml
+  template:
+    src: traefik.yml.j2
+    dest: /etc/traefik/traefik.yml
+
+- name: Start Traefik via Docker
+  docker_container:
+    name: traefik
+    image: traefik:v3.0
+    state: started
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /etc/traefik:/etc/traefik
+

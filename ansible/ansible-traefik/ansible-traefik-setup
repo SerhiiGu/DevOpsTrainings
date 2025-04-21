@@ -1,0 +1,36 @@
+---
+- name: Deploy Traefik Reverse Proxy via Ansible
+  hosts: managers
+  become: true
+  vars:
+    traefik_version: "v3.0"
+    traefik_config_dir: "/etc/traefik"
+    traefik_config_file: "traefik.yml"
+  tasks:
+    - name: Ensure Traefik config directory exists
+      file:
+        path: "{{ traefik_config_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Deploy traefik.yml config
+      copy:
+        src: "{{ traefik_config_file }}"
+        dest: "{{ traefik_config_dir }}/traefik.yml"
+        mode: '0644'
+
+    - name: Run Traefik container with Docker
+      community.docker.docker_container:
+        name: traefik
+        image: "traefik:{{ traefik_version }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "80:80"
+          - "443:443"
+          - "8080:8080"
+        volumes:
+          - "{{ traefik_config_dir }}:/etc/traefik"
+        command:
+          - --configFile=/etc/traefik/traefik.yml
+

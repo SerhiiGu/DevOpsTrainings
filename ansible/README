@@ -1,0 +1,16 @@
+Тут розташовані server install procedure, modules and playbooks
+
+
+               ====== Встановлення ======
+
+apt update
+apt install ansible -y
+
+
+               ====== Playbooks ======
+
+  Playbooks можна розміщувати в довільних директоріях. Н-д, /home/serhii/ абощо.
+
+
+
+
