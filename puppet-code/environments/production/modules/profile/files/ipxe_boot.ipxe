@@ -26,7 +26,10 @@ boot
 
 :systemrescue
 echo Booting SystemRescue...
-kernel http://192.168.1.195/systemrescue/sysresccd/boot/x86_64/vmlinuz archisobasedir=sysresccd ip=dhcp
+kernel http://192.168.1.195/systemrescue/sysresccd/boot/x86_64/vmlinuz \
+    archiso_http_srv=http://192.168.1.195/systemrescue/ \
+    archisobasedir=sysresccd \
+    ip=dhcp
 initrd http://192.168.1.195/systemrescue/sysresccd/boot/x86_64/sysresccd.img
 boot
 
