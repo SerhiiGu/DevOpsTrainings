@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ansible-playbook playbooks/playbook-traefik.yml
+ansible-playbook playbooks/deploy_traefik.yml
 

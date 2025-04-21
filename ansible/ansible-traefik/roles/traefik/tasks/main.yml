@@ -1,22 +1,46 @@
-- name: Ensure Traefik config dir exists
+---
+- name: Ensure config directory exists
   file:
-    path: /etc/traefik
+    path: /opt/traefik
     state: directory
+    mode: '0755'
 
-- name: Deploy traefik.yml
+- name: Copy traefik config file
   template:
     src: traefik.yml.j2
-    dest: /etc/traefik/traefik.yml
+    dest: /opt/traefik/traefik.yml
+    mode: '0644'
+  notify: Restart Traefik
 
-- name: Start Traefik via Docker
-  docker_container:
-    name: traefik
-    image: traefik:v3.0
-    state: started
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - /etc/traefik:/etc/traefik
+- name: Check if traefik service exists
+  shell: docker service ls --filter name=traefik --format '{{"{{.Name}}"}}'
+  register: traefik_check
+  changed_when: false
+
+- name: Create Traefik service if not exists
+  shell: |
+    docker service create \
+      --name traefik \
+      --constraint 'node.role==manager' \
+      --publish 89:80 \
+      --publish 449:443 \
+      --publish 8089:8080 \
+      --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+      --mount type=bind,source=/opt/traefik/traefik.yml,target=/etc/traefik/traefik.yml \
+      --network traefik-net \
+      traefik:v2.10 \
+      --configFile=/etc/traefik/traefik.yml
+  when: traefik_check.stdout != "traefik"
+  register: traefik_created
+  changed_when: true
+
+- name: Update Traefik service if it exists
+  shell: |
+    docker service update \
+      --force \
+      --mount-add type=bind,source=/opt/traefik/traefik.yml,target=/etc/traefik/traefik.yml \
+      traefik
+  when: traefik_check.stdout == "traefik"
+  register: traefik_updated
+  changed_when: true
 
