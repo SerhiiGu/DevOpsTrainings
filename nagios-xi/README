@@ -1,0 +1,57 @@
+                                   NAGIOS XI (базово)
+
+Є інфраструктура:
+1 сервер docker swarm manager
+2 сервери типу docker swarm worker
+
+Задача:
+Є порожній deban12 сервер, на який потрібно встановити Nagios CSP сервер, а також налаштувати його модульно,
+для гарного налаштовувння і масштабування. І підключити сюди сервери вище.
+
+========= Інструкція Nagios Server =========
+
+Закоментовані не обов'язкові.
+#- Спочатку ставимо puppet-agent (можна через Jenkins задачу "task0_puppet_agent").
+#- Уважно перевіряємо hostname.
+#- Запускаємо витягування конфігурації (не забути підтвердити сертифікат на puppet сервері), мінімум двічі, щоб усе підтяглося.
+
+- Встановлення nagios учне:
+
+apt install -y unzip sudo openssh-server \
+  apache2 php php-cli php-gd php-mysql php-mbstring php-xml \
+  php-curl php-ldap php-zip php-snmp libapache2-mod-php \
+  mariadb-server libnet-snmp-perl libdbi-perl libdbd-mysql-perl \
+  snmp snmpd postfix build-essential libssl-dev
+
+cd /tmp
+wget https://assets.nagios.com/downloads/nagiosxi/xi-latest.tar.gz
+tar -xvzf xi-latest.tar.gz
+cd nagiosxi
+sudo ./fullinstall
+
+  вводимо паролі і чекаємо 10-15 на установку.
+  Далі заходимо на http://<SERVER_IP>/nagiosxi/ і доналаштовуємо.
+  
+http://192.168.1.193/nagiosxi/
+
+===============================================================
+========= Інструкція Nagios Agent =========
+
+apt-get install -y apt-transport-https gnupg2
+echo "deb https://repo.nagios.com/deb/$(lsb_release -cs) /" > /etc/apt/sources.list.d/nagios.list
+wget -qO - https://repo.nagios.com/GPG-KEY-NAGIOS-V3 | apt-key add -
+apt-get update
+
+apt install -y ncpa
+
+  В файлі  "/usr/local/ncpa/etc/ncpa.cfg"  замінити "community_string = mytoken" на щось більш секюрне, довге.
+  
+systemctl enable ncpa.service
+systemctl restart ncpa.service
+
+  Дозволити в фаерлов, якщо є
+  
+iptables -I INPUT -p tcp --dport 5693 -j ACCEPT
+
+Далі додати його в Nagios У GUI: Configure → Configuration Wizards → Linux Server
+
