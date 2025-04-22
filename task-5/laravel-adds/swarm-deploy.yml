@@ -81,4 +81,6 @@ volumes:
 networks:
   laravel-public:
     external: true
+  monitoring:
+    external: true
 
