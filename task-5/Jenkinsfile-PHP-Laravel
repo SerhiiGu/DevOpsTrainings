@@ -85,21 +85,22 @@ pipeline {
 */
         stage('Build & Push Docker Image') {
             steps {
-                dir("${APP_DIR}") {
+                dir("task-5") {
                     sshagent (credentials: ['swarm-manager-ssh-key']) {
                         script {
                             def BUILD_PATH = "/root/build/${APP_DIR}"
+                            def BASE_PATH = "/root/build/task-5"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
-                                    mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/../* && mkdir -p ${BUILD_PATH}'
+                                    mkdir -p ${BASE_PATH} && rm -rf ${BASE_PATH} && mkdir -p ${BASE_PATH}'
                             """
 
                             echo "📦 SCP files to Swarm Manager"
                             sh """
-                                scp -r -o StrictHostKeyChecking=no ../. root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/../
+                                scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BASE_PATH}/
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
-                                    cp -r ${BUILD_PATH}/../laravel-apps/* ${BUILD_PATH} &&
-                                    cp ${BUILD_PATH}/../laravel-apps/.dockerignore ${BUILD_PATH} &&
+                                    cp -r ${BASE_PATH}/laravel-apps/* ${BUILD_PATH} &&
+                                    cp ${BASE_PATH}/laravel-apps/.dockerignore ${BUILD_PATH} &&
                                     pwd && ls -la   '
                             """
 
