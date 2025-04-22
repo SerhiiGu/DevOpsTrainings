@@ -1,0 +1,34 @@
+- name: Rolling update of a specific service in Docker Swarm with zero downtime
+  hosts: swarm
+  become: yes
+  vars:
+    service_name: app   # змінюй на nginx або інший сервіс
+    parallelism: 1
+    delay: 10s
+    order: start-first
+    image_tag: latest   # або тег, який хочеш оновити
+
+  tasks:
+    - name: Print info
+      debug:
+        msg: "Updating {{ service_name }} with zero downtime..."
+
+    - name: Pull latest image
+      shell: docker pull serhiih2025/task-5_laravel:{{ image_tag }}
+
+    - name: Update Docker service with rolling config
+      shell: >
+        docker service update
+        --image serhiih2025/task-5_laravel:{{ image_tag }}
+        --update-parallelism {{ parallelism }}
+        --update-delay {{ delay }}
+        --update-order {{ order }}
+        {{ service_name }}
+
+    - name: Wait for service to be fully updated
+      shell: docker service ps {{ service_name }} --no-trunc
+      register: result
+      until: '"Running" in result.stdout'
+      retries: 10
+      delay: 5
+
