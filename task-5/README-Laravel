@@ -1,0 +1,28 @@
+Інструкції для створення базового проекту PHP Laravel, з якого збиратиметься Docker Image.
+Ім'я має бути: "laravel"
+
+Попередньо на сервер зрібки потрібно встановити набір пакетів та composer, для ініціалізації порожнього Laravel додатку.
+Якщо проект уже робочий - цього може й не знадобитися.
+
+
+=== Залежності ===
+
+apt install -y php php-xml php-sqlite3 unzip
+
+=== Composer ===
+  Оригінал в:  https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
+
+  Скрипт з модифікованим для встановленням всього за раз тут:
+php-composer-installer.sh
+
+
+=== Init project ===
+
+composer create-project laravel/laravel laravel
+
+
+Після ініту та нашатування самого додатку все з директорії laravel-adds треба скопіювати в laravel для правильної збірки.
+
+cp -r laravel-adds/* laravel/
+cp laravel-adds/.dockerignore laravel/
+

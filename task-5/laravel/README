@@ -1,8 +1,0 @@
-Тут знаходиться базовий проект PHP Laravel, з якого збирається Docker Image.
-
-Попередньо на сервер зрібки потрібно встановити набір пакетів та composer, для ініціалізації породнього Laravel.
-Якщо проект уже робочий - цього може й не знадобитися.
-
-Оригінал в:  ttps://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
-
-Скрипт з модифікованим для встановленням всього за раз тут: php-composer-install.sh
