@@ -100,8 +100,7 @@ pipeline {
                                 scp -r -o StrictHostKeyChecking=no . root@${params.SWARM_MANAGER_IP}:${BASE_PATH}/
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     cp -r ${BASE_PATH}/laravel-adds/* ${BUILD_PATH} &&
-                                    cp ${BASE_PATH}/laravel-adds/.dockerignore ${BUILD_PATH} &&
-                                    pwd && ls -la   '
+                                    cp ${BASE_PATH}/laravel-adds/.dockerignore ${BUILD_PATH} '
                             """
 /*
                             echo "🛠️  Build & Push Docker Image"
