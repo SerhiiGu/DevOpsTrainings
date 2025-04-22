@@ -17,3 +17,6 @@ profile::fail2ban::custom_jails:
     logpath: /var/log/docker.log
     bantime: 1800
     maxretry: 5
+
+deployer_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4mCjhZZ+Nv17vfGpo/HvxwZkiCpMwh+pQIxPRsxJA8HT4g/LjkKtTLjrw0vBJwypARt5ONTF1UoAtTdHDvDSwPll+tf05NNpGQVQKiLdlrBfatMfoHAq+Lej5kLJA+0cx10wSaRUZJRxa4p+QB4sOTHiKzdi0Bl7VJUSL3tBxDZwKz+XZK5AJi8A8b5S+gHLm4iOLVSpH07irM74Y2AaIjPyazOvOdrRJsFZVWlIgtFcvRG64HEJWuVabMUvu8/ewg86YVFdB1ZG1Y9NSph8lLwNsv4mpkRVom62/WYJ15LrLv8GSdPkZzdlqGsvKOPPItGuXStZiwbiUFDEhPAUqC5ygN801LOXw2PhRrnpH6g5YOyLQn8r6nnMTWYfYxFGZCF6RDT1psXRy76qnmrnbDCWMK6yBCsmg2HyidwXN+p2WYqcz3RJ4xDl45X9B8L4VxLlm7ErEkk6AsGRlsXHjEmeXZhkRvx2mSsSLar6pci/Dwf2e2JUxQwUGPqEJM+8="
+

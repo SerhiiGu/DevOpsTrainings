@@ -1,0 +1,123 @@
+🔧 Проєкт: "High-Availability PHP Application з CI/CD, Observability та IaC"
+
+🔑 Стек технологій:
+    Terraform — для створення інфраструктури (VM, мережі)
+    Docker + Swarm — кластеризація, сервіс-деплоймент
+    Jenkins — CI/CD з параметрами
+    Puppet — конфігурація базової ОС + firewall
+    Ansible — для app-level provisioning, наприклад, деплой моніторингу
+    GitHub — з Webhooks для тригерів
+    PHP (Laravel) — основний додаток (альтернатива Go/Node/Flask)
+    Traefik — з TLS та failover
+    Prometheus + Grafana + cAdvisor + Node Exporter — моніторинг
+    Fail2Ban + лог-файли + custom Facter/Ansible Facts — динамічний захист
+
+📦 Архітектура:
+    2 сервера Swarm: manager і worker
+    2 інстанси додатку: на різних нодах
+    Load Balancing + Failover через Traefik
+    Healthchecks для кожного сервісу
+    CI/CD pipeline:
+        GitHub → Jenkins
+        Terraform → Puppet + Ansible → Build → Push → Deploy
+    Моніторинг: Pre-provisioned Grafana dashboards, алерти
+    Логування: Роздільні логи для app/traefik, з обробкою fail2ban
+    Webhooks + GitOps структура
+
+🧩 Основні задачі:
+1. IaC + Provisioning
+    Terraform — створення серверів, мережі
+    Puppet — налаштування базового firewall, користувачів, ssh, fail2ban
+    Ansible — деплой Traefik, monitoring stack, додатку
+2. CI/CD
+    Jenkins pipeline з параметром IP manager
+    Етапи:
+        Terraform apply
+        Puppet/Ansible provisioning
+        Build PHP app → DockerHub
+        Deploy через docker stack deploy
+        Тестування сервісу (curl, healthcheck)
+3. App Layer
+    PHP app (Laravel)
+    Dockerized, .env через secrets/configs
+    healthcheck: GET /health (200 OK)
+4. Traefik
+    TLS з Let's Encrypt або self-signed
+    BasicAuth на dashboard
+    Динамічний конфіг через файл
+    Перенесення всіх налаштувань у traefik.yml
+5. Monitoring
+    Prometheus, Node Exporter, cAdvisor
+    Grafana з імпортованим дашбордом:
+        CPU/RAM/Disk
+        Docker containers
+        Response Time + HTTP codes
+    Alertmanager (опціонально)
+6. Security
+    Fail2ban з Puppet
+    Лог-файли з Traefik → банити IP
+    Custom fact: has_traefik_log → true/false → jail в Puppet
+=======================================
+
+
+🔑 Roadmap:
+
+1. Ініціалізація інфраструктури
+🔧 Technologies: Terraform, VirtualBox/Vagrant або локальні VM  # task-0
+Ціль: Створити 2-3 віртуальні сервери
+Напиши Terraform код для створення manager і worker VM
+Output IP-адреси для Jenkins pipeline
+    Протестуй доступність по SSH
+
+🔐 2. Базова конфігурація через Puppet
+🔧 Technologies: Puppet + Hiera
+Ціль: Базовий hardening
+Puppet Server на окремій VM (або на Jenkins)
+Puppet-агенти на кожній VM
+    Налаштуй:
+        iptables
+        fail2ban (на основі custom fact)
+        користувача deployer
+        логін по ключу SSH
+🧠 3. Ansible: App-level provisioning
+
+🔧 Technologies: Ansible
+Ціль: Поставити app-level stack (Traefik, Monitoring, etc.)
+Налаштування Ansible (див. нижче)
+    Playbooks для:
+        Установки Docker
+        Деплою Traefik з YAML-конфігом
+        Моніторингу (Prometheus + Grafana + Node Exporter)
+
+🧪 4. CI/CD pipeline з Jenkins
+🔧 Technologies: Jenkins + GitHub + Webhooks
+Ціль: Повна автоматизація
+Jenkinsfile з параметрами: IP manager
+    Етапи:
+        Terraform apply
+        Puppet provision
+        Ansible playbooks
+        Docker build → DockerHub
+        docker stack deploy
+
+🧩 5. Додаток
+🔧 Technologies: PHP Laravel
+Ціль: Додаток з healthcheck
+Dockerfile
+Healthcheck на /health
+Docker Compose для локального запуску
+    Traefik labels або dynamic config
+
+📊 6. Observability
+🔧 Technologies: Prometheus + Grafana + cAdvisor
+Ціль: Моніторинг Docker і серверів
+Готовий Grafana dashboard
+Підключення Node Exporter
+    Тест метрик і алертів
+
+🛡️ 7. Security layer
+🔧 Technologies: Traefik logs, fail2ban, Puppet custom fact
+Ціль: Блокування шкідливого трафіку
+Traefik → лог у файл
+Puppet → jail, активується при наявності логу
+Перевірка через custom fact або Ansible stat

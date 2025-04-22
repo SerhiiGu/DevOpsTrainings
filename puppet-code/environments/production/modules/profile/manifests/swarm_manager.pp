@@ -6,5 +6,9 @@ class profile::swarm_manager {
   include profile::packages
   include profile::timezone
   include profile::nginx_swarm
+  include profile::user
+
+
+
 }
 

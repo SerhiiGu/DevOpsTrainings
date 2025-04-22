@@ -5,4 +5,8 @@ class profile::swarm_worker {
   include profile::logging
   include profile::packages
   include profile::timezone
+  include profile::user
+
+
+
 }

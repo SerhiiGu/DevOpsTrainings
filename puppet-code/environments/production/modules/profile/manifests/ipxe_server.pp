@@ -40,12 +40,6 @@ class profile::ipxe_server {
     path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
   }
 
-#  exec { 'download-undionly-kpxe-ipxe-bios':
-#    command => 'wget https://boot.ipxe.org/undionly.kpxe -O /srv/tftp/undionly.kpxe',
-#    creates => '/srv/tftp/undionly.kpxe',
-#    path    => ['/usr/sbin', '/sbin', '/usr/bin', '/bin'],
-#  }
-
   exec { 'download-ipxe-efi':
     command => 'wget https://boot.ipxe.org/ipxe.efi -O /srv/tftp/ipxe.efi',
     creates => '/srv/tftp/ipxe.efi',
