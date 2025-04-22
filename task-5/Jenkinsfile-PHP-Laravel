@@ -40,8 +40,8 @@ pipeline {
                             else
                                 echo '📜 Generating self-signed certificate for ${TLS_DOMAIN}...'
                                 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-                                    -keyout /etc/certs/${TLS_DOMAIN}.key \
-                                    -out /etc/certs/${TLS_DOMAIN}.crt \
+                                    -keyout /etc/certs/'${TLS_DOMAIN}'.key \
+                                    -out /etc/certs/'${TLS_DOMAIN}'.crt \
                                     -subj '/CN=${TLS_DOMAIN}'
                             fi
 
@@ -102,7 +102,7 @@ pipeline {
                                     cp -r ${BASE_PATH}/laravel-adds/* ${BUILD_PATH} &&
                                     cp ${BASE_PATH}/laravel-adds/.dockerignore ${BUILD_PATH} '
                             """
-
+/*
                             echo "🛠️  Build & Push Docker Image"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
@@ -112,7 +112,7 @@ pipeline {
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
-
+*/
                         }
                     }
                 }
