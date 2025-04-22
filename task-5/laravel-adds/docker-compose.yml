@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    image: serhiih2025/task5_laravel:latest
+    image: serhiih2025/task-5_laravel:latest
     volumes:
       - .:/var/www
     networks:

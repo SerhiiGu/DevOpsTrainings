@@ -1,6 +1,6 @@
 services:
   app:
-    image: serhiih2025/task5_laravel:latest
+    image: serhiih2025/task-5_laravel:latest
     deploy:
       replicas: 2
       placement:
