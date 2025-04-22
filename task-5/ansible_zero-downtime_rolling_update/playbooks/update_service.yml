@@ -2,31 +2,33 @@
   hosts: swarm
   become: yes
   vars:
+    stack_name: task5-laravel
     service_name: app   # змінюй на nginx або інший сервіс
     parallelism: 1
     delay: 10s
     order: start-first
+    image: serhiih2025/task-5_laravel
     image_tag: latest   # або тег, який хочеш оновити
 
   tasks:
     - name: Print info
       debug:
-        msg: "Updating {{ service_name }} with zero downtime..."
+        msg: "Updating {{ stack_name }}_{{ service_name }} with zero downtime..."
 
     - name: Pull latest image
-      shell: docker pull serhiih2025/task-5_laravel:{{ image_tag }}
+      shell: docker pull {{ image }}:{{ image_tag }}
 
     - name: Update Docker service with rolling config
       shell: >
         docker service update
-        --image serhiih2025/task-5_laravel:{{ image_tag }}
+        --image {{ image }}:{{ image_tag }}
         --update-parallelism {{ parallelism }}
         --update-delay {{ delay }}
         --update-order {{ order }}
-        {{ service_name }}
+        {{ stack_name }}_{{ service_name }}
 
     - name: Wait for service to be fully updated
-      shell: docker service ps {{ service_name }} --no-trunc
+      shell: docker service ps {{ stack_name }}_{{ service_name }} --no-trunc
       register: result
       until: '"Running" in result.stdout'
       retries: 10
