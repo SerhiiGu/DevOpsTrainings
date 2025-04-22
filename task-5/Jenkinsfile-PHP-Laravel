@@ -58,7 +58,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('Create Docker network @laravel-public@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -104,7 +104,7 @@ pipeline {
                                     cp -r ${BASE_PATH}/laravel-adds/* ${BUILD_PATH} &&
                                     cp ${BASE_PATH}/laravel-adds/.dockerignore ${BUILD_PATH} '
                             """
-
+/*
                             echo "🛠️  Build & Push Docker Image"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
@@ -114,7 +114,7 @@ pipeline {
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
-
+*/
                         }
                     }
                 }
@@ -134,7 +134,7 @@ pipeline {
                 }
             }
         }
-*/
+
       
     }
 }
