@@ -56,7 +56,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Create Docker network @laravel-public@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -82,7 +82,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Build & Push Docker Image') {
             steps {
                 dir("task-5") {
