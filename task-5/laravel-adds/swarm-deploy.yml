@@ -15,9 +15,11 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - .:/var/www
-    deploy:
-      placement:
-        constraints: [node.role == manager]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ports:
       - "9990:80"
     depends_on:
