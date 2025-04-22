@@ -13,7 +13,7 @@ pipeline {
     }
 
     stages {
-
+/*
         stage('Puppet Configuration') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -82,7 +82,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Build & Push Docker Image') {
             steps {
                 dir("${APP_DIR}") {
@@ -91,7 +91,7 @@ pipeline {
                             def BUILD_PATH = "/root/build/${APP_DIR}"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
-                                    mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/*'
+                                    mkdir -p ${BUILD_PATH} && rm -rf ${BUILD_PATH}/../* && mkdir -p ${BUILD_PATH}'
                             """
 
                             echo "📦 SCP files to Swarm Manager"
