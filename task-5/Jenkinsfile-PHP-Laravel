@@ -35,7 +35,7 @@ pipeline {
                             KEY_FILE="\${CERT_DIR}/${TLS_DOMAIN}.key"
 
                             mkdir -p "\${CERT_DIR}"
-                            echo CERT_FILE=\${CERT_FILE} KEY_FILE=\${KEY_FILE}
+                            echo CERT_DIR=${CERT_DIR} CERT_FILE=${CERT_FILE} KEY_FILE=\${KEY_FILE}
 
                             if [[ -f "\${CERT_FILE}" && -f "\${KEY_FILE}" ]]; then
                                 echo "🔐 TLS certificate for ${TLS_DOMAIN} already exists, skipping generation."
