@@ -11,17 +11,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
 Route::get('/health', function () {
     try {
-        // Check DB connection
         DB::connection()->getPdo();
         $dbStatus = 'ok';
     } catch (\Exception $e) {
         $dbStatus = 'error: ' . $e->getMessage();
     }
 
-    // Check cache
     try {
         Cache::put('healthcheck', 'ok', 1);
         $cacheStatus = Cache::get('healthcheck') === 'ok' ? 'ok' : 'fail';
@@ -29,7 +26,6 @@ Route::get('/health', function () {
         $cacheStatus = 'error: ' . $e->getMessage();
     }
 
-    // Check filesystem (optional)
     try {
         Storage::put('healthcheck.txt', 'ok');
         $fileStatus = Storage::exists('healthcheck.txt') ? 'ok' : 'fail';
@@ -38,9 +34,8 @@ Route::get('/health', function () {
         $fileStatus = 'error: ' . $e->getMessage();
     }
 
-    // Queue connection (optional, depends on driver)
     try {
-        $queueStatus = Queue::getConnection() ? 'ok' : 'fail';
+        $queueStatus = Queue::getDefaultDriver() ? 'ok' : 'fail';
     } catch (\Exception $e) {
         $queueStatus = 'error: ' . $e->getMessage();
     }
