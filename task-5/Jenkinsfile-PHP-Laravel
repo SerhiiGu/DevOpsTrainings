@@ -13,7 +13,7 @@ pipeline {
     }
 
     stages {
-/*
+
         stage('Puppet Configuration') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -31,8 +31,8 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no root@${SWARM_MANAGER_IP} '
                             CERT_DIR="/etc/certs"
-                            CERT_FILE="${CERT_DIR}/selfsigned.crt"
-                            KEY_FILE="${CERT_DIR}/selfsigned.key"
+                            CERT_FILE="${CERT_DIR}/${TLS_DOMAIN}.crt"
+                            KEY_FILE="${CERT_DIR}/${TLS_DOMAIN}.key"
                             mkdir -p ${CERT_DIR}
 
                             if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
@@ -40,8 +40,8 @@ pipeline {
                             else
                                 echo '📜 Generating self-signed certificate for ${TLS_DOMAIN}...'
                                 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-                                    -keyout /etc/certs/selfsigned.key \
-                                    -out /etc/certs/selfsigned.crt \
+                                    -keyout /etc/certs/${TLS_DOMAIN}.key \
+                                    -out /etc/certs/${TLS_DOMAIN}.crt \
                                     -subj '/CN=${TLS_DOMAIN}'
                             fi
 
@@ -56,7 +56,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Create Docker network @laravel-public@ if not exists') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -102,7 +102,7 @@ pipeline {
                                     cp -r ${BASE_PATH}/laravel-adds/* ${BUILD_PATH} &&
                                     cp ${BASE_PATH}/laravel-adds/.dockerignore ${BUILD_PATH} '
                             """
-/*
+
                             echo "🛠️  Build & Push Docker Image"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
@@ -112,7 +112,7 @@ pipeline {
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
-*/
+
                         }
                     }
                 }

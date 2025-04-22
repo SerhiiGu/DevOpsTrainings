@@ -1,12 +1,22 @@
 services:
   app:
     image: serhiih2025/task-5_laravel:latest
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9000"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     deploy:
       replicas: 2
       placement:
         constraints: [node.role == worker]
       restart_policy:
         condition: on-failure
+      update_config:
+        parallelism: 1               # по одному контейнеру за раз
+        delay: 10s                   # пауза між оновленням наступного
+        order: start-first           # ← ключовий параметр
+        failure_action: rollback    # якщо нова версія не працює — відкат
     networks:
       - laravel-public
 
@@ -18,9 +28,19 @@ services:
       - .:/var/www
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
       retries: 3
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
     ports:
       - "9990:80"
     depends_on:
