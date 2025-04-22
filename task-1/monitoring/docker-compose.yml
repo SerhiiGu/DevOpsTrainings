@@ -6,6 +6,7 @@ services:
     user: "0:996" # getent group docker - docker group id
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 9090:9090

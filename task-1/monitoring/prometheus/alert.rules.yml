@@ -1,0 +1,48 @@
+groups:
+  - name: system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100)) > 80
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% (current: {{ $value }}%)"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_Active_bytes / node_memory_MemTotal_bytes) > 0.9
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 90%"
+
+      - alert: ContainerDown
+        expr: absent(container_memory_usage_bytes)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Some containers are down"
+          description: "Prometheus can't find metrics for one or more containers."
+
+      - alert: TraefikHttp4xxRate
+        expr: rate(traefik_http_requests_total{code=~"4.."}[1m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of 4xx errors on Traefik"
+          description: "More than 5 4xx responses per second."
+
+      - alert: TraefikHttp5xxRate
+        expr: rate(traefik_http_requests_total{code=~"5.."}[1m]) > 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High rate of 5xx errors on Traefik"
+          description: "More than 1 5xx responses per second."
+
