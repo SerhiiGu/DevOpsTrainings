@@ -29,30 +29,30 @@ pipeline {
                 echo "Generate TLS cert for ${TLS_DOMAIN} if not exist"
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no root@${SWARM_MANAGER_IP} '
-                            CERT_DIR="/etc/certs"
-                            CERT_FILE="${CERT_DIR}/${TLS_DOMAIN}.crt"
-                            KEY_FILE="${CERT_DIR}/${TLS_DOMAIN}.key"
-                            mkdir -p ${CERT_DIR}
-			    echo CERT_DIR=${CERT_DIR} CERT_FILE=${CERT_FILE} KEY_FILE='${KEY_FILE}' TLS_DOMAIN="${TLS_DOMAIN}"
+                        ssh -o StrictHostKeyChecking=no root@${SWARM_MANAGER_IP} "
+                        CERT_DIR=\"/etc/certs\"
+                        CERT_FILE=\"\${CERT_DIR}/\${TLS_DOMAIN}.crt\"
+                        KEY_FILE=\"\${CERT_DIR}/\${TLS_DOMAIN}.key\"
+                        mkdir -p \${CERT_DIR}
+                        echo CERT_DIR=\${CERT_DIR} CERT_FILE=\${CERT_FILE} KEY_FILE=\${KEY_FILE} TLS_DOMAIN=\${TLS_DOMAIN}
 
-                            if [[ -f "${CERT_FILE}" && -f "${KEY_FILE}" ]]; then
-                                echo '🔐 TLS certificate for ${TLS_DOMAIN} already exists, skipping generation.'
-                            else
-                                echo '📜 Generating self-signed certificate for ${TLS_DOMAIN}...'
-                                openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
-                                    -keyout /etc/certs/'${TLS_DOMAIN}'.key \
-                                    -out /etc/certs/'${TLS_DOMAIN}'.crt \
-                                    -subj '/CN=${TLS_DOMAIN}'
-                            fi
+                        if [[ -f \${CERT_FILE} && -f \${KEY_FILE} ]]; then
+                            echo '🔐 TLS certificate for \${TLS_DOMAIN} already exists, skipping generation.'
+                        else
+                            echo '📜 Generating self-signed certificate for \${TLS_DOMAIN}...'
+                            openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
+                                -keyout \${CERT_FILE} \
+                                -out \${CERT_FILE} \
+                                -subj \"/CN=\${TLS_DOMAIN}\"
+                        fi
 
-                            if grep -q '${TLS_DOMAIN}' /etc/hosts; then
-                                echo '✔️  Domain ${TLS_DOMAIN} already exists in /etc/hosts'
-                            else
-                                echo '📝 Adding ${TLS_DOMAIN} to /etc/hosts'
-                                echo '127.0.0.1 ${TLS_DOMAIN}' >> /etc/hosts
-                            fi
-                        '
+                        if grep -q \${TLS_DOMAIN} /etc/hosts; then
+                            echo '✔️ Domain \${TLS_DOMAIN} already exists in /etc/hosts'
+                        else
+                            echo '📝 Adding \${TLS_DOMAIN} to /etc/hosts'
+                            echo '127.0.0.1 \${TLS_DOMAIN}' >> /etc/hosts
+                        fi
+                        "
                     '''
                 }
             }
