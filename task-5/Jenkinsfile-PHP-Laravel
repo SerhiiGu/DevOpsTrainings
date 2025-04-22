@@ -103,7 +103,7 @@ pipeline {
                                     cp ${BASE_PATH}/laravel-adds/.dockerignore ${BUILD_PATH} &&
                                     pwd && ls -la   '
                             """
-
+/*
                             echo "🛠️  Build & Push Docker Image"
                             sh """
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
@@ -113,7 +113,7 @@ pipeline {
                                     docker push ${DOCKERHUB_CREDS_USR}/${IMAGE}
                                 '
                             """
-
+*/
                         }
                     }
                 }
