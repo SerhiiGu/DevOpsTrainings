@@ -1,0 +1,28 @@
+---
+- name: Deploy static site via Docker
+  hosts: test1
+  become: true
+
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+        update_cache: true
+
+    - name: Create index.html
+      copy:
+        dest: /{{ ansible_env.USER }}/index.html
+        content: "<h1>Welcome to Docker + Ansible</h1>"
+
+    - name: Run nginx container
+      docker_container:
+        name: static-site
+        image: nginx:alpine
+        state: started
+        restart_policy: always
+        ports:
+          - "8880:80"
+        volumes:
+          - /{{ ansible_env.USER }}/index.html:/usr/share/nginx/html/index.html:ro
+

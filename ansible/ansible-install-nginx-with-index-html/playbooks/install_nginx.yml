@@ -1,0 +1,26 @@
+---
+- name: Install and configure Nginx
+  hosts: test_group
+  become: true
+
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Copy custom index.html
+      copy:
+        dest: /var/www/html/index.html
+        content: "<h1>Hello from Ansible</h1>"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Ensure nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: true
+

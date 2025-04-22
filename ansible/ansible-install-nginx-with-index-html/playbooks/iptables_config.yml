@@ -1,0 +1,60 @@
+---
+- name: Configure basic iptables rules
+  hosts: test1
+  become: true
+
+  vars:
+    iptables_rules:
+      - { chain: INPUT, protocol: tcp, destination_port: 22, jump: ACCEPT, comment: "Allow SSH" }
+      - { chain: INPUT, protocol: tcp, destination_port: 80, jump: ACCEPT, comment: "Allow HTTP" }
+      - { chain: INPUT, protocol: tcp, destination_port: 443, jump: ACCEPT, comment: "Allow HTTPS" }
+
+      - { chain: FORWARD, jump: DOCKER-FORWARD, comment: "" }
+      - { chain: FORWARD, jump: DOCKER-USER, comment: "" }
+
+      - { chain: DOCKER-USER, jump: RETURN, comment: "" }
+
+
+      - { chain: INPUT, jump: DROP, comment: "Drop all other input traffic" }
+
+  tasks:
+    - name: Install iptables-persistent (to save rules)
+      apt:
+        name: iptables-persistent
+        state: present
+        update_cache: true
+
+    - name: Set debconf answer for iptables-persistent (IPv4)
+      debconf:
+        name: iptables-persistent
+        question: iptables-persistent/autosave_v4
+        value: "true"
+        vtype: boolean
+
+    - name: Set debconf answer for iptables-persistent (IPv6)
+      debconf:
+        name: iptables-persistent
+        question: iptables-persistent/autosave_v6
+        value: "true"
+        vtype: boolean
+
+    - name: Flush existing iptables rules
+      command: iptables -F
+
+    - name: Allow loopback interface
+      command: iptables -A INPUT -i lo -j ACCEPT
+
+    - name: Allow established and related connections
+      command: iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+    - name: Apply custom iptables rules
+      loop: "{{ iptables_rules }}"
+      command: >
+        iptables -A {{ item.chain }}
+        {% if item.protocol is defined %}-p {{ item.protocol }}{% endif %}
+        {% if item.destination_port is defined %}--dport {{ item.destination_port }}{% endif %}
+        -j {{ item.jump }}
+
+    - name: Save iptables rules
+      command: netfilter-persistent save
+
