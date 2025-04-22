@@ -13,7 +13,7 @@ pipeline {
     }
 
     stages {
-
+/*
         stage('Puppet Configuration') {
             steps {
                 sshagent (credentials: ['swarm-manager-ssh-key']) {
@@ -23,7 +23,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Generate TLS cert for domain if not exist') {
             steps {
                 echo "Generate TLS cert for ${TLS_DOMAIN} if not exist"
