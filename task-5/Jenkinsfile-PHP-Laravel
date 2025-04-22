@@ -96,7 +96,7 @@ pipeline {
 
                             echo "📦 SCP files to Swarm Manager"
                             sh """
-                                scp -r -o StrictHostKeyChecking=no ../. root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/
+                                scp -r -o StrictHostKeyChecking=no ../. root@${params.SWARM_MANAGER_IP}:${BUILD_PATH}/../
                                 ssh -o StrictHostKeyChecking=no root@${params.SWARM_MANAGER_IP} '
                                     cp -r ${BUILD_PATH}/../laravel-apps/* ${BUILD_PATH} &&
                                     cp ${BUILD_PATH}/../laravel-apps/.dockerignore ${BUILD_PATH} &&
