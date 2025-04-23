@@ -1,0 +1,10 @@
+---
+- name: Production deployment
+  hosts: prod_servers
+  become: yes
+  roles:
+    #    - common
+    #- docker
+    #- deploy_user
+    - php_stack
+

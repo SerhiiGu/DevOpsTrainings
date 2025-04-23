@@ -1,0 +1,64 @@
+services:
+
+  traefik:
+    image: traefik:v2.11
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8082:8082"   # Prometheus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./certs:/certs
+      - ./logs:/logs
+    networks:
+      - web
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dashboard.rule=Host(`traefik.local`)"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.routers.dashboard.entrypoints=websecure"
+        - "traefik.http.routers.dashboard.tls=true"
+        #- "traefik.http.routers.dashboard.tls.certresolver=dummy"
+        - "traefik.http.services.dummy.loadbalancer.server.port=9999"
+
+  php:
+    image: php:8.3-fpm
+    volumes:
+      - ./php:/var/www/html
+    networks:
+      - web
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./php:/var/www/html
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - web
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.php.rule=Host(`php.local`)"
+        - "traefik.http.routers.php.entrypoints=web"
+        - "traefik.http.routers.php.middlewares=redirect-to-https"
+
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+
+        - "traefik.http.routers.php-secure.rule=Host(`php.local`)"
+        - "traefik.http.routers.php-secure.entrypoints=websecure"
+        - "traefik.http.routers.php-secure.tls=true"
+
+        - "--entrypoints.websecure.http.tls=true"
+      #        - "traefik.http.routers.php-secure.tls.options=default"
+        - "traefik.http.routers.php-secure.service=nginx"
+        - "traefik.http.services.nginx.loadbalancer.server.port=80"
+
+networks:
+  web:
+    driver: overlay
+

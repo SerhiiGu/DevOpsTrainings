@@ -8,7 +8,7 @@
       - { chain: INPUT, protocol: tcp, destination_port: 22, jump: ACCEPT, comment: "Allow SSH" }
       - { chain: INPUT, protocol: tcp, destination_port: 80, jump: ACCEPT, comment: "Allow HTTP" }
       - { chain: INPUT, protocol: tcp, destination_port: 443, jump: ACCEPT, comment: "Allow HTTPS" }
-
+      
       - { chain: FORWARD, jump: DOCKER-FORWARD, comment: "" }
       - { chain: FORWARD, jump: DOCKER-USER, comment: "" }
 

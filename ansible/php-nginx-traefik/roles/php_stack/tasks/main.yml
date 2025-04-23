@@ -1,0 +1,141 @@
+---
+- name: Create project directory
+  file:
+    path: "/home/{{ deploy_user }}/stack"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Copy Docker stack file
+  copy:
+    src: docker-compose.prod.yml
+    dest: "/home/{{ deploy_user }}/stack/docker-compose.yml"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Create Docker appitional configs directory
+  file:
+    path: "/home/{{ deploy_user }}/stack/config"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Copy Traefik config file
+  copy:
+    src: ./config/traefik.yml
+    dest: "/home/{{ deploy_user }}/stack/config/traefik.yml"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Create Traefik logs directory
+  file:
+    path: "/home/{{ deploy_user }}/stack/logs"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+
+- name: Create certs directory
+  file:
+    path: "/home/{{ deploy_user }}/stack/certs"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Copy self-signed certificate
+  copy:
+    src: ../../../certs/cert.crt
+    dest: "/home/{{ deploy_user }}/stack/certs/cert.crt"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Copy self-signed key
+  copy:
+    src: ../../../certs/privkey.key
+    dest: "/home/{{ deploy_user }}/stack/certs/privkey.key"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Create www(php) directory
+  file:
+    path: "/home/{{ deploy_user }}/stack/php"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Copy index.php
+  copy:
+    src: ./config/index.php
+    dest: "/home/{{ deploy_user }}/stack/php/index.php"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Copy nginx default conf
+  copy:
+    src: ./config/nginx_default.conf
+    dest: "/home/{{ deploy_user }}/stack/default.conf"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+
+- name: Check if node is a Swarm manager
+  command: docker info -f '{{ "{{.Swarm.ControlAvailable}}" }}'
+  register: swarm_info
+  changed_when: false
+  failed_when: false
+
+- name: Create external overlay network 'frontend'
+  docker_network:
+    name: frontend
+    driver: overlay
+    scope: swarm
+    attachable: yes
+    state: present
+  when: swarm_info.stdout == 'true'
+
+- name: Deploy stack only if this node is a Swarm manager
+  command: docker stack deploy -c /home/{{ deploy_user }}/stack/docker-compose.yml app_stack
+  when: swarm_info.stdout == 'true'
+
+- name: Wait for PHP service to be running
+  shell: docker service ls --filter name=app_stack_php --format "{{'{{.Replicas}}'}}"
+  register: php_replicas
+  retries: 10
+  delay: 5
+  until: php_replicas.stdout is match("^[1-9]+/[1-9]+$")
+  when: swarm_info.stdout == 'true'
+
+- debug:
+    msg: >-
+      PHP service replicas: {{
+        php_replicas.stdout if (php_replicas is defined and 'stdout' in php_replicas) else 'N/A'
+      }}
+
+- name: Wait for Nginx to be running
+  shell: docker service ls --filter name=app_stack_nginx --format "{{'{{.Replicas}}'}}"
+  register: nginx_replicas
+  retries: 10
+  delay: 5
+  until: nginx_replicas.stdout is match("^[1-9]+/[1-9]+$")
+  when: swarm_info.stdout == 'true'
+
+- debug:
+    msg: >-
+      Nginx service replicas: {{
+        nginx_replicas.stdout if (nginx_replicas is defined and 'stdout' in nginx_replicas) else 'N/A'
+      }}
+
+- name: Wait for Traefik to be running
+  shell: docker service ls --filter name=app_stack_traefik --format "{{'{{.Replicas}}'}}"
+  register: traefik_replicas
+  retries: 10
+  delay: 5
+  until: traefik_replicas.stdout is match("^[1-9]+/[1-9]+$")
+  when: swarm_info.stdout == 'true'
+
+- debug:
+    msg: >-
+      Traefik service replicas: {{
+        traefik_replicas.stdout if (traefik_replicas is defined and 'stdout' in traefik_replicas) else 'N/A'
+      }}
+
+

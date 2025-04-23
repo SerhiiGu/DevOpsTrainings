@@ -1,0 +1,14 @@
+---
+- name: Create deploy user
+  user:
+    name: "{{ deploy_user }}"
+    groups: docker
+    shell: /bin/bash
+    create_home: yes
+
+- name: Add SSH key to deploy user
+  authorized_key:
+    user: "{{ deploy_user }}"
+    key: "{{ ssh_pub_key }}"
+    state: present
+

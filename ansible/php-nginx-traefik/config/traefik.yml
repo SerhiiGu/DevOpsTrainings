@@ -1,0 +1,49 @@
+global:
+  sendAnonymousUsage: false
+
+serversTransport:
+  insecureSkipVerify: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+  metrics:
+    address: ":8082"
+
+log:
+  level: DEBUG
+  format: common
+
+accessLog:
+  filePath: "/logs/access.log"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    swarmMode: true
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/certs/cert.crt"
+        keyFile: "/certs/privkey.key"
+  certificates:
+    - certFile: "/certs/cert.crt"
+      keyFile: "/certs/privkey.key"
+
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true
+
+api:
+  dashboard: true
+  insecure: false
