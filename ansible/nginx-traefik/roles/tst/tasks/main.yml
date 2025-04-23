@@ -21,17 +21,10 @@
     owner: "{{ deploy_user }}"
     group: "{{ deploy_user }}"
 
-- name: Copy self-signed certificate
+- name: Copy all cert files
   copy:
-    src: ../../../certs/cert.pem
-    dest: "/home/{{ deploy_user }}/stack/certs/cert.pem"
-    owner: "{{ deploy_user }}"
-    group: "{{ deploy_user }}"
-
-- name: Copy self-signed key
-  copy:
-    src: ../../../certs/key.pem
-    dest: "/home/{{ deploy_user }}/stack/certs/key.pem"
+    src: "../../../certs/"
+    dest: "/home/{{ deploy_user }}/stack/certs/"
     owner: "{{ deploy_user }}"
     group: "{{ deploy_user }}"
 

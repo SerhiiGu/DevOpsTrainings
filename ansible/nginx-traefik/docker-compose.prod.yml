@@ -7,11 +7,13 @@ services:
     ports:
       - "82:80"
       - "445:443"
+      - "8084:8082"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./config/dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./certs:/certs
+      - ./logs:/logs
     networks:
       - web
     deploy:
@@ -33,7 +35,7 @@ services:
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.sec.rule=Host(`phpqwe123.local`)"
+        - "traefik.http.routers.sec.rule=Host(`qweasd123.local`) || Host(`phpqwe123.local`)"
         - "traefik.http.routers.sec.entrypoints=websecure"
         - "traefik.http.routers.sec.tls=true"
         - "traefik.http.services.nginx.loadbalancer.server.port=80"

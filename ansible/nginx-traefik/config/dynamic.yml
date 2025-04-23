@@ -2,4 +2,8 @@ tls:
   certificates:
     - certFile: /certs/cert.pem
       keyFile: /certs/key.pem
+    - certFile: /certs/traefik.crt
+      keyFile: /certs/traefik.key
+    - certFile: /certs/qweasd123.crt
+      keyFile: /certs/qweasd123.key
 
