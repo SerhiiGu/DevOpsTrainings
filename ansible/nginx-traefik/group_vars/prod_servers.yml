@@ -1,0 +1,4 @@
+deploy_user: deployer
+ssh_pub_key: "{{ lookup('file', '../../../id_rsa.pub') }}"
+docker_compose_version: "1.29.2"
+domain_name: lar2.local
