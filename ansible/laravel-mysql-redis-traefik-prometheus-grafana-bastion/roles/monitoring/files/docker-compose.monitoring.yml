@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - global_net
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=213402
+    ports:
+      - "3000:3000"
+    networks:
+      - global_net
+
+  node-exporter:
+    image: prom/node-exporter
+    deploy:
+      mode: global
+    networks:
+      - global_net
+    ports:
+      - "9100:9100"
+
+  mysql_exporter:
+    image: prom/mysqld-exporter:v0.13.0
+    volumes:
+      - ./.my.cnf:/home/.my.cnf:ro
+    networks:
+      - global_net
+    deploy:
+      replicas: 1
+    ports:
+      - "9104:9104"
+
+
+volumes:
+  grafana-storage:
+
+networks:
+  global_net:
+    external: true
+

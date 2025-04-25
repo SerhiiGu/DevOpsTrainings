@@ -1,0 +1,5 @@
+bastion_allowed_users:
+  - admin
+  - devops
+  - deployer
+

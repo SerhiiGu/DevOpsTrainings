@@ -1,0 +1,15 @@
+## Log logins/logouts
+-w /var/log/faillog -p wa -k logins
+-w /var/log/lastlog -p wa -k logins
+-w /var/run/utmp -p wa -k logins
+-w /var/log/wtmp -p wa -k logins
+-w /var/log/btmp -p wa -k logins
+
+## Watch sudo usage
+-w /usr/bin/sudo -p x -k sudo
+
+## Watch sensitive dirs
+-w /etc/ -p wa -k etc-watch
+-w /var/log/ -p wa -k log-watch
+-w /home/ -p wa -k home-watch
+

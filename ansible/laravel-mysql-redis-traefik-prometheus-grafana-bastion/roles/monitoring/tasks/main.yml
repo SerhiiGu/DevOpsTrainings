@@ -1,0 +1,36 @@
+- name: Ensure monitoring directories exist
+  file:
+    path: "/home/deployer/monitoring/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - grafana
+    - grafana/dashboards
+    - grafana/provisioning
+    - grafana/provisioning/dashboards
+    - grafana/provisioning/datasources
+    - prometheus
+
+- name: Copy configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "/home/deployer/monitoring/{{ item.dest }}"
+  loop:
+    - { src: 'grafana-datasource.yml', dest: 'grafana/provisioning/datasources/datasource.yml' }
+    - { src: 'grafana-dashboards.yml', dest: 'grafana/provisioning/dashboards/dashboard.yml' }
+    - { src: 'prometheus.yml', dest: 'prometheus/prometheus.yml' }
+    - { src: 'docker-compose.monitoring.yml', dest: 'docker-compose.monitoring.yml' }
+    - { src: '.my.cnf', dest: '.my.cnf' }
+    - { src: 'dashboards/1860_Node_Exporter_Full.json', dest: 'grafana/provisioning/dashboards/1860_Node_Exporter_Full.json' }
+    - { src: 'dashboards/1860_Node_Exporter_Full.json', dest: 'grafana/provisioning/dashboards/4475_Traefik.json' }
+    - { src: 'dashboards/12776_Redis.json', dest: 'grafana/provisioning/dashboards/12776_Redis.json' }
+    - { src: 'dashboards/7362_MySQL.json', dest: 'grafana/provisioning/dashboards/7362_MySQL.json' }
+
+
+- name: Deploy monitoring stack
+  docker_stack:
+    name: monitoring
+    state: present
+    compose:
+      - "/home/deployer/monitoring/docker-compose.monitoring.yml"
+

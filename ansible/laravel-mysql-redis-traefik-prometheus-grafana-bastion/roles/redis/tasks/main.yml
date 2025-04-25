@@ -1,11 +1,11 @@
 - name: Create redis config directory
   file:
-    path: /opt/redis
+    path: /home/deployer/redis
     state: directory
 
 - name: Create redis data directory
   file:
-    path: /opt/redis/redis_data
+    path: /home/deployer/redis/redis_data
     state: directory
 
 - name: Create Redis config file
@@ -26,7 +26,7 @@
 - name: Create Redis stack compose file
   template:
     src: redis-stack.yml.j2
-    dest: /opt/redis/docker-compose.yml
+    dest: /home/deployer/redis/docker-compose.yml
     mode: '0644'
 
 - name: Deploy Redis stack
@@ -34,5 +34,5 @@
     name: redis
     state: present
     compose:
-      - /opt/redis/docker-compose.yml
+      - /home/deployer/redis/docker-compose.yml
 

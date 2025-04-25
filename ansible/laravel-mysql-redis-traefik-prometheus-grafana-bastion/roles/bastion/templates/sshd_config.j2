@@ -7,11 +7,13 @@ PermitEmptyPasswords no
 PubkeyAuthentication yes
 ChallengeResponseAuthentication no
 UsePAM yes
-X11Forwarding yes
+X11Forwarding yes  #no
 #AllowTcpForwarding no
-AllowAgentForwarding yes
+AllowAgentForwarding yes  #no
 ClientAliveInterval 300
 ClientAliveCountMax 2
 LoginGraceTime 30
-Subsystem       sftp    /usr/lib/openssh/sftp-server
+#AllowUsers user1 user2 user3
+#AllowUsers {% for user in bastion_allowed_users %}{{ user }} {% endfor %}
+Subsystem       sftp    /usr/lib/openssh/sftp-server  #no
 

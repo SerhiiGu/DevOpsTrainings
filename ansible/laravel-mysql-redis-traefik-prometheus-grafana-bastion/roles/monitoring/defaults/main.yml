@@ -1,0 +1,4 @@
+monitoring_grafana_admin_user: admin
+monitoring_grafana_admin_password: 213402
+  #monitoring_alerts_telegram_token: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+  #monitoring_alerts_telegram_chat_id: "-123456789"

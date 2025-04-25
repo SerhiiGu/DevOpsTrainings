@@ -23,9 +23,6 @@
 - name: Include web proxies config: traefik
   include_tasks: deploy_traefik.yml
 
-- name: "Configure monitoring stack"
-  hosts: monitoring
-  become: true
-  roles:
-    - monitoring
+- name: Include monitoring stack configuration
+  include_tasks: deploy_monitoring.yml
 

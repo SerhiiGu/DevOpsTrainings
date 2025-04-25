@@ -1,0 +1,62 @@
+- name: Smoke tests for post-deployment
+  hosts: all
+  become: yes
+  tasks:
+    - name: ✅ SSH connectivity (ping)
+      ping:
+
+- name: 🚪 Bastion service checks
+  hosts: bastion
+  become: yes
+  tasks:
+    - name: ✅ fail2ban is active
+      command: systemctl is-active fail2ban
+      register: fail2ban_status
+      failed_when: fail2ban_status.stdout != "active"
+      changed_when: false
+
+    - name: ✅ auditd is active
+      command: systemctl is-active auditd
+      register: auditd_status
+      failed_when: auditd_status.stdout != "active"
+      changed_when: false
+
+- name: 🐳 Docker Swarm service checks
+  hosts: web
+  become: yes
+  tasks:
+    - name: 📋 List docker services
+      command: docker service ls
+      register: services
+      changed_when: false
+
+    - name: 🧾 Output docker services
+      debug:
+        var: services.stdout_lines
+
+- name: 🌐 Laravel health check
+  hosts: web
+  tasks:
+    - name: 🌍 Check Laravel HTTP 200 (via ansible_host)
+      uri:
+        url: https://laravel.local
+        status_code: 200
+        return_content: no
+        validate_certs: no
+      delegate_to: localhost
+
+- name: 📈 Monitoring endpoints check
+  hosts: monitoring
+  tasks:
+    - name: 🔎 Prometheus is reachable
+      uri:
+        url: http://laravel.local:9090/api/v1/status/runtimeinfo
+        status_code: 200
+      delegate_to: localhost
+
+    - name: 📊 Grafana login page responds
+      uri:
+        url: http://laravel.local:3000/login
+        status_code: 200
+      delegate_to: localhost
+

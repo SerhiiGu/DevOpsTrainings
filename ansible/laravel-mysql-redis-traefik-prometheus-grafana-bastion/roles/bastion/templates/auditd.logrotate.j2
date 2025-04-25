@@ -1,0 +1,13 @@
+/var/log/audit/audit.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0600 root root
+    postrotate
+        /usr/bin/systemctl restart auditd > /dev/null
+    endscript
+}
+
