@@ -1,0 +1,82 @@
+- name: Ensure cert directories exist
+  file:
+    path: "{{ item.cert_path | dirname }}"
+    state: directory
+    mode: 0755
+  loop: "{{ ssl_domains }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Check if cert file exists
+  stat:
+    path: "{{ item.cert_path }}"
+  loop: "{{ ssl_domains }}"
+  register: cert_stats
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Check if key file exists
+  stat:
+    path: "{{ item.key_path }}"
+  loop: "{{ ssl_domains }}"
+  register: key_stats
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Set fact with domain items and stats
+  set_fact:
+    ssl_items: "{{ ssl_domains | zip(cert_stats.results, key_stats.results) | map('flatten') | list }}"
+
+- name: Get cert modulus hash
+  shell: |
+    openssl x509 -noout -modulus -in {{ item.0.cert_path }} | openssl sha256
+  when: item.1.stat.exists
+  loop: "{{ ssl_items }}"
+  register: cert_hashes
+  changed_when: false
+  loop_control:
+    label: "{{ item.0.name }}"
+
+- name: Get key modulus hash
+  shell: |
+    openssl rsa -noout -modulus -in {{ item.0.key_path }} | openssl sha256
+  when: item.2.stat.exists
+  loop: "{{ ssl_items }}"
+  register: key_hashes
+  changed_when: false
+  loop_control:
+    label: "{{ item.0.name }}"
+
+- name: Prepare combined list for SSL checks
+  set_fact:
+    ssl_combined: >-
+      {{
+        ssl_items |
+        zip(cert_stats.results, key_stats.results, cert_hashes.results, key_hashes.results) |
+        map('list') |
+        map('extract', {
+          0: 'item',
+          1: 'cert',
+          2: 'key',
+          3: 'cert_hash',
+          4: 'key_hash'
+        }) |
+        list
+      }}
+
+- name: Generate self-signed certificate if missing or mismatched
+  shell: |
+    openssl req -x509 -newkey rsa:4096 -nodes \
+      -keyout {{ item.item.key_path }} \
+      -out {{ item.item.cert_path }} \
+      -days 365 \
+      -subj "/CN={{ item.item.name }}" \
+      -addext "subjectAltName=DNS:{{ item.item.name }}"
+  when:
+    - not item.cert.stat.exists
+      or not item.key.stat.exists
+      or item.cert_hash.stdout != item.key_hash.stdout
+  loop: "{{ ssl_combined }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+

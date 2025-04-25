@@ -1,0 +1,20 @@
+deploy_user: deployer
+deploy_path: /home/deployer
+
+laravel_env: production
+laravel_app_key: base64:ZjQwaWdoNzk0aGd2YnlmZGl1dmhkc2lm
+app_url: https://laravel.local
+
+db_host: db
+db_name: laravel_app
+db_user: laravel
+db_password: 213403
+
+redis_host: redis
+redis_password: 213404
+
+repo_url: https://github.com/SerhiiGu/DevOpsTrainings.git
+repo_branch: main
+
+#release_timestamp: 20250424202823
+

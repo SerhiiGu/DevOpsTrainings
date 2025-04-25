@@ -1,0 +1,24 @@
+- name: Ensure MySQL core package is installed
+  apt:
+    name: mariadb-server-core
+    state: present
+    update_cache: no
+
+- name: Ensure MySQL is installed
+  apt:
+    name: mariadb-server
+    state: present
+    update_cache: no
+
+- name: Ensure MySQL is running and enabled
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Install PyMySQL
+  apt:
+    name: python3-pymysql
+    state: present
+    update_cache: no
+

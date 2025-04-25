@@ -1,0 +1,114 @@
+Задача: Побудова продакшн-орієнтованої платформи на базі Laravel + MySQL + Redis + Traefik за допомогою Ansible
+========================================
+
+Ціль: автоматизувати повний деплой Laravel-додатку у продакшн-середовищі з використанням Ansible. 
+Інфраструктура буде базуватись на 3+ віртуальних/хмарних хостах з наступними ролями:
+    app (1-2 хости) — Laravel (PHP-FPM) + Supervisor + Redis
+    web (1 хост) — Traefik reverse proxy з TLS та Let's Encrypt або self-signed certs
+    db (1 хост) — MySQL з резервним копіюванням
+    monitoring (1 хост) — Prometheus + Grafana з preconfigured dashboards
+    bastion (1 хост, опціонально) — SSH gateway + fail2ban
+========================================
+
+Функціональні вимоги
+    Ansible-рольова структура
+        Кожна роль (laravel, mysql, redis, traefik, monitoring, common, backup) має бути ізольована та повторно використовувана.
+        group_vars/ для налаштувань кожної групи.
+    CI/CD-інтеграція
+        Запуск ansible-playbook через Jenkins або GitHub Actions при пуші в main.
+        Використання ansible-vault для зберігання секретів (DB credentials, Laravel .env).
+    Zero Downtime деплой Laravel
+        Через php artisan down, deploy:release логіку, supervisor для queue workers.
+        Атомарна заміна папки current.
+    Traefik
+        Auto-discovery на основі labels у docker-compose.
+        HTTPS (Let's Encrypt або self-signed).
+        Basic Auth на dashboard.
+    Monitoring
+        Node Exporter, Laravel Exporter (або кастомний), Redis Exporter.
+        Grafana з імпортом dashboard-ів через API.
+        Alerts via Telegram або Email.
+    Backup
+        MySQL дампи раз на день через cron.
+        Автоматичне копіювання на віддалене SFTP-сховище.
+    Dynamic Inventory
+        Підтримка хмарних VM (AWS, Hetzner, GCP, etc).
+        Або власна inventory генерація (наприклад, з Consul або API).
+========================================
+Бонусні фічі (необов’язково, але цікаво)
+    Rolling updates для Laravel серверів.
+    Auto-scaling Redis або Laravel з Ansible hooks.
+    Реплікація MySQL.
+    Використання systemd замість Supervisor.
+    Ansible тестування через Molecule + Docker.
+========================================
+
+Структура Ansible-проєкту
+ansible/
+├── inventory/
+│    └── production/
+│        ├── hosts.yml               # inventory з групами
+│        └── group_vars/
+│            ├── all.yml             # загальні змінні (наприклад, timezone, env)
+│            ├── app.yml             # змінні для Laravel-серверів
+│            ├── web.yml             # змінні для Traefik reverse proxy
+│            ├── db.yml              # змінні для MySQL
+│            ├── monitoring.yml      # змінні для Prometheus + Grafana
+│            └── bastion.yml         # Змінні для безпеки, fail2ban, SSH gateway
+├── roles/
+│   ├── common/                      # hostname, users, timezone, ssh
+│   │   ├── tasks/main.yml
+│   │   └── handlers/main.yml
+│   ├── fail2ban/                    # бан SSH-атак
+│   │   ├── tasks/main.yml
+│   │   ├── templates/jail.local.j2
+│   │   └── defaults/main.yml
+│   ├── bastion/
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   ├── handlers/
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       └── sshd_config.j2
+│   ├── laravel/                     # PHP-FPM, Laravel setup, deploy logic
+│   ├── mysql/                       # MySQL setup + backups
+│   ├── redis/                       # Redis with systemd or Docker
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       └── redis.conf.j2
+│   ├── traefik/                     # HTTPS proxy + dashboard
+│   ├── monitoring/                 # Node Exporter, Prometheus, Grafana
+│   └── backup/                      # MySQL dumps + upload to SFTP
+├── group_vars/
+│   └── vault.yml                    # ansible-vault encrypted secrets
+├── files/
+│   ├── grafana_dashboards/
+│   ├── laravel_env.j2
+│   └── ssh_banner.txt
+├── templates/
+│   └── nginx.conf.j2                # якщо не через docker
+├── site.yml                         # головний playbook
+└── requirements.yml                 # external roles if needed (e.g. geerlingguy.mysql)
+
+========================================
+============ Рекомендації ==============
+Компонент --- Де запускати --- Причина
+app --- Docker Swarm (1-2 вузли) --- Масштабування Laravel, ізоляція, автодеплой
+web (Traefik) --- Docker Swarm (той самий хост, що app) --- Traefik чудово інтегрується з Docker labels
+db (MySQL) --- ОК як окремий віртуальний хост (bare metal або VM) --- Більш контрольований бекуп, стабільність
+monitoring --- Окремий Docker Swarm сервіс або standalone --- Prometheus + Grafana легко запускаються в контейнерах
+bastion	--- Окрема віртуалка або lightweight VPS --- Безпека, fail2ban, SSH gateway
+
+
+
+========================================
+============== Примітки ================
+  1) Створення шифрованого сховища
+ansible-vault create group_vars/vault.yml
+  Вміст, н-д:
+db_root_password: supersecret
+laravel_app_key: base64:XYZ123==
+redis_password: anothersecret
+
+

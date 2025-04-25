@@ -1,0 +1,48 @@
+services:
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - /home/deployer/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - /home/deployer/nginx/logs:/var/log/nginx
+      - /home/deployer/current/task-5/laravel:/var/www
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: any
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nginx-insecure.rule=Host(`laravel.local`)"
+        - "traefik.http.routers.nginx-insecure.entrypoints=web"
+        - "traefik.http.routers.nginx-insecure.middlewares=redirect-to-https"
+
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+
+        - "traefik.http.routers.nginx.rule=Host(`laravel.local`)"
+        - "traefik.http.routers.nginx.entrypoints=websecure"
+        - "traefik.http.routers.nginx.tls=true"
+        - "traefik.http.services.nginx.loadbalancer.server.port=80"
+
+
+    ports:
+      - "9990:80"
+    networks:
+      - global_net
+
+
+networks:
+  global_net:
+    external: true
+
+

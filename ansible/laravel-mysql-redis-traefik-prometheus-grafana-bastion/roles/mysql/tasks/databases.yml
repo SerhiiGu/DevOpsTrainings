@@ -1,0 +1,30 @@
+- name: Create databases
+  mysql_db:
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ mysql_databases }}"
+
+- name: Create users
+  mysql_user:
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.priv }}"
+    host: "%"
+    state: present
+  loop: "{{ mysql_users }}"
+
+# if it will be problems such access denied for root, use this:
+# stop mysql
+# add "skip-grant-tables" to "[mysqld]" section
+# start mysql
+# login as root and run
+# 1) FLUSH PRIVILEGES;
+# 2) GRANT ALL ON *.* TO root@localhost WITH GRANT OPTION;
+# quit
+# stop mysql
+# remove option "skip-grant-tables"
+# start mysql.
+# Now, you can repeat the ansible playbook
+

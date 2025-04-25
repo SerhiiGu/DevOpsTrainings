@@ -1,0 +1,12 @@
+#!/bin/bash
+
+BACKUP_DIR="/tmp/mysql_backup"
+TIMESTAMP=$(date +%F_%H-%M)
+mkdir -p $BACKUP_DIR
+
+# Dump all databases
+mysqldump --all-databases > $BACKUP_DIR/mysql_backup_$TIMESTAMP.sql
+
+# Rsync to bastion
+rsync -az --remove-source-files $BACKUP_DIR/ {{ backup_user }}@{{ bastion_ip }}:/srv/mysql_backups/
+

@@ -1,0 +1,7 @@
+- name: "Apply common configuration to all hosts"
+  hosts: all
+  become: true
+  roles:
+    - common
+    - fail2ban
+

@@ -1,0 +1,8 @@
+- name: "Configure and deploy database server"
+  hosts: db
+  become: true
+  roles:
+    - mysql
+    - backup
+    - common_backup_user
+

@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "/opt/redis/redis.conf"]
+    volumes:
+      - /opt/redis/redis_data:/data
+      - /opt/redis/redis.conf:/opt/redis/redis.conf:ro
+    networks:
+      - global_net
+    ports:
+      - target: 6379
+        published: 6379
+        protocol: tcp
+        mode: host
+
+volumes:
+  redis_data:
+
+networks:
+  global_net:
+    external: true
+

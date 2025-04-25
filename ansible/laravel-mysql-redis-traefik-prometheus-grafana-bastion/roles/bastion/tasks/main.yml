@@ -1,0 +1,33 @@
+- name: Install auditd and configure it
+  apt:
+    name: auditd
+    state: present
+
+- name: Ensure auditd is enabled and running
+  service:
+    name: auditd
+    enabled: yes
+    state: started
+
+- name: Harden SSH config
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0600
+  notify: Restart ssh
+
+#- name: Allow only specific users (e.g., devops)
+#  lineinfile:
+#    path: /etc/ssh/sshd_config
+#    regexp: '^AllowUsers'
+#    line: 'AllowUsers devops'
+#    state: present
+#    create: yes
+#  notify: Restart ssh
+
+- name: Ensure fail2ban is running (delegated to fail2ban role)
+  debug:
+    msg: "fail2ban enabled by global role"
+

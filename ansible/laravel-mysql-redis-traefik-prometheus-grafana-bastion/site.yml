@@ -1,0 +1,31 @@
+---
+- name: Include common configuration
+  include_tasks: deploy_common.yml 
+
+- name: Include database server related tasks, and backup config related
+  include_tasks: deploy_db.yml
+
+- name: Include bastion server and backup storage related tasks
+  include_tasks: deploy_bastion.yml
+
+- name: Include Redis server related tasks
+  include_tasks: deploy_redis.yml
+
+- name: Include Laravel(app) deploy related tasks
+  include_tasks: deploy_laravel.yml
+
+- name: Include sertificates issue
+  include_tasks: delpoy_ssl_cert.yml
+
+- name: Include web proxies config: nginx
+  include_tasks: deploy_nginx.yml
+
+- name: Include web proxies config: traefik
+  include_tasks: deploy_traefik.yml
+
+- name: "Configure monitoring stack"
+  hosts: monitoring
+  become: true
+  roles:
+    - monitoring
+

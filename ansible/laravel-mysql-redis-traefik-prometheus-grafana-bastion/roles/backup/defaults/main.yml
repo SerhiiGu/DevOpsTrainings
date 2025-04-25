@@ -1,0 +1,3 @@
+backup_user: backup_user
+bastion_ip: "{{ hostvars['bastion01']['ansible_host'] }}"
+

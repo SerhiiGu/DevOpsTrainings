@@ -1,0 +1,10 @@
+mysql_root_password: 213402
+mysql_unix_socket: /run/mysqld/mysqld.sock
+mysql_databases:
+  - name: laravel_app
+  - name: metrics
+mysql_users:
+  - name: laravel
+    password: 213403
+    priv: "laravel_app.*:ALL"
+

@@ -1,0 +1,71 @@
+- name: Ensure deploy user exists
+  user:
+    name: "{{ deploy_user }}"
+    shell: /bin/bash
+    create_home: yes
+
+- name: Create deployment directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: 0755
+  loop:
+    - "{{ deploy_path }}"
+    - "{{ deploy_path }}/app"
+    - "{{ deploy_path }}/releases"
+    - "{{ deploy_path }}/shared"
+    - "{{ deploy_path }}/shared/storage"
+    - "{{ deploy_path }}/shared/storage/framework"
+    - "{{ deploy_path }}/shared/storage/logs"
+    - "{{ deploy_path }}/shared/storage/framework/cache"
+    - "{{ deploy_path }}/shared/storage/framework/sessions"
+    - "{{ deploy_path }}/shared/storage/framework/views"
+
+- name: Change owner/group for storage
+  file:
+    path: "{{ deploy_path }}/shared/storage"
+    owner: "www-data"
+    group: "www-data"
+    mode: '0775'
+    recurse: yes
+
+- name: Upload Laravel .env file
+  template:
+    src: laravel_env.j2
+    dest: "{{ deploy_path }}/shared/.env"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: 0644
+
+- name: Set release timestamp
+  set_fact:
+    release_timestamp: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+- name: Download application code
+  git:
+    repo: "{{ repo_url }}"
+    dest: "{{ deploy_path }}/releases/{{ release_timestamp }}"
+    version: "{{ repo_branch }}"
+    force: yes
+  become_user: "{{ deploy_user }}"
+
+- name: Update current symlink
+  file:
+    src: "{{ deploy_path }}/releases/{{ release_timestamp }}/task-5/laravel"
+    dest: "{{ deploy_path }}/current"
+    state: link
+    force: yes
+
+- name: Remove storage dir from downloaded code
+  file:
+    path: "{{ deploy_path }}/releases/{{ release_timestamp }}/task-5/laravel/storage"
+    state: absent
+
+- name: Symlink shared .env
+  file:
+    src: "{{ deploy_path }}/shared/.env"
+    dest: "{{ deploy_path }}/releases/{{ release_timestamp }}/.env"
+    state: link
+

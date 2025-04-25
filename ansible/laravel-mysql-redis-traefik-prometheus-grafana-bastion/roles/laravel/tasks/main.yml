@@ -1,0 +1,12 @@
+- name: Include Preparation stage
+  include_tasks: preparation.yml
+
+- name: Include build stage
+  include_tasks: build.yml 
+  
+- name: Include Docker stage
+  include_tasks: docker.yml
+
+#- name: Include Supervisor deployment
+#  include_tasks: supervisor.yml
+

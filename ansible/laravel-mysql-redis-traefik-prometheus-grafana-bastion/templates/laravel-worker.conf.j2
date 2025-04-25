@@ -1,0 +1,11 @@
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php {{ deploy_path }}/current/artisan queue:work redis --sleep=3 --tries=3 --timeout=90
+autostart=true
+autorestart=true
+user={{ deploy_user }}
+numprocs=1 #к-ть воркерів
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/laravel-worker.log
+stopwaitsecs=3600
+

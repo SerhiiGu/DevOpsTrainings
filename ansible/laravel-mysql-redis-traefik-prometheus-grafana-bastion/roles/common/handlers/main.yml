@@ -1,0 +1,9 @@
+- name: Restart ssh
+  service:
+    name: ssh
+    state: restarted
+
+- name: Reboot if kernel updated
+  reboot:
+  when: upgrade_result is defined and upgrade_result.changed
+

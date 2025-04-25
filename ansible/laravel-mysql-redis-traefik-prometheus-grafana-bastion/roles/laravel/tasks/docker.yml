@@ -1,0 +1,42 @@
+- name: Upload Laravel Docker stack config
+  template:
+    src: laravel-stack.yml.j2
+    dest: "/home/deployer/app/laravel-stack.yml"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: 0644
+
+- name: Ensure global overlay network exists
+  docker_network:
+    name: global_net
+    driver: overlay
+    scope: swarm
+    attachable: yes
+    state: present
+
+- name: Deploy Laravel(app) stack
+  docker_stack:
+    name: app
+    state: present
+    compose:
+      - /home/deployer/app/laravel-stack.yml
+
+- name: Try to reload nginx_nginx (if exist)
+  shell: docker service update --force nginx_nginx 2>/dev/null
+  ignore_errors: yes
+  changed_when: false
+
+- name: Get running containers for the Laravel app service
+  shell: |
+    docker ps -q --filter "name=app"
+  register: running_containers
+  changed_when: false
+
+- name: Clear Laravel cache in each running container
+  shell: |
+    docker exec {{ item }} bash -c 'cd /var/www && php artisan view:clear'
+    docker exec {{ item }} bash -c 'cd /var/www && php artisan config:clear'
+    docker exec {{ item }} bash -c 'cd /var/www && php artisan config:cache'
+  loop: "{{ running_containers.stdout_lines }}"
+  when: running_containers.stdout_lines | length > 0
+

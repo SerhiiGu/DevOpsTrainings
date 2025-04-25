@@ -1,0 +1,38 @@
+- name: Create redis config directory
+  file:
+    path: /opt/redis
+    state: directory
+
+- name: Create redis data directory
+  file:
+    path: /opt/redis/redis_data
+    state: directory
+
+- name: Create Redis config file
+  template:
+    src: redis.conf.j2
+    dest: /opt/redis/redis.conf
+    mode: '0644'
+
+
+- name: Ensure global overlay network exists
+  docker_network:
+    name: global_net
+    driver: overlay
+    scope: swarm
+    attachable: yes
+    state: present
+
+- name: Create Redis stack compose file
+  template:
+    src: redis-stack.yml.j2
+    dest: /opt/redis/docker-compose.yml
+    mode: '0644'
+
+- name: Deploy Redis stack
+  docker_stack:
+    name: redis
+    state: present
+    compose:
+      - /opt/redis/docker-compose.yml
+

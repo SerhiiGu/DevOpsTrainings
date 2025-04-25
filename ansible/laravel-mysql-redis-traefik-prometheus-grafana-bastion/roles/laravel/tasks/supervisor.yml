@@ -1,0 +1,22 @@
+---
+- name: Install Supervisor
+  apt:
+    name: supervisor
+    state: present
+    update_cache: no
+
+- name: Configure Laravel queue worker
+  template:
+    src: laravel-worker.conf.j2
+    dest: /etc/supervisor/conf.d/laravel-worker.conf
+    mode: 0644
+
+- name: Reload Supervisor configs
+  command: supervisorctl reread
+
+- name: Update Supervisor
+  command: supervisorctl update
+
+- name: Restart Laravel queue worker
+  command: supervisorctl restart laravel-worker
+

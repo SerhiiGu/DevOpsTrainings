@@ -1,0 +1,8 @@
+- name: "Configure and deploy bastion server"
+  hosts: bastion
+  become: true
+  roles:
+    - bastion
+    - common_backup_user
+    - backup_storage
+

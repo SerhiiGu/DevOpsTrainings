@@ -1,0 +1,44 @@
+- name: Create nginx directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "deployer"
+    group: "deployer"
+    mode: 0755
+  loop:
+    - "/home/deployer/nginx"
+    - "/home/deployer/nginx/logs"
+    - "/home/deployer/nginx/conf.d"
+
+- name: Upload nginx default.conf
+  copy:
+    src: default.conf
+    dest: "/home/deployer/nginx/conf.d/default.conf"
+    owner: "deployer"
+    group: "deployer"
+    mode: 0644
+
+
+- name: Upload nginx Docker Swarm stack file
+  template:
+    src: nginx-stack.yml.j2
+    dest: "/home/deployer/nginx/nginx-stack.yml"
+    owner: "deployer"
+    group: "deployer"
+    mode: 0644
+
+- name: Ensure global overlay network exists
+  docker_network:
+    name: global_net
+    driver: overlay
+    scope: swarm
+    attachable: yes
+    state: present
+
+- name: Deploy Nginx stack
+  docker_stack:
+    name: nginx
+    state: present
+    compose:
+      - /home/deployer/nginx/nginx-stack.yml
+

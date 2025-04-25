@@ -1,0 +1,36 @@
+- name: Symlink storage(for build purpose)
+  file:
+    src: "{{ deploy_path }}/shared/storage"
+    dest: "{{ deploy_path }}/releases/{{ release_timestamp }}/task-5/laravel/storage"
+    state: link
+
+- name: Run Laravel setup tasks
+  shell: |
+    composer install --no-dev --optimize-autoloader
+    php artisan migrate --force
+    php artisan config:cache
+    php artisan route:cache
+  args:
+    chdir: "{{ deploy_path }}/releases/{{ release_timestamp }}/task-5/laravel"
+  become_user: "{{ deploy_user }}"
+
+- name: Update current symlink
+  file:
+    src: "{{ deploy_path }}/releases/{{ release_timestamp }}"
+    dest: "{{ deploy_path }}/current"
+    state: link
+    force: yes
+
+- name: Remove Symlink to storage(was for build purpose)
+  file:
+    path: "{{ deploy_path }}/releases/{{ release_timestamp }}/task-5/laravel/storage"
+    state: absent
+
+- name: Change owner/group for site content
+  file:
+    path: "{{ deploy_path }}/current/task-5/laravel"
+    owner: "www-data"
+    group: "www-data"
+    mode: '0775'
+    recurse: yes
+

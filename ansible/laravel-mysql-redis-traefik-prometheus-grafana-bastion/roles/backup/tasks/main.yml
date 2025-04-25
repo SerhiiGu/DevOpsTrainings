@@ -1,0 +1,20 @@
+- name: Ensure backup script directory exists
+  file:
+    path: /opt/mysql_backup
+    state: directory
+    mode: '0755'
+
+- name: Ensure backup script is present
+  template:
+    src: mysql_backup.sh.j2
+    dest: /usr/local/bin/mysql_backup.sh
+    mode: '0750'
+
+- name: Create cron job for daily backup
+  cron:
+    name: "MySQL daily backup"
+    user: root
+    job: "/usr/local/bin/mysql_backup.sh"
+    minute: "0"
+    hour: "2"
+

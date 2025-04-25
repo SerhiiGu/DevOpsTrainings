@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch to deploy')
+        string(name: 'INVENTORY', defaultValue: 'production', description: 'Inventory name (folder)')
+    }
+    environment {
+        ANSIBLE_DIR = 'ansible'
+        VAULT_PASS_FILE = "${HOME}/.ansible/vault_pass.txt"
+    }
+    stages {
+        stage('Clone repository') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Ansible deps') {
+            steps {
+                sh '''
+                    sudo apt update
+                    sudo apt install -y python3-pip
+                    pip3 install --user ansible
+                '''
+            }
+        }
+
+        stage('Validate Laravel config') {
+            steps {
+                sh """
+                    cd ${ANSIBLE_DIR}/laravel
+                    php artisan config:cache
+                """
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                sh """
+                    ansible-playbook -i ${ANSIBLE_DIR}/inventories/${INVENTORY}/hosts.yml \\
+                                     ${ANSIBLE_DIR}/site.yml \\
+                                     --vault-password-file ${VAULT_PASS_FILE} \\
+                                     -e repo_branch=${BRANCH}
+                """
+            }
+        }
+    }
+
+    stage('Post-deploy smoke test') {
+        steps {
+            script {
+                def response = sh(
+                    script: "curl -s -o /dev/null -w '%{http_code}' https://your-domain.com/health",
+                    returnStdout: true
+                ).trim()
+
+                if (response != "200") {
+                    error "Smoke test failed! Expected 200, got ${response}"
+                } else {
+                    echo "Smoke test passed ✅"
+                }
+            }
+        }
+    }
+
+}
+

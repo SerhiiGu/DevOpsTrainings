@@ -1,0 +1,6 @@
+- name: "Deploy Laravel application"
+  hosts: app
+  become: true
+  roles:
+    - laravel
+

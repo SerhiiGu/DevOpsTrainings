@@ -1,0 +1,14 @@
+tls:
+  certificates:
+    - certFile: /certs/laravel.local.crt
+      keyFile: /certs/laravel.local.key
+    - certFile: /certs/traefik.local.crt
+      keyFile: /certs/traefik.local.key
+
+http:
+  middlewares:
+    auth:
+      basicAuth:
+        users:
+          - "admin:$2y$05$4icaJ.bhSX6Dm03jTokWNeEcvuHrSKplIoQ2Js1bTOTJjUXDjK/oi"
+

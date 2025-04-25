@@ -1,0 +1,16 @@
+- name: Ensure local backup directory exists
+  file:
+    path: /srv/mysql_backups
+    state: directory
+    owner: backup
+    group: backup
+    mode: '0755'
+
+- name: Setup cleanup cron job
+  cron:
+    name: "Clean old MySQL backups"
+    job: "find /srv/mysql_backups -type f -mtime +14 -delete"
+    user: root
+    hour: 3
+    minute: 0
+

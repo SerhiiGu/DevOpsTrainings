@@ -1,0 +1,83 @@
+- name: Check if MySQL root password is set
+  mysql_user:
+    name: root
+    host: localhost
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    check_implicit_admin: yes
+  register: mysql_root_password_check
+  ignore_errors: yes
+#  changed_when: false
+  failed_when: false  # Це гарантує, що команда не викликатиме помилки
+
+- name: Set root password (if it's not set)
+  mysql_user:
+    name: root
+    host_all: yes
+    password: "{{ mysql_root_password }}"
+  when: mysql_root_password_check.failed
+
+- name: Check if /root/.my.cnf exists
+  stat:
+    path: /root/.my.cnf
+  register: my_cnf_file
+
+- name: Ensure /root/.my.cnf has correct credentials
+  copy:
+    dest: /root/.my.cnf
+    content: |
+      [client]
+      user=root
+      password={{ mysql_root_password }}
+    mode: '0600'
+  when: my_cnf_file.stat.exists == false
+  become: yes
+  become_user: root
+
+- name: Test MySQL connection
+  mysql_db:
+    name: test
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: "{{ mysql_unix_socket }}"
+  become: yes
+  become_user: root
+
+- name: Grant all privileges to root user for localhost access
+  mysql_user:
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    name: root
+    host: 'localhost'
+    password: "{{ mysql_root_password }}"
+    priv: "*.*:ALL"
+    state: present
+  become: yes
+  become_user: root
+
+- name: Grant all privileges to root user for remote access
+  mysql_user:
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    name: root
+    host: '%'
+    password: "{{ mysql_root_password }}"
+    priv: "*.*:ALL"
+    state: present
+  become: yes
+  become_user: root
+
+- name: Flush privileges to apply changes
+  mysql_user:
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    name: root
+    host: '%'
+    state: present
+  become: yes
+  become_user: root
+
+- name: Copy custom my.cnf if needed
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+  notify: Restart MySQL
+

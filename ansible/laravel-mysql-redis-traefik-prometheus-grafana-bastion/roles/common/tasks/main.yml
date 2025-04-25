@@ -1,0 +1,58 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 7200
+
+#- name: Upgrade all packages
+#  apt:
+#    upgrade: dist
+#  register: upgrade_result
+#  notify: Reboot if kernel updated
+
+- name: Set timezone
+  timezone:
+    name: Europe/Kyiv
+
+- name: Install basic tools (check if installed first)
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - curl
+    - vim
+    - git
+    - htop
+    - net-tools
+    - bash-completion
+    - ntpdate
+    - rsyslog
+    - ipset
+    - wget
+    - python3-pip
+  when: ansible_facts.packages[item] is not defined
+
+- name: Ensure SSH key forwarding works
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "AllowAgentForwarding yes"
+    create: yes
+    state: present
+  notify: Restart ssh
+
+- name: Check if Docker is installed
+  command: which docker
+  register: docker_installed
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false  # Це гарантує, що команда не викликатиме помилки
+
+- name: Install Docker Python neede packages (only if Docker is installed)
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3-docker
+    - python3-jsondiff
+    - python3-pretty-yaml
+  when: (ansible_facts.packages[item] is not defined) and (docker_installed.rc == 0)
+

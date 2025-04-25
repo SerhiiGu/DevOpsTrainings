@@ -1,0 +1,12 @@
+- name: "Issue self-signed SSL Certsficates for domains"
+  hosts: app
+  become: true
+  roles:
+    - role: ssl_cert
+      vars:
+        domain: "traefik.local"
+
+    - role: ssl_cert
+      vars:
+        domain: "laravel.local"
+

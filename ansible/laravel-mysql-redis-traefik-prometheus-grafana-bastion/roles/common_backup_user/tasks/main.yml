@@ -1,0 +1,52 @@
+- name: Ensure backup user exists
+  user:
+    name: backup_user
+    shell: /bin/bash
+    create_home: yes
+
+- name: Ensure .ssh dir exists
+  file:
+    path: /home/backup_user/.ssh
+    state: directory
+    owner: backup_user
+    group: backup_user
+    mode: '0700'
+
+- name: Generate SSH keypair on MySQL hosts (if not exists)
+  community.crypto.openssh_keypair:
+    path: /home/backup_user/.ssh/id_rsa
+    owner: backup_user
+    group: backup_user
+    mode: '0600'
+    type: rsa
+    size: 2048
+  when: inventory_hostname in groups['db']
+
+- name: Fetch public key from MySQL hosts
+  fetch:
+    src: /home/backup_user/.ssh/id_rsa.pub
+    dest: "files/id_rsa_{{ inventory_hostname }}.pub"
+    flat: yes
+  when: inventory_hostname in groups['db']
+
+- name: Add public keys to authorized_keys on bastion (if not already added)
+  lineinfile:
+    path: "/home/backup_user/.ssh/authorized_keys"
+    line: "{{ lookup('file', 'files/id_rsa_{{ item }}.pub') }}"
+    create: yes
+    owner: backup_user
+    group: backup_user
+    mode: '0600'
+  with_items: "{{ groups['db'] }}"
+  when: inventory_hostname in groups['bastion']
+  ignore_errors: yes
+
+- name: Add SSH key to known_hosts
+  known_hosts:
+    name: "{{ hostvars[item]['ansible_host'] }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan -H ' + hostvars[item]['ansible_host']) }}"
+    path: /home/backup_user/.ssh/known_hosts
+  loop: "{{ groups['bastion'] }}"
+  when: inventory_hostname in groups['db']
+  become_user: backup_user
+
