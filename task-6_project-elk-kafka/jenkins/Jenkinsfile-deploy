@@ -29,16 +29,14 @@ pipeline {
             }
         }
 
-        stages {
-            stage('Deploy Stack ot Environment') {
-                steps {
-                    script {
-                        def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
+        stage('Deploy Stack ot Environment') {
+            steps {
+                script {
+                    def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
 
-                        sh """
+                    sh """
                         ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
-                        """
-                    }
+                    """
                 }
             }
         }
