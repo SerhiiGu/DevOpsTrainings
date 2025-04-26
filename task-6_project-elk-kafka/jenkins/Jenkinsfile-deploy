@@ -28,7 +28,7 @@ pipeline {
         stage('Check Inventory') {
             steps {
                 dir('task-6_project-elk-kafka/ansible') {
-                    sh 'ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml'
+                    sh "ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml"
                 }
             }
         }
