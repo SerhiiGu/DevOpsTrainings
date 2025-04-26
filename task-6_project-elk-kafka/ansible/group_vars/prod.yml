@@ -1,0 +1,6 @@
+traefik_domain: "traefik.tst.local"
+kibana_domain: "kibana.tst.local"
+kafka_host: "{{ inventory_hostname }}"
+environment_type: "prod"
+base_dir: "/opt/project_prod"
+

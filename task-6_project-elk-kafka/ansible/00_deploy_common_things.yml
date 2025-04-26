@@ -1,0 +1,5 @@
+- name: "Common install and config"
+  hosts: all
+  become: true
+  roles:
+    - common

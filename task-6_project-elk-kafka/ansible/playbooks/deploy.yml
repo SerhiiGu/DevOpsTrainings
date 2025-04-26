@@ -1,0 +1,111 @@
+---
+- name: Deploy Kafka and Zookeeper
+  hosts: swarm_managers
+  become: true
+  tags: kafka
+  tasks:
+    - name: Create directory for Kafka stack
+      file:
+        path: /opt/kafka-stack
+        state: directory
+        mode: '0755'
+
+    - name: Copy Kafka docker stack file
+      copy:
+        src: ../../docker/kafka/docker-stack.yml
+        dest: /opt/kafka-stack/docker-stack.yml
+
+    - name: Deploy Kafka stack
+      shell: docker stack deploy -c /opt/kafka-stack/docker-stack.yml kafka_stack
+      args:
+        chdir: /opt/kafka-stack
+
+    - name: Check Kafka services health
+      shell: docker service ls --filter label=com.docker.stack.namespace=kafka_stack
+      register: kafka_services
+
+    - name: Show Kafka services
+      debug:
+        var: kafka_services.stdout_lines
+
+    - name: Wait for Kafka port to be open
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 9092
+        state: started
+        timeout: 30
+
+# ===========================================
+
+- name: Deploy Monitoring (Grafana, Prometheus, Exporters)
+  hosts: swarm_managers
+  become: true
+  tags: monitoring
+  tasks:
+    - name: Create directory for Monitoring stack
+      file:
+        path: /opt/monitoring-stack
+        state: directory
+        mode: '0755'
+
+    - name: Copy Monitoring docker stack file
+      copy:
+        src: ../../docker/monitoring/docker-stack.yml
+        dest: /opt/monitoring-stack/docker-stack.yml
+
+    - name: Deploy Monitoring stack
+      shell: docker stack deploy -c /opt/monitoring-stack/docker-stack.yml monitoring_stack
+      args:
+        chdir: /opt/monitoring-stack
+
+    - name: Check Monitoring services health
+      shell: docker service ls --filter label=com.docker.stack.namespace=monitoring_stack
+      register: monitoring_services
+
+    - name: Show Monitoring services
+      debug:
+        var: monitoring_services.stdout_lines
+
+# ===========================================
+
+- name: Deploy Traefik Load Balancer
+  hosts: swarm_managers
+  become: true
+  tags: traefik
+  tasks:
+    - name: Create directory for Traefik stack
+      file:
+        path: /opt/traefik-stack
+        state: directory
+        mode: '0755'
+
+    - name: Copy Traefik docker stack file
+      copy:
+        src: ../../docker/traefik/docker-stack.yml
+        dest: /opt/traefik-stack/docker-stack.yml
+
+    - name: Deploy Traefik stack
+      shell: docker stack deploy -c /opt/traefik-stack/docker-stack.yml traefik_stack
+      args:
+        chdir: /opt/traefik-stack
+
+    - name: Check Traefik services health
+      shell: docker service ls --filter label=com.docker.stack.namespace=traefik_stack
+      register: traefik_services
+
+    - name: Show Traefik services
+      debug:
+        var: traefik_services.stdout_lines
+
+    - name: Check Traefik HTTPS service availability
+      uri:
+        url: "https://{{ traefik_domain }}"
+        validate_certs: no
+        status_code: 200
+        timeout: 10
+      register: traefik_response
+      retries: 5
+      delay: 5
+      until: traefik_response.status == 200
+
+

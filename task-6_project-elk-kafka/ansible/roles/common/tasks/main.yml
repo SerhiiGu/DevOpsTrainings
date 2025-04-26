@@ -1,0 +1,76 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+
+- name: Install base packages
+  apt:
+    name:
+      - curl
+      - ca-certificates
+      - vim
+      - git
+      - wget
+      - net-tools
+      - rsyslog
+      - htop
+      - ntp
+      - ntpdate
+      - python3-pip
+      - software-properties-common
+    state: present
+
+- name: Install Docker
+  shell: |
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+  args:
+    creates: /usr/bin/docker
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+#- name: Install docker-compose (optional, для local test)
+#  get_url:
+#    url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m`
+#    dest: /usr/local/bin/docker-compose
+#    mode: '0755'
+#  when: ansible_architecture == "x86_64"
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
+- name: Check if Docker is installed
+  command: which docker
+  register: docker_installed
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false
+
+- name: Install Docker Python needed packages (only if Docker is installed)
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3-docker
+    - python3-jsondiff
+    - python3-pretty-yaml
+  when: (ansible_facts.packages[item] is not defined) and (docker_installed.rc == 0)
+
+- name: Setup timezone to Kyiv
+  timezone:
+    name: Europe/Kyiv
+
+- name: Ensure NTP is running
+  service:
+    name: ntp
+    state: started
+    enabled: yes
+

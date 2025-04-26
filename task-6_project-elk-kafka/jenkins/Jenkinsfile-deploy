@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    parameters {
+	 choice(
+            name: 'ENVIRONMENT',
+            choices: ['stage', 'prod'],
+            description: 'Choose deploy environment'
+        )
+        choice(
+            name: 'STACK',
+            choices: ['traefik', 'elk', 'kafka', 'monitoring'],
+            description: 'Choose deploy stack'
+        )
+    }
+
+    environment {
+        ANSIBLE_INVENTORY = "ansible/inventory/hosts.ini"
+        PLAYBOOK_DEPLOY   = "ansible/playbooks/deploy.yml"
+        SSH_KEY_CREDENTIALS_ID = 'jenkins-ssh-key'                 # change here
+    }
+
+    stages {
+        stage('Check Inventory') {
+            steps {
+                sh 'ansible-inventory -i inventory/prod.yml --list --yaml'
+            }
+        }
+
+        stages {
+            stage('Deploy Stack ot Environment') {
+                steps {
+                    script {
+                        def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
+
+                        sh """
+                        ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
+                        """
+                    }
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+    }
+}
+

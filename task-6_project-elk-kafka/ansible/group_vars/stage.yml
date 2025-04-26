@@ -1,0 +1,5 @@
+traefik_domain: "traefik.stage.tst.local"
+kibana_domain: "kibana.stage.tst.local"
+kafka_host: "{{ inventory_hostname }}"
+environment_type: "stage"
+base_dir: "/opt/project_stage"

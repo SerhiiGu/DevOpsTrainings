@@ -1,0 +1,18 @@
+---
+- name: Logstash: Ensure directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ base_dir }}"
+    - "{{ base_dir }}/logstash"
+
+- name: Logstash: Copy configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "/{base_dir}/{{ item.dest }}"
+  loop:
+    - { src: 'logstash.conf', dest: 'logstash/logstash.conf' }
+#    - { src: '../../../../docker/elk/docker-stack.yml', dest: 'docker-compose.monitoring.yml' }
+
