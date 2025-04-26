@@ -4,12 +4,12 @@ pipeline {
     parameters {
 	 choice(
             name: 'ENVIRONMENT',
-            choices: ['stage', 'prod'],
+            choices: ['prod', 'stage'],
             description: 'Choose deploy environment'
         )
         choice(
             name: 'STACK',
-            choices: ['traefik', 'elk', 'kafka', 'monitoring'],
+            choices: ['elk', 'traefik', 'kafka', 'monitoring'],
             description: 'Choose deploy stack'
         )
     }
