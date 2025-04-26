@@ -14,16 +14,16 @@ pipeline {
         )
     }
 
-    environment {
-        ANSIBLE_INVENTORY = "ansible/inventory/hosts.ini"
-        PLAYBOOK_DEPLOY   = "ansible/playbooks/deploy.yml"
-        SSH_KEY_CREDENTIALS_ID = 'jenkins-ssh-key'                 # change here
-    }
-
     stages {
+        stage('Prepare-tests') {
+            sh """
+                whoami && pwd && ls -la
+            """
+        }
+
         stage('Check Inventory') {
             steps {
-                sh 'ansible-inventory -i inventory/prod.yml --list --yaml'
+                sh 'ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml'
             }
         }
 
