@@ -15,5 +15,6 @@ ClientAliveCountMax 2
 LoginGraceTime 30
 #AllowUsers user1 user2 user3
 #AllowUsers {% for user in bastion_allowed_users %}{{ user }} {% endfor %}
-Subsystem       sftp    /usr/lib/openssh/sftp-server  #no
+
+Subsystem       sftp    /usr/lib/openssh/sftp-server  #no line
 

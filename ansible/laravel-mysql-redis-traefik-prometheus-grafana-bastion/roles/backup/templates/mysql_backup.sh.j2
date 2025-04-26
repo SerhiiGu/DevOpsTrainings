@@ -5,8 +5,8 @@ TIMESTAMP=$(date +%F_%H-%M)
 mkdir -p $BACKUP_DIR
 
 # Dump all databases
-mysqldump --all-databases > $BACKUP_DIR/mysql_backup_$TIMESTAMP.sql
+mysqldump --all-databases | gzip > $BACKUP_DIR/mysql_backup_$TIMESTAMP.sql.gz
 
 # Rsync to bastion
-rsync -az --remove-source-files $BACKUP_DIR/ {{ backup_user }}@{{ bastion_ip }}:/srv/mysql_backups/
+rsync -az -e "ssh -i /path/to/your/private_key" --remove-source-files $BACKUP_DIR/ {{ backup_user }}@{{ bastion_ip }}:/srv/mysql_backups/
 

@@ -1,9 +1,15 @@
+- name: Install rsync
+  apt:
+    name: rsync
+    state: present
+    update_cache: no
+
 - name: Ensure local backup directory exists
   file:
     path: /srv/mysql_backups
     state: directory
-    owner: backup
-    group: backup
+    owner: backup_user
+    group: backup_user
     mode: '0755'
 
 - name: Setup cleanup cron job

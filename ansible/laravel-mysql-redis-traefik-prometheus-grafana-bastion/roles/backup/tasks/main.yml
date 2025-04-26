@@ -1,8 +1,8 @@
-- name: Ensure backup script directory exists
-  file:
-    path: /opt/mysql_backup
-    state: directory
-    mode: '0755'
+- name: Install rsync
+  apt:
+    name: rsync
+    state: present
+    update_cache: no
 
 - name: Ensure backup script is present
   template:
