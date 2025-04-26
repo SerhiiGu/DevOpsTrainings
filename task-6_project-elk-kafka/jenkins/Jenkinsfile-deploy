@@ -17,26 +17,32 @@ pipeline {
     stages {
         stage('Prepare-tests') {
             steps {
-                sh """
-                    whoami && pwd && ls -la
-                """
+                dir('task-6_project-elk-kafka/ansible') {
+                    sh """
+                        whoami && pwd && ls -la
+                    """
+                }
             }
         }
 
         stage('Check Inventory') {
             steps {
-                sh 'ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml'
+                dir('task-6_project-elk-kafka/ansible') {
+                    sh 'ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml'
+                }
             }
         }
 
         stage('Deploy Stack ot Environment') {
             steps {
-                script {
-                    def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
+                dir('task-6_project-elk-kafka/ansible') {
+                    script {
+                        def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
 
-                    sh """
-                        ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
-                    """
+                        sh """
+                            ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
+                        """
+                    }
                 }
             }
         }
