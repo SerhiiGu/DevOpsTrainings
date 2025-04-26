@@ -28,7 +28,7 @@ pipeline {
         stage('Check Inventory') {
             steps {
                 dir('task-6_project-elk-kafka/ansible') {
-                    sh "ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml"
+                    sh "/usr/bin/ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml"
                 }
             }
         }
@@ -40,7 +40,7 @@ pipeline {
                         def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
 
                         sh """
-                            ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
+                            /usr/bin/ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
                         """
                     }
                 }
