@@ -1,0 +1,5 @@
+- name: "Deploy Kafka-Zookeeper stack"
+  hosts: swarm_managers
+  become: true
+  roles:
+    - kafka

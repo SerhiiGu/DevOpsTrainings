@@ -11,6 +11,13 @@ services:
       placement:
         constraints:
           - node.role == manager
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
 
   kafka:
     image: wurstmeister/kafka
@@ -25,17 +32,17 @@ services:
       - global_net
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1  # was 3
       placement:
         constraints:
           - node.role == manager
       restart_policy:
         condition: on-failure
-      healthcheck:
-        test: ["CMD", "nc", "-z", "localhost", "9092"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   global_net:

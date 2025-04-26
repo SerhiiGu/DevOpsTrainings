@@ -1,0 +1,37 @@
+- name: Ensure global overlay network exists
+  docker_network:
+    name: global_net
+    driver: overlay
+    scope: swarm
+    attachable: yes
+    state: present
+
+- name: Ensure directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ base_dir }}"
+
+- name: Copy configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "/{{ base_dir }}/{{ item.dest }}"
+  loop:
+    - { src: 'docker-stack.yml', dest: 'docker-stack-kafka.yml' }
+
+- name: Deploy Kafka stack
+  shell: docker stack deploy -c docker-stack-kafka.yml kafka
+  args:
+    chdir: "{{ base_dir }}"
+
+- name: Check Kafka services health
+  shell: docker service ls --filter label=com.docker.stack.namespace=kafka
+  register: kafka_services
+
+- name: Show Kafka services
+  debug:
+    var: kafka_services.stdout_lines
+
+
