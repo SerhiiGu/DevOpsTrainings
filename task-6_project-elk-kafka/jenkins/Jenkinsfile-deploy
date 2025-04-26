@@ -16,9 +16,11 @@ pipeline {
 
     stages {
         stage('Prepare-tests') {
-            sh """
-                whoami && pwd && ls -la
-            """
+            steps {
+                sh """
+                    whoami && pwd && ls -la
+                """
+            }
         }
 
         stage('Check Inventory') {
