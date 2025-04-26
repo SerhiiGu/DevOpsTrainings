@@ -13,7 +13,7 @@ pipeline {
             description: 'Choose deploy stack'
         )
     }
-
+/*
     stages {
         stage('Prepare-tests') {
             steps {
@@ -24,11 +24,20 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Check Inventory') {
             steps {
                 dir('task-6_project-elk-kafka/ansible') {
-                    sh "/usr/bin/ansible-inventory -i inventory/${params.ENVIRONMENT}.yml --list --yaml"
+                    script {
+                        try {
+                            def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
+                            sh "ansible-inventory -i ${inventoryFile} --list --yaml"
+                            echo "\u001B[32m✅ Inventory validation passed!\u001B[0m"
+                        } catch (err) {
+                            echo "\u001B[31m❌ Inventory validation failed!\u001B[0m"
+                            error("Inventory check failed. Fix your inventory file.")
+                        }
+                    }
                 }
             }
         }
@@ -40,7 +49,7 @@ pipeline {
                         def inventoryFile = "inventory/${params.ENVIRONMENT}.yml"
 
                         sh """
-                            /usr/bin/ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
+                            ansible-playbook -i ${inventoryFile} 10_deploy_${params.STACK}.yml
                         """
                     }
                 }
