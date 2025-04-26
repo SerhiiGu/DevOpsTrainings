@@ -64,6 +64,12 @@
     - python3-pretty-yaml
   when: (ansible_facts.packages[item] is not defined) and (docker_installed.rc == 0)
 
+- name: Init Docker Swarm
+  command: docker swarm init
+  when: docker_installed.rc == 0
+  changed_when: false
+  failed_when: false
+
 - name: Setup timezone to Kyiv
   timezone:
     name: Europe/Kyiv

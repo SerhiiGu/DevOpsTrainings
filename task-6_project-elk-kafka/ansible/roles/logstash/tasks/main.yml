@@ -1,5 +1,5 @@
 ---
-- name: Logstash: Ensure directories exist
+- name: Ensure directories exist
   file:
     path: "{{ item }}"
     state: directory
@@ -7,12 +7,13 @@
   loop:
     - "{{ base_dir }}"
     - "{{ base_dir }}/logstash"
+    - "{{ base_dir }}/logstash/pipeline"
 
-- name: Logstash: Copy configuration files
+- name: Copy configuration files
   copy:
     src: "{{ item.src }}"
-    dest: "/{base_dir}/{{ item.dest }}"
+    dest: "/{{ base_dir }}/{{ item.dest }}"
   loop:
-    - { src: 'logstash.conf', dest: 'logstash/logstash.conf' }
+    - { src: 'logstash.conf', dest: 'logstash/pipeline/logstash.conf' }
 #    - { src: '../../../../docker/elk/docker-stack.yml', dest: 'docker-compose.monitoring.yml' }
 

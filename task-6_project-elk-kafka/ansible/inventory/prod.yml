@@ -1,19 +1,21 @@
 all:
   children:
-    swarm_managers:
-      hosts:
-        swarm-manager-1:
-          ansible_host: 192.168.1.188
+    prod:
+      children:
+        swarm_managers:
+          hosts:
+            swarm-manager-1:
+              ansible_host: 192.168.1.188
 
-    swarm_workers:
-      hosts:
-        swarm-worker-1:
-          ansible_host: 192.168.1.189
+        swarm_workers:
+          hosts:
+            swarm-worker-1:
+              ansible_host: 192.168.1.189
 
-    bastion:
-      hosts:
-        bastion-1:
-          ansible_host: 192.168.1.197
+        bastion:
+          hosts:
+            bastion-1:
+              ansible_host: 192.168.1.197
 
 
 

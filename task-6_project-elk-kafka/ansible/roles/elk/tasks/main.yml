@@ -1,5 +1,5 @@
 ---
-- name: ELK: Ensure directories exist 
+- name: Ensure directories exist 
   file:
     path: "{{ item }}"
     state: directory
@@ -8,17 +8,17 @@
     - "{{ base_dir }}"
     - "{{ base_dir }}/elk"
 
-- name: ELK: Copy configuration files
+- name: Copy configuration files
   copy:
     src: "{{ item.src }}"
-    dest: "/{base_dir}/{{ item.dest }}"
+    dest: "/{{ base_dir }}/{{ item.dest }}"
   loop:
-    - { src: 'docker-stack.yml', dest: 'docker-stack.yml' }
+    - { src: 'docker-stack.yml', dest: 'docker-stack-elk.yml' }
 
 - name: Deploy ELK stack
-  shell: docker stack deploy -c docker-stack.yml elk
+  shell: docker stack deploy -c docker-stack-elk.yml elk
   args:
-    chdir: {{ base_dir }}/elk
+    chdir: "{{ base_dir }}"
 
 - name: Check ELK services health
   shell: docker service ls --filter label=com.docker.stack.namespace=elk
