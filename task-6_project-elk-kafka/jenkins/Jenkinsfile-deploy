@@ -13,18 +13,8 @@ pipeline {
             description: 'Choose deploy stack'
         )
     }
-/*
+
     stages {
-        stage('Prepare-tests') {
-            steps {
-                dir('task-6_project-elk-kafka/ansible') {
-                    sh """
-                        whoami && pwd && ls -la
-                    """
-                }
-            }
-        }
-*/
         stage('Check Inventory') {
             steps {
                 dir('task-6_project-elk-kafka/ansible') {
