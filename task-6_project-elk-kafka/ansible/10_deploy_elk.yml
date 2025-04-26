@@ -3,5 +3,5 @@
   become: true
   roles:
     - logstash
-    - kibana # nothing here
-    - elk  # last, because  docker sewarm compose here
+#    - kibana # nothing here
+    - elk  # last, because of docker swarm compose here
