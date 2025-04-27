@@ -1,0 +1,42 @@
+global:
+  sendAnonymousUsage: false
+
+serversTransport:
+  insecureSkipVerify: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  metrics:
+    address: ":8082"
+
+log:
+  level: ERROR
+  format: common
+
+accessLog:
+  filePath: "/logs/access.log"
+
+providers:
+  docker:
+    swarmMode: true
+    watch: true
+    exposedByDefault: false
+    network: global_net # обов'язково вказувати мережу, на якій він має шукати роути
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true
+
+api:
+  dashboard: true
+  insecure: false
+

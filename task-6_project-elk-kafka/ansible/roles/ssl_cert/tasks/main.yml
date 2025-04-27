@@ -1,0 +1,48 @@
+- name: Start ssl check with
+  debug:
+    var: domain
+
+- name: Ensure certs directory exists
+  file:
+    path: "{{ base_dir }}/certs"
+    state: directory
+    mode: '0755'
+
+- name: Check if certificate file exists
+  stat:
+    path: "{{ base_dir }}/certs/{{ domain }}.crt"
+  register: cert_stat
+
+- name: Check if key file exists
+  stat:
+    path: "{{ base_dir }}/certs/{{ domain }}.key"
+  register: key_stat
+
+- name: Get certificate modulus hash
+  shell: |
+    openssl x509 -noout -modulus -in /{{ base_dir }}/certs/{{ domain }}.crt | openssl sha256
+  register: cert_modulus
+  when: cert_stat.stat.exists
+  changed_when: false
+  ignore_errors: true
+
+- name: Get key modulus hash
+  shell: |
+    openssl rsa -noout -modulus -in /{{ base_dir }}/certs/{{ domain }}.key | openssl sha256
+  register: key_modulus
+  when: key_stat.stat.exists
+  changed_when: false
+  ignore_errors: true
+
+- name: Generate new self-signed cert and key if missing or invalid
+  command: >
+    openssl req -x509 -newkey rsa:4096 -nodes
+    -keyout /{{ base_dir }}/certs/{{ domain }}.key
+    -out /{{ base_dir }}/certs/{{ domain }}.crt
+    -days 365
+    -subj "/CN={{ domain }}"
+    -addext "subjectAltName=DNS:{{ domain }}"
+  when: not cert_stat.stat.exists
+        or not key_stat.stat.exists
+        or cert_modulus.stdout != key_modulus.stdout
+

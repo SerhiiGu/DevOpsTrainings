@@ -4,6 +4,20 @@ services:
     image: prom/prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.prometheus-insecure.rule=Host(`prometheus.tst.local`)"
+        - "traefik.http.routers.prometheus-insecure.entrypoints=web"
+        - "traefik.http.routers.prometheus-insecure.middlewares=redirect-to-https"
+
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+
+        - "traefik.http.routers.prometheus.rule=Host(`prometheus.tst.local`)"
+        - "traefik.http.routers.prometheus.entrypoints=websecure"
+        - "traefik.http.routers.prometheus.tls=true"
+        - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
     ports:
       - "9090:9090"
     networks:
@@ -19,6 +33,20 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=213402
       - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.grafana-insecure.rule=Host(`grafana.tst.local`)"
+        - "traefik.http.routers.grafana-insecure.entrypoints=web"
+        - "traefik.http.routers.grafana-insecure.middlewares=redirect-to-https"
+
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+
+        - "traefik.http.routers.grafana.rule=Host(`grafana.tst.local`)"
+        - "traefik.http.routers.grafana.entrypoints=websecure"
+        - "traefik.http.routers.grafana.tls=true"
+        - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     ports:
       - "3000:3000"
     networks:

@@ -1,0 +1,19 @@
+tls:
+  certificates:
+    - certFile: "/certs/traefik.tst.local.crt"
+      keyFile: "/certs/traefik.tst.local.key"
+    - certFile: "/certs/elk.tst.local.crt"
+      keyFile: "/certs/elk.tst.local.key"
+    - certFile: "/certs/kibana.tst.local.crt"
+      keyFile: "/certs/kibana.tst.local.key"
+    - certFile: "/certs/grafana.tst.local.crt"
+      keyFile: "/certs/grafana.tst.local.key"
+    - certFile: "/certs/prometheus.tst.local.crt"
+      keyFile: "/certs/prometheus.tst.local.key"
+http:
+  middlewares:
+    auth:
+      basicAuth:
+        users:
+          - "admin:$2y$05$4icaJ.bhSX6Dm03jTokWNeEcvuHrSKplIoQ2Js1bTOTJjUXDjK/oi"
+

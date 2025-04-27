@@ -38,7 +38,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -98,7 +98,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "exemplar": true,
           "expr": "traefik_service_requests_total{service=\"$service\"}",
@@ -115,7 +115,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -180,7 +180,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "exemplar": true,
           "expr": "sum(traefik_service_request_duration_seconds_sum{service=\"$service\"}) / sum(traefik_service_requests_total{service=\"$service\"}) * 1000",
@@ -197,7 +197,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -284,7 +284,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "exemplar": true,
           "expr": "sum(rate(traefik_service_requests_total{service=\"$service\"}[5m]))",
@@ -314,7 +314,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -401,7 +401,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "expr": "rate(traefik_entrypoint_requests_total{entrypoint=~\"$entrypoint\",code=\"200\"}[5m])",
           "format": "time_series",
@@ -416,7 +416,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -503,7 +503,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "expr": "rate(traefik_entrypoint_requests_total{entrypoint=~\"$entrypoint\",code!=\"200\"}[5m])",
           "format": "time_series",
@@ -518,7 +518,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -577,7 +577,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "exemplar": true,
           "expr": "sum(rate(traefik_service_requests_total[5m])) by (service) ",
@@ -594,7 +594,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "dek3yljhjr6dcf"
       },
       "fieldConfig": {
         "defaults": {
@@ -653,7 +653,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "dek3yljhjr6dcf"
           },
           "exemplar": true,
           "expr": "sum(rate(traefik_entrypoint_requests_total{entrypoint =~ \"$entrypoint\"}[5m])) by (entrypoint) ",
@@ -682,7 +682,7 @@
           "text": "nginx@docker",
           "value": "nginx@docker"
         },
-        "datasource": "PBFA97CFB590B2093",
+        "datasource": "dek3yljhjr6dcf",
         "definition": "label_values(service)",
         "includeAll": false,
         "name": "service",
@@ -704,7 +704,7 @@
             "$__all"
           ]
         },
-        "datasource": "PBFA97CFB590B2093",
+        "datasource": "dek3yljhjr6dcf",
         "definition": "",
         "includeAll": true,
         "multi": true,

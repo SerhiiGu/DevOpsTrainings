@@ -20,6 +20,19 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.elk-insecure.rule=Host(`elk.tst.local`)"
+        - "traefik.http.routers.elk-insecure.entrypoints=web"
+        - "traefik.http.routers.elk-insecure.middlewares=redirect-to-https"
+
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+
+        - "traefik.http.routers.elk.rule=Host(`elk.tst.local`)"
+        - "traefik.http.routers.elk.entrypoints=websecure"
+        - "traefik.http.routers.elk.tls=true"
+        - "traefik.http.services.elasticsearch.loadbalancer.server.port=9200"
       restart_policy:
         condition: on-failure
       placement:
@@ -55,6 +68,19 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.kibana-insecure.rule=Host(`kibana.tst.local`)"
+        - "traefik.http.routers.kibana-insecure.entrypoints=web"
+        - "traefik.http.routers.kibana-insecure.middlewares=redirect-to-https"
+
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+
+        - "traefik.http.routers.kibana.rule=Host(`kibana.tst.local`)"
+        - "traefik.http.routers.kibana.entrypoints=websecure"
+        - "traefik.http.routers.kibana.tls=true"
+        - "traefik.http.services.kibana.loadbalancer.server.port=5601"
       restart_policy:
         condition: on-failure
       placement:

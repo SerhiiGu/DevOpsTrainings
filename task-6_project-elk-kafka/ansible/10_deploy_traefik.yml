@@ -1,0 +1,6 @@
+- name: "Configure web proxies: traefik"
+  hosts: swarm_managers
+  become: true
+  roles:
+    - traefik
+

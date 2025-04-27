@@ -1,0 +1,44 @@
+- name: Create traefik directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+  loop:
+    - "/{{ base_dir }}/traefik"
+    - "/{{ base_dir }}/traefik/logs"
+    - "/{{ base_dir }}/traefik/config"
+    - "/{{ base_dir }}/traefik/config/dynamic"
+
+- name: Copy configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "/{{ base_dir }}/traefik/{{ item.dest }}"
+  loop:
+    - { src: 'dynamic.yml', dest: 'config/dynamic/dynamic.yml' }
+    - { src: 'traefik.yml', dest: 'config/traefik.yml' }
+
+- name: Upload traefik docker stack conofig
+  template:
+    src: traefik-stack.yml.j2
+    dest: "/{{ base_dir }}/docker-stack-traefik.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Ensure global overlay network exists
+  docker_network:
+    name: global_net
+    driver: overlay
+    scope: swarm
+    attachable: yes
+    state: present
+
+- name: Deploy Traefik stack
+  docker_stack:
+    name: traefik
+    state: present
+    compose:
+      - /{{ base_dir }}/docker-stack-traefik.yml
+

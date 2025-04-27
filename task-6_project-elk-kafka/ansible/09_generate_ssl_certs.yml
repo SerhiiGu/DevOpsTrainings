@@ -1,0 +1,24 @@
+- name: "Issue self-signed SSL Certsficates for domains"
+  hosts: swarm_managers
+  become: true
+  roles:
+    - role: ssl_cert
+      vars:
+        domain: "traefik.tst.local"
+
+    - role: ssl_cert
+      vars:
+        domain: "grafana.tst.local"
+
+    - role: ssl_cert
+      vars:
+        domain: "prometheus.tst.local"
+
+    - role: ssl_cert
+      vars:
+        domain: "elk.tst.local"
+
+    - role: ssl_cert
+      vars:
+        domain: "kibana.tst.local"
+
