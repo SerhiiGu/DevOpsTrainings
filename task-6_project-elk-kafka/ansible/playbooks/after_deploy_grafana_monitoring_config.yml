@@ -1,0 +1,19 @@
+---
+- name: "Config Grafana. Run only after Grafana start successfully!"
+  hosts: swarm_managers
+  become: true
+  tasks:
+
+    - name: Get the Grafana container ID dynamically
+      command: "docker ps -q -f name=grafana"
+      register: grafana_container_id
+      changed_when: false
+
+    - name: Install Infinity datasource plugin in the Grafana container
+      command: "docker exec -it \"{{ grafana_container_id.stdout }}\" grafana cli plugins install yesoreyeram-infinity-datasource"
+      when: grafana_container_id.stdout != ""
+
+    - name: Restart the Grafana Docker container to apply plugin
+      command: "docker restart \"{{ grafana_container_id.stdout }}\""
+      when: grafana_container_id.stdout != ""
+

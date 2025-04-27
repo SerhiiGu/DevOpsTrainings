@@ -4,3 +4,10 @@ kafka_host: "{{ inventory_hostname }}"
 environment_type: "prod"
 base_dir: "/opt/project_prod"
 
+grafana_host: "http://192.168.1.188:3000"
+grafana_api_user: "admin"
+grafana_api_password: "213402"
+grafana_datasource_file: "grafana-datasource.yml"
+grafana_dashboards_files:
+  - "files/dashboards/1860_Node_Exporter_Full.json"
+  - "files/dashboards/4475_Traefik.json"

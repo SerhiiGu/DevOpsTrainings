@@ -4,9 +4,9 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
     environment:
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - discovery.type=single-node      # для тестів — одна нода
+      - bootstrap.memory_lock=true      # щоб уникнути memory swapping
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m  # пам'ять JVM
       - xpack.security.enabled=false
       - xpack.monitoring.collection.enabled=true
     ulimits:
@@ -16,7 +16,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - elk
+      - global_net
     deploy:
       mode: replicated
       replicas: 1
@@ -31,6 +31,19 @@ services:
     ports:
       - "9200:9200"
 
+  elasticsearch-exporter:
+    image: justwatch/elasticsearch_exporter
+    container_name: elasticsearch-exporter
+    environment:
+      - ES_URI=http://elasticsearch:9200
+      - ES_ALL=true
+      - ES_INDICES=true
+      - ES_CLUSTER_SETTINGS=true
+    ports:
+      - "9114:9114"  # Порт для експорту метрик
+    networks:
+      - global_net
+
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.2
     environment:
@@ -38,7 +51,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - elk
+      - global_net
     deploy:
       mode: replicated
       replicas: 1
@@ -57,7 +70,7 @@ services:
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     networks:
-      - elk
+      - global_net
     deploy:
       mode: replicated
       replicas: 1
@@ -76,6 +89,6 @@ volumes:
   elasticsearch_data:
 
 networks:
-  elk:
-    driver: overlay
+  global_net:
+    external: true
 

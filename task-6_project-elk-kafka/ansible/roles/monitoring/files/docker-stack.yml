@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - global_net
+
+  grafana:
+    image: grafana/grafana
+    user: "472"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=213402
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
+    ports:
+      - "3000:3000"
+    networks:
+      - global_net
+
+  node-exporter:
+    image: prom/node-exporter
+    deploy:
+      mode: global
+    networks:
+      - global_net
+    ports:
+      - "9100:9100"
+
+
+volumes:
+  grafana-storage:
+
+networks:
+  global_net:
+    external: true
+

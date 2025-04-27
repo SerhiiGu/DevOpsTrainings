@@ -1,5 +1,5 @@
 - name: "Configure monitoring stack"
-  hosts: monitoring
+  hosts: swarm_managers
   become: true
   roles:
     - monitoring

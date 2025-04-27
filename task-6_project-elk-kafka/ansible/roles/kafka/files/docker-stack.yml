@@ -44,6 +44,17 @@ services:
       timeout: 5s
       retries: 5
 
+  kafka-exporter:
+    image: danielqsj/kafka-exporter
+    container_name: kafka-exporter
+    environment:
+      KAFKA_SERVER: "kafka:9092"
+    ports:
+      - "9308:9308"
+    networks:
+      - global_net
+
+
 networks:
   global_net:
     external: true

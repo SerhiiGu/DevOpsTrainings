@@ -1,0 +1,79 @@
+- name: Ensure monitoring directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ base_dir }}"
+    - "{{ base_dir }}/monitoring"
+    - "{{ base_dir }}/monitoring/grafana"
+    - "{{ base_dir }}/monitoring/grafana/dashboards"
+    - "{{ base_dir }}/monitoring/grafana/provisioning"
+    - "{{ base_dir }}/monitoring/grafana/provisioning/dashboards"
+    - "{{ base_dir }}/monitoring/grafana/provisioning/datasources"
+    - "{{ base_dir }}/monitoring/prometheus"
+
+- name: Copy configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "/{{ base_dir }}/monitoring/{{ item.dest }}"
+  loop:
+#    - { src: 'grafana-datasource.yml', dest: 'grafana/provisioning/datasources/datasource.yml' }
+    - { src: 'grafana-dashboards.yml', dest: 'grafana/provisioning/dashboards/dashboard.yml' }
+    - { src: 'prometheus.yml', dest: 'prometheus/prometheus.yml' }
+    - { src: 'docker-stack.yml', dest: 'docker-stack-monitoring.yml' }
+
+- name: Deploy monitoring stack
+  docker_stack:
+    name: monitoring
+    state: present
+    compose:
+      - "/{{ base_dir }}/monitoring/docker-stack-monitoring.yml"
+
+- name: Wait for 10 seconds
+  pause:
+    seconds: 10
+
+- name: Check monitoring services health
+  shell: docker service ls --filter label=com.docker.stack.namespace=monitoring
+  register: monitoring_services
+
+- name: Show monitoring services
+  debug:
+    var: monitoring_services.stdout_lines
+
+
+- name: Grafana | Create datasource
+  uri:
+    url: "{{ grafana_host }}/api/datasources"
+    method: POST
+    user: "{{ grafana_api_user }}"
+    password: "{{ grafana_api_password }}"
+    force_basic_auth: yes
+    body: "{{ lookup('file', grafana_datasource_file) }}"
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+    status_code: 200,409
+
+
+- name: Copy dashboard JSON files to the server
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item | basename }}"
+  loop: "{{ grafana_dashboards_files }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Grafana | Import dashboards
+  community.grafana.grafana_dashboard:
+    grafana_url: "{{ grafana_host }}"
+    grafana_user: "{{ grafana_api_user }}"
+    grafana_password: "{{ grafana_api_password }}"
+    state: present
+    overwrite: true
+    path: "/tmp/{{ item | basename }}"
+  loop: "{{ grafana_dashboards_files }}"
+  loop_control:
+    label: "{{ item }}"
+

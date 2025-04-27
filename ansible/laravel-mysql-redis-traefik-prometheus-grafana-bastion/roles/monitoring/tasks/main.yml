@@ -22,7 +22,7 @@
     - { src: 'docker-compose.monitoring.yml', dest: 'docker-compose.monitoring.yml' }
     - { src: '.my.cnf', dest: '.my.cnf' }
     - { src: 'dashboards/1860_Node_Exporter_Full.json', dest: 'grafana/provisioning/dashboards/1860_Node_Exporter_Full.json' }
-    - { src: 'dashboards/1860_Node_Exporter_Full.json', dest: 'grafana/provisioning/dashboards/4475_Traefik.json' }
+    - { src: 'dashboards/4475_Traefik.json', dest: 'grafana/provisioning/dashboards/4475_Traefik.json' }
     - { src: 'dashboards/12776_Redis.json', dest: 'grafana/provisioning/dashboards/12776_Redis.json' }
     - { src: 'dashboards/7362_MySQL.json', dest: 'grafana/provisioning/dashboards/7362_MySQL.json' }
 
