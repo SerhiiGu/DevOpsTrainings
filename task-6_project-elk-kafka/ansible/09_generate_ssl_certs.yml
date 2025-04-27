@@ -22,3 +22,7 @@
       vars:
         domain: "kibana.tst.local"
 
+    - role: ssl_cert
+      vars:
+        domain: "ext1.tst.local"
+

@@ -1,4 +1,4 @@
 global_timeout: 10
 retry_count: 5
 ansible_user: root
-
+filebeat_ip: 192.168.1.188

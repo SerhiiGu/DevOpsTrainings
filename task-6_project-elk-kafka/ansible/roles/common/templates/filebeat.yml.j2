@@ -1,0 +1,21 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/auth.log
+      - /var/log/user.log
+      - /var/log/nginx/*.log
+    fields:
+      environment: "production"
+    fields_under_root: true
+
+  - type: journald
+    enabled: true
+    paths: []
+
+
+# Output
+output.logstash:
+  hosts: ["{{ filebeat_ip }}:5044"]
+

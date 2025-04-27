@@ -10,10 +10,53 @@ tls:
       keyFile: "/certs/grafana.tst.local.key"
     - certFile: "/certs/prometheus.tst.local.crt"
       keyFile: "/certs/prometheus.tst.local.key"
+    - certFile: "/certs/ext1.tst.local.crt"
+      keyFile: "/certs/ext1.tst.local.key"
+
 http:
   middlewares:
     auth:
       basicAuth:
         users:
-          - "admin:$2y$05$4icaJ.bhSX6Dm03jTokWNeEcvuHrSKplIoQ2Js1bTOTJjUXDjK/oi"
+          - "admin:$2y$05$4icaJ.bhSX6Dm03jTokWNeEcvuHrSKplIoQ2Js1bTOTJjUXDjK/oi"  # htpasswd -nb admin <PASSWORD>
+    auth_kibana:
+      basicAuth:
+        users:
+          - "admin:$apr1$OPC/Nnfw$CBDHn0xrNbxd78BoV8BvG0"
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  # Proxy for external service 1(router+service). You cas use the copy of this service as many time as you need.
+  # One service for config of an each external proxy
+  routers:
+    # HTTP → HTTPS Redirect (for all hosts)
+    http-to-https:
+      rule: "Host(`ext1.tst.local`) || Host(`prometheus.tst.local`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: noop-service
+
+    ext1:
+      rule: "Host(`ext1.tst.local`)"
+      service: ext1
+      entryPoints:
+        - websecure
+      tls: {}
+
+
+  services:
+    # Redirect-service (noop-service, just for redirect)
+    noop-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost"  # Nevermind, only for redirect
+
+    ext1:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.189:80"
 

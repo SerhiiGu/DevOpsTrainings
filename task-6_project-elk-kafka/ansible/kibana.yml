@@ -1,0 +1,5 @@
+- name: "Kibana"
+  hosts: swarm_managers
+  become: true
+  roles:
+    - kibana

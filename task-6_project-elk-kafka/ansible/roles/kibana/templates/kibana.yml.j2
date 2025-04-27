@@ -1,0 +1,14 @@
+server.name: kibana
+server.host: "0.0.0.0"
+server.publicBaseUrl: "https://{{ kibana_domain }}"
+
+elasticsearch.hosts: ["http://{{ elk_domain }}:9200"]
+
+# UI/UX settings:
+i18n.locale: "en"
+server.ssl.enabled: false
+
+# Uncomment if using certificates
+# server.ssl.certificate: /path/to/cert.crt
+# server.ssl.key: /path/to/cert.key
+

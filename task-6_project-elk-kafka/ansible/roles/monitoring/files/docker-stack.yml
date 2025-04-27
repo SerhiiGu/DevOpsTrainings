@@ -6,14 +6,8 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     deploy:
       labels:
+        # redirect HTTP => HTTPS by traefik dynamic.yml
         - "traefik.enable=true"
-        - "traefik.http.routers.prometheus-insecure.rule=Host(`prometheus.tst.local`)"
-        - "traefik.http.routers.prometheus-insecure.entrypoints=web"
-        - "traefik.http.routers.prometheus-insecure.middlewares=redirect-to-https"
-
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-
         - "traefik.http.routers.prometheus.rule=Host(`prometheus.tst.local`)"
         - "traefik.http.routers.prometheus.entrypoints=websecure"
         - "traefik.http.routers.prometheus.tls=true"

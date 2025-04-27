@@ -19,7 +19,7 @@
     - { src: 'dynamic.yml', dest: 'config/dynamic/dynamic.yml' }
     - { src: 'traefik.yml', dest: 'config/traefik.yml' }
 
-- name: Upload traefik docker stack conofig
+- name: Upload traefik docker stack config
   template:
     src: traefik-stack.yml.j2
     dest: "/{{ base_dir }}/docker-stack-traefik.yml"

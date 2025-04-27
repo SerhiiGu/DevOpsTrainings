@@ -6,7 +6,7 @@ services:
     environment:
       - discovery.type=single-node      # для тестів — одна нода
       - bootstrap.memory_lock=true      # щоб уникнути memory swapping
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m  # пам'ять JVM
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g  # пам'ять JVM
       - xpack.security.enabled=false
       - xpack.monitoring.collection.enabled=true
     ulimits:
@@ -40,7 +40,7 @@ services:
           - node.role == manager
       resources:
         limits:
-          memory: 1G
+          memory: 2G
     ports:
       - "9200:9200"
 
@@ -59,6 +59,8 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.2
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     depends_on:
@@ -79,6 +81,7 @@ services:
 
         - "traefik.http.routers.kibana.rule=Host(`kibana.tst.local`)"
         - "traefik.http.routers.kibana.entrypoints=websecure"
+        - "traefik.http.routers.kibana.middlewares=auth_kibana@file"
         - "traefik.http.routers.kibana.tls=true"
         - "traefik.http.services.kibana.loadbalancer.server.port=5601"
       restart_policy:

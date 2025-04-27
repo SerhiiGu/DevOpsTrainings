@@ -19,7 +19,51 @@
       - ntpdate
       - python3-pip
       - software-properties-common
+      - apt-transport-https
     state: present
+
+- name: Install elastic repo GPG key
+  shell: wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+
+- name: Install elastic apt repo itself
+  shell: echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+
+- name: Update apt cache once more
+  apt:
+    update_cache: yes
+
+- name: Install filebeat
+  apt:
+    name: filebeat
+    state: present
+
+- name: Copy .vimrc
+  copy:
+    src: ".vimrc"
+    dest: "/root/.vimrc"
+
+- name: Upload filebeat config
+  template:
+    src: filebeat.yml.j2
+    dest: "/etc/filebeat/filebeat.yml"
+    mode: 0644
+
+- name: Ensure filebeat is running
+  service:
+    name: filebeat
+    state: started
+    enabled: yes
+
+- name: Check filebeat service status
+  systemd:
+    name: filebeat
+    state: started
+  register: filebeat_status
+
+- name: Show firebeat service state
+  debug:
+    msg: "{{ 'running' if filebeat_status.status['ActiveState'] == 'active' else 'stopped' }}"
+
 
 - name: Install Docker
   shell: |
@@ -33,13 +77,6 @@
     name: docker
     enabled: yes
     state: started
-
-#- name: Install docker-compose (optional, для local test)
-#  get_url:
-#    url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m`
-#    dest: /usr/local/bin/docker-compose
-#    mode: '0755'
-#  when: ansible_architecture == "x86_64"
 
 - name: Add user to docker group
   user:
