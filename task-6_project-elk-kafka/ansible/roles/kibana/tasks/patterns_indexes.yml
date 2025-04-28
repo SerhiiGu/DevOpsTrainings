@@ -1,0 +1,87 @@
+- name: Check index pattern existing in Kibana
+  uri:
+    url: "http://{{ kibana_domain }}:5601/api/saved_objects/_find?type=index-pattern&search=logs-*"
+    method: GET
+    user: "elastic"
+    password: "213402"
+    validate_certs: no
+    headers:
+      kbn-xsrf: "true"
+  register: check_index_pattern
+
+- name: Create Index Pattern in Kibana, if not exist
+  uri:
+    url: "http://{{ kibana_domain }}:5601/api/saved_objects/index-pattern/logs-*"
+    method: POST
+    user: "elastic"
+    password: "213402"
+    validate_certs: no
+    headers:
+      Content-Type: "application/json"
+      kbn-xsrf: "true"
+    body: |
+      {
+        "attributes": {
+          "title": "logs-*",
+          "timeFieldName": "@timestamp"
+        }
+      }
+    body_format: json
+  when: check_index_pattern.json.total == 0
+
+- name: Check if ILM policy already exists
+  uri:
+    url: "http://{{ elk_domain }}:9200/_ilm/policy/logs_delete_after_7d"
+    method: GET
+    return_content: yes
+    headers:
+      Content-Type: "application/json"
+    status_code: 200,404  # 404 - policy not exist
+  register: ilm_policy_check
+  ignore_errors: yes
+
+- name: Create ILM policy to delete logs after 7 days if not exists
+  uri:
+    url: "http://{{ elk_domain }}:9200/_ilm/policy/logs_delete_after_7d"
+    method: PUT
+    body: |
+      {
+        "policy": {
+          "phases": {
+            "hot": {
+              "actions": {}
+            },
+            "delete": {
+              "min_age": "7d",
+              "actions": {
+                "delete": {}
+              }
+            }
+          }
+        }
+      }
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+    status_code: 200,201
+  when: ilm_policy_check.status != 200
+
+- name: Create index template for logs-*
+  uri:
+    url: "http://{{ elk_domain }}:9200/_index_template/logs_template"
+    method: PUT
+    body: |
+      {
+        "index_patterns": ["logs-*"],
+        "template": {
+          "settings": {
+            "index.lifecycle.name": "logs_delete_after_7d",
+            "index.lifecycle.rollover_alias": "logs"
+          }
+        }
+      }
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+    status_code: 200,201
+

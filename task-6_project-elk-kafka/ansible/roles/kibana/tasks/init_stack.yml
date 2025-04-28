@@ -1,0 +1,43 @@
+- name: Create kibana directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+  loop:
+    - "{{ base_dir }}/kibana"
+
+- name: Upload kibana.yml
+  template:
+    src: kibana.yml.j2
+    dest: "{{ base_dir }}/kibana/kibana.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+
+- name: Deploy ELK-Logstash-Kibana stack
+  shell: docker stack deploy -c docker-stack-elk.yml elk
+  args:
+    chdir: "{{ base_dir }}"
+
+- name: Check ELK-Logstash-Kibana services health
+  shell: docker service ls --filter label=com.docker.stack.namespace=elk
+  register: elk_services
+
+- name: Show stack services status
+  debug:
+    var: elk_services.stdout_lines
+
+- name: Check Kibana HTTP service availability
+  uri:
+    url: "http://{{ kibana_domain }}:5601"
+    status_code: 200
+    timeout: 10
+  register: kibana_response
+  retries: 10
+  delay: 5
+  until: kibana_response.status == 200
+
+

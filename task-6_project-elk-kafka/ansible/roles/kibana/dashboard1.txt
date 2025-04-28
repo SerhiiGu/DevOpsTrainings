@@ -1,0 +1,37 @@
+Export-Import:  Stack Management-->Saved objects
+
+Базовий Kibana Dashboard для Traefik Access Logs
+📊 Основні візуалізації
+1. Request Rate (кількість запитів у часі)
+    Тип: Line Chart
+    X-Axis: @timestamp (Aggregation: Date Histogram)
+    Y-Axis: Count
+    Фільтр: тільки log_type: traefik_access
+о дає: бачиш активність запитів у реальному часі.
+2. Top Routers by Request Count
+    Тип: Bar Chart
+    Y-Axis: Count
+    X-Axis: router.keyword (Aggregation: Terms, Size: 10)
+Що дає: які сервіси/роутери найбільше використовуються.
+3. HTTP Response Codes (Pie Chart)
+    Тип: Pie Chart
+    Split slices: status (Aggregation: Terms)
+    Filter: тільки log_type: traefik_access
+Що дає: відсоток відповідей 2xx / 4xx / 5xx.
+4. Average Duration of Requests
+    Тип: Metric
+    Metric: Avg(duration_ms)
+Що дає: середній час обробки запитів.
+5. Requests by Method (GET / POST)
+    Тип: Horizontal Bar
+    X-Axis: Count
+    Y-Axis: method.keyword (Aggregation: Terms)
+Що дає: бачиш розподіл по типах запитів.
+6. Top 10 Endpoints (Request Paths)
+    Тип: Table
+    Columns:
+        request_path.keyword
+        Count
+    Sort: By Count, descending.
+Що дає: найчастіше викликаємі шляхи.
+

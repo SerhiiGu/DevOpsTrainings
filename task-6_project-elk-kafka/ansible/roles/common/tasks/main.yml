@@ -48,10 +48,10 @@
     dest: "/etc/filebeat/filebeat.yml"
     mode: 0644
 
-- name: Ensure filebeat is running
+- name: Restart filebeat
   service:
     name: filebeat
-    state: started
+    state: restarted
     enabled: yes
 
 - name: Check filebeat service status
