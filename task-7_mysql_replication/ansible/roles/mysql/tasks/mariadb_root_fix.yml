@@ -1,44 +1,7 @@
-- name: Get access value for root@localhost
-  community.mysql.mysql_query:
-    login_user: root
-    login_password: "{{ mysql_root_password }}"
-    query: >
-      SELECT JSON_UNQUOTE(JSON_EXTRACT(Priv, '$.access')) AS access
-      FROM mysql.global_priv
-      WHERE User='root' AND Host='localhost';
-  register: root_localhost_priv
-
-- name: Get access value for root@%
-  community.mysql.mysql_query:
-    login_user: root
-    login_password: "{{ mysql_root_password }}"
-    query: >
-      SELECT JSON_UNQUOTE(JSON_EXTRACT(Priv, '$.access')) AS access
-      FROM mysql.global_priv
-      WHERE User='root' AND Host='%';
-  register: root_allhost_priv
-
-- name: Set fact if both root users are OK
-  set_fact:
-    mysql_root_fixed: >-
-      {{
-        root_localhost_priv.query_result
-        and root_allhost_priv.query_result
-        and root_localhost_priv.query_result[0][0].access == '549755813887'
-        and root_allhost_priv.query_result[0][0].access == '549755813887'
-      }}
-
-- name: Debug if fix is skipped
-  debug:
-    msg: "Root users already have correct privileges. No action needed."
-  when: mysql_root_fixed
-
-# ---- CONDITIONAL FIX BLOCK ----
 - name: Stop MariaDB service
   ansible.builtin.service:
     name: mariadb
     state: stopped
-  when: not mysql_root_fixed
 
 - name: Ensure skip-grant-tables is set under [mysqld]
   ansible.builtin.lineinfile:
@@ -46,7 +9,6 @@
     insertafter: '^\[mysqld\]'
     line: 'skip-grant-tables'
     state: present
-  when: not mysql_root_fixed
 
 - name: Ensure skip-networking is set under [mysqld]
   ansible.builtin.lineinfile:
@@ -54,13 +16,11 @@
     insertafter: '^\[mysqld\]'
     line: 'skip-networking'
     state: present
-  when: not mysql_root_fixed
 
 - name: Start MariaDB with skips
   ansible.builtin.service:
     name: mariadb
     state: started
-  when: not mysql_root_fixed
 
 - name: Fix root users inside MariaDB
   ansible.builtin.shell: |
@@ -76,7 +36,6 @@
 
     FLUSH PRIVILEGES;
     "
-  when: not mysql_root_fixed
   args:
     executable: /bin/bash
 
@@ -84,27 +43,23 @@
   ansible.builtin.service:
     name: mariadb
     state: stopped
-  when: not mysql_root_fixed
 
 - name: Remove skip-grant-tables option
   ansible.builtin.lineinfile:
     path: /etc/mysql/my.cnf
     line: 'skip-grant-tables'
     state: absent
-  when: not mysql_root_fixed
 
 - name: Remove skip-networking option
   ansible.builtin.lineinfile:
     path: /etc/mysql/my.cnf
     line: 'skip-networking'
     state: absent
-  when: not mysql_root_fixed
 
 - name: Start MariaDB cleanly
   ansible.builtin.service:
     name: mariadb
     state: started
-  when: not mysql_root_fixed
 
 #- name: Show final privileges
 #  community.mysql.mysql_query:

@@ -1,5 +1,5 @@
-#- name: Configure MySQL before replication
-#  import_tasks: config.yml
+- name: Configure MySQL before replication
+  import_tasks: config.yml
 
 - name: Config and start replication
   import_tasks: replica.yml

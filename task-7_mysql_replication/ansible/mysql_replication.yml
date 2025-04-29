@@ -4,6 +4,6 @@
   become: true
 
   roles:
-#    - mysql
+    - mysql
     - replication
 

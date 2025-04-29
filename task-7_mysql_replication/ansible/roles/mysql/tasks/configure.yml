@@ -38,8 +38,4 @@
   become: yes
   become_user: root
 
-- name: Remove database test
-  mysql_db:
-    name: test
-    state: absent
 

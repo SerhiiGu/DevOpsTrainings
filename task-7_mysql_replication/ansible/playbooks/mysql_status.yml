@@ -22,7 +22,7 @@
 
     - name: Check slave status
       shell: >
-        mysql -e 'show slave status\G;' | grep 'Slave_IO_Running\|Slave_SQL_Running\|Master_Log_File\|Read_Master_Log_Pos\|Relay_Log_File\|Relay_Log_Pos\|Relay_Master_Log_File\|Seconds_Behind_Master\|Last_IO_Errno\|Last_IO_Error'
+        mysql -e 'show slave status\G;' | grep 'Slave_IO_Running\|Slave_SQL_Running\|Master_Log_File\|Read_Master_Log_Pos\|Relay_Log_File\|Relay_Log_Pos\|Relay_Master_Log_File\|Seconds_Behind_Master\|Last_IO_Errno\|Last_IO_Error\|Last_SQL_Errno\|Last_SQL_Error'
       register: slave_status
 
     - name: Show slave status

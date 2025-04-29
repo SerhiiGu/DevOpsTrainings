@@ -8,6 +8,11 @@
     name: db2
     state: present
 
+- name: Remove database test
+  mysql_db:
+    name: test
+    state: absent
+
 - name: Set other master's IP based on inventory
   ansible.builtin.set_fact:
     mysql_master_host: "{{ hostvars[item].ansible_host }}"
