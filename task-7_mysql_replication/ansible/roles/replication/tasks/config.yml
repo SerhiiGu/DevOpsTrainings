@@ -47,6 +47,7 @@
     - { regexp: '^log_slave_updates=', line: "log_slave_updates=ON" }
     - { regexp: '^read_only=', line: "read_only=OFF" }
     - { regexp: '^expire_logs_days=', line: "expire_logs_days=3" }
+    - { regexp: '^max_binlog_size=', line: "max_binlog_size=1024M" }
     - { regexp: '^replicate-do-db=mydb$', line: "replicate-do-db=mydb" }
     - { regexp: '^replicate-do-db=db2$', line: "replicate-do-db=db2" }
 
