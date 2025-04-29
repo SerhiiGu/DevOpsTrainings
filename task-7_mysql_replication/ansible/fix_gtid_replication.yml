@@ -1,0 +1,60 @@
+# Warning!
+# It will destroy all GTID-logs! Use this method only if both servers have identical data.
+- name: Reset and reconfigure GTID replication
+  hosts: mysql_servers
+  become: yes
+  vars:
+    other_host: "{{ hostvars['mysql1']['ansible_host'] if inventory_hostname == 'mysql2' else hostvars['mysql2']['ansible_host'] }}"
+    other_user: "{{ mysql_replica_user }}"
+    other_pass: "{{ mysql_replica_password }}"
+  tasks:
+
+    - name: Stop replica
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "STOP REPLICA;"
+      ignore_errors: true
+
+    - name: Reset slave
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "RESET SLAVE ALL;"
+      ignore_errors: true
+
+    - name: Reset master
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "RESET MASTER;"
+      ignore_errors: true
+
+    - name: Configure new replication with GTID
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: >
+          CHANGE REPLICATION SOURCE TO
+          SOURCE_HOST='{{ other_host }}',
+          SOURCE_USER='{{ other_user }}',
+          SOURCE_PASSWORD='{{ other_pass }}',
+          SOURCE_AUTO_POSITION=1;
+
+    - name: Start replica
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "START REPLICA;"
+
+    - name: Wait for replication to start
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "SHOW REPLICA STATUS;"
+      register: replica_status
+
+    - name: Show status summary
+      debug:
+        msg: "{{ replica_status.query_result[0][0] | dict2items | selectattr('key', 'search', 'Slave_') | list }}"
+

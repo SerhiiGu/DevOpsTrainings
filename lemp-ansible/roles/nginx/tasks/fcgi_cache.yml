@@ -1,0 +1,49 @@
+- name: Create cache directory for FastCGI
+  file:
+    path: /var/cache/nginx
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Create cache directory for FastCGI
+  file:
+    path: /var/cache/nginx/fastcgi
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Copy default nginx config
+  template:
+    src: default-with-fcgi-cache.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+
+- name: Deploy nginx.conf with fastcgi_cache_path
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: Reload Nginx
+
+
+
+- name: Change PHP-FPM listen to TCP 127.0.0.1:9000
+  lineinfile:
+    path: /etc/php/8.2/fpm/pool.d/www.conf
+    regexp: '^listen ='
+    line: 'listen = 127.0.0.1:9000'
+    backup: yes
+
+- name: Ensure PHP-FPM listens on 127.0.0.1 only (prevent external access)
+  lineinfile:
+    path: /etc/php/8.2/fpm/pool.d/www.conf
+    regexp: '^;?listen.allowed_clients'
+    line: 'listen.allowed_clients = 127.0.0.1'
+
+- name: Restart PHP-FPM
+  service:
+    name: php8.2-fpm
+    state: restarted
+    enabled: true
+

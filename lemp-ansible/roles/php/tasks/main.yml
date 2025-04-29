@@ -1,0 +1,14 @@
+- name: Install PHP and extensions
+  apt:
+    name:
+      - php
+      - php-fpm
+      - php-mysql
+    state: present
+
+- name: Ensure PHP-FPM is started
+  systemd:
+    name: php{{ php_version }}-fpm
+    state: started
+    enabled: true
+
