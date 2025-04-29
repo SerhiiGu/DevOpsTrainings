@@ -1,0 +1,32 @@
+- name: Extract MySQL root password from file
+  hosts: localhost
+  tasks:
+    - name: Get variable from file
+      shell: >
+        grep mysql_root_password '../group_vars/all.yml' | awk -F"'" '{print $2}'
+      register: mysql_root_password
+
+    - name: Share password with other hosts
+      add_host:
+        name: "{{ item }}"
+        groups: mysql_servers
+        mysql_root_password: "{{ mysql_root_password.stdout_lines[0] }}"
+      loop: "{{ groups['mysql_servers'] }}"
+
+
+
+- name: Get MySQL Master-Master Replication Status
+  hosts: mysql_servers
+  become: true
+  tasks:
+
+    - name: Check slave status
+      shell: >
+        mysql -e 'show slave status\G;' | grep 'Slave_IO_Running\|Slave_SQL_Running\|Master_Log_File\|Read_Master_Log_Pos\|Relay_Log_File\|Relay_Log_Pos\|Relay_Master_Log_File\|Seconds_Behind_Master\|Last_IO_Errno\|Last_IO_Error'
+      register: slave_status
+
+    - name: Show slave status
+      debug:
+        msg: "{{ slave_status.stdout_lines }}"
+
+

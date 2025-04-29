@@ -1,0 +1,9 @@
+---
+- name: Set up MySQL Master-Master Replication
+  hosts: mysql_servers
+  become: true
+
+  roles:
+#    - mysql
+    - replication
+

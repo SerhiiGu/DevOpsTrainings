@@ -1,0 +1,8 @@
+====== restore_replication.yml ======
+Синхронізація баз та відновлення реплікації для MariaDB типу MASTER-MASTER
+
+====== mysql_replication.yml  ======
+Встановлення MariaDB, та повне налаштування на реплікацію MASTER-MASTER. Запускати: ./run.sh
+
+====== playbooks/mysql_status.yml ======
+Статус слейв реплікації обох серверів в типі реплікації MASTER_MASTER

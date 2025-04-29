@@ -1,0 +1,29 @@
+- name: Copy .vimrc
+  copy:
+    src: ".vimrc"
+    dest: "/root/.vimrc"
+    mode: 0640
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+
+- name: Install packages
+  apt:
+    name:
+      - mariadb-server
+      - python3-pymysql
+      - vim
+      - git
+      - wget
+      - net-tools
+      - rsyslog
+      - htop
+      - ntp
+      - ntpdate
+      - python3-pip
+      - software-properties-common
+    state: present
+
+

@@ -1,0 +1,5 @@
+mysql_root_password: '213402'
+
+mysql_replica_user: 'replica'
+mysql_replica_password: '213405'
+

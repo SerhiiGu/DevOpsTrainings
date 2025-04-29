@@ -1,0 +1,53 @@
+- name: Set other master's IP based on inventory
+  ansible.builtin.set_fact:
+    mysql_master_host: "{{ hostvars[item].ansible_host }}"
+  loop: "{{ groups['mysql_servers'] }}"
+  when: item != inventory_hostname
+
+- name: Get master binlog info
+  community.mysql.mysql_info:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    filter: master_status
+  register: master_status
+
+- name: Stop replication
+  mysql_query:
+    login_user: root
+    query: "STOP REPLICA;"
+  ignore_errors: true
+
+- name: Reset replication config
+  mysql_query:
+    login_user: root
+    query: "RESET REPLICA ALL;"
+  ignore_errors: true
+
+- name: Configure master-master replication
+  community.mysql.mysql_replication:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    mode: changeprimary
+    master_host: "{{ mysql_master_host }}"
+    master_user: replica
+    master_password: "{{ mysql_replica_password }}"
+    master_log_file: "{{ master_status.master_status.File }}"
+    master_log_pos: "{{ master_status.master_status.Position }}"
+    primary_connect_retry: 10
+
+- name: Start replication to other master
+  community.mysql.mysql_replication:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    mode: startreplica
+
+
+- name: Check slave status
+  shell: >
+    mysql -e 'show slave status\G;' | grep 'Slave_IO_Running\|Slave_SQL_Running\|Master_Log_File\|Read_Master_Log_Pos\|Relay_Log_File\|Relay_Log_Pos\|Relay_Master_Log_File\|Seconds_Behind_Master\|Last_IO_Errno\|Last_IO_Error'
+  register: slave_status
+
+- name: Show slave status
+  debug:
+    msg: "{{ slave_status.stdout_lines }}"
+

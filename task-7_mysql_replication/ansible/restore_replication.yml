@@ -1,0 +1,111 @@
+- name: Stop and reset replication
+  hosts: mysql_servers
+  become: yes
+  tasks:
+    - name: Stop replication
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "STOP REPLICA;"
+      ignore_errors: true
+
+    - name: Reset replication
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "RESET REPLICA ALL;"
+      ignore_errors: true
+
+
+- name: Dump databases (mydb, db2)
+  hosts: mysql_servers
+  become: yes
+  tasks:
+    - name: Create MySQL dump with master data
+      ansible.builtin.shell: >
+        mysqldump -u root -p{{ mysql_root_password }} \
+          --databases mydb db2 --master-data=2 --single-transaction \
+          --flush-logs --hex-blob > /tmp/dump_{{ inventory_hostname }}.sql
+
+
+- name: Fetch dumps to control node
+  hosts: mysql_servers
+  become: yes
+  tasks:
+    - name: Fetch database dump
+      ansible.builtin.fetch:
+        src: /tmp/dump_{{ inventory_hostname }}.sql
+        dest: /tmp/
+        flat: yes
+
+
+- name: Transfer mysql1 dump to mysql2
+  hosts: mysql2
+  become: yes
+  tasks:
+    - name: Copy mysql1 dump to mysql2
+      ansible.builtin.copy:
+        src: /tmp/dump_mysql1.sql
+        dest: /tmp/dump_mysql1.sql
+        mode: '0644'
+
+
+- name: Import mysql1 dump on mysql2
+  hosts: mysql2
+  become: yes
+  tasks:
+    - name: Import dump
+      ansible.builtin.shell: >
+        mysql -u root -p{{ mysql_root_password }} < /tmp/dump_mysql1.sql
+
+
+- name: Get master status
+  hosts: mysql_servers
+  become: yes
+  tasks:
+    - name: Get master status
+      community.mysql.mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: "SHOW MASTER STATUS;"
+      register: master_status
+
+    - name: Set facts for replication
+      ansible.builtin.set_fact:
+        replication_file: "{{ master_status.query_result[0][0]['File'] }}"
+        replication_pos: "{{ master_status.query_result[0][0]['Position'] }}"
+      when: master_status.query_result | length > 0 and master_status.query_result[0] | length > 0
+
+    - name: Fail if no master status
+      fail:
+        msg: "SHOW MASTER STATUS returned empty result. Ensure binary logging is enabled in MySQL config."
+      when: master_status.query_result | length == 0
+
+
+- name: Configure replication on each host
+  hosts: mysql_servers
+  become: yes
+  vars:
+    other_host: "{{ hostvars['mysql1']['ansible_host'] if inventory_hostname == 'mysql2' else hostvars['mysql2']['ansible_host'] }}"
+    other_file: "{{ hostvars['mysql1']['replication_file'] if inventory_hostname == 'mysql2' else hostvars['mysql2']['replication_file'] }}"
+    other_pos: "{{ hostvars['mysql1']['replication_pos'] if inventory_hostname == 'mysql2' else hostvars['mysql2']['replication_pos'] }}"
+  tasks:
+    - name: Configure master-master replication
+      community.mysql.mysql_replication:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        mode: changeprimary
+        master_host: "{{ other_host }}"
+        master_user: "{{ mysql_replica_user }}"
+        master_password: "{{ mysql_replica_password }}"
+        master_log_file: "{{ other_file }}"
+        master_log_pos: "{{ other_pos }}"
+        primary_connect_retry: 10
+
+    - name: Start replication
+      community.mysql.mysql_replication:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        mode: startreplica
+
+

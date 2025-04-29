@@ -1,0 +1,102 @@
+- name: Create first database
+  mysql_db:
+    name: mydb
+    state: present
+
+- name: Create second database
+  mysql_db:
+    name: db2
+    state: present
+
+- name: Set other master's IP based on inventory
+  ansible.builtin.set_fact:
+    mysql_master_host: "{{ hostvars[item].ansible_host }}"
+  loop: "{{ groups['mysql_servers'] }}"
+  when: item != inventory_hostname
+
+- name: Ensure replication user exists
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: replica
+    password: "{{ mysql_replica_password }}"
+    host: "%"
+    priv: "*.*:REPLICATION SLAVE,REPLICATION CLIENT"
+    state: present
+
+- name: Stop MySQL server
+  ansible.builtin.systemd:
+    name: mysql
+    state: stopped
+
+- name: Ensure replication settings in my.cnf under [mysqld]
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/my.cnf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    insertafter: '^\[mysqld\]'
+    state: present
+  loop:
+    - { regexp: '^server-id=', line: "server-id={{ server_id }}" }
+    - { regexp: '^auto_increment_increment=', line: "auto_increment_increment=2" }
+    - { regexp: '^auto_increment_offset=', line: "auto_increment_offset={{ server_id }}" }
+    - { regexp: '^log_bin=', line: "log_bin=mysql-bin" }
+    - { regexp: '^binlog_do_db=mydb$', line: "binlog_do_db=mydb" }
+    - { regexp: '^binlog_do_db=db2$', line: "binlog_do_db=db2" }
+    - { regexp: '^gtid_strict_mode=', line: "gtid_strict_mode=ON" }
+    - { regexp: '^log_slave_updates=', line: "log_slave_updates=ON" }
+    - { regexp: '^read_only=', line: "read_only=OFF" }
+    - { regexp: '^expire_logs_days=', line: "expire_logs_days=3" }
+    - { regexp: '^replicate-do-db=mydb$', line: "replicate-do-db=mydb" }
+    - { regexp: '^replicate-do-db=db2$', line: "replicate-do-db=db2" }
+
+
+- name: Start MySQL server
+  ansible.builtin.systemd:
+    name: mysql
+    state: started
+    enabled: true
+
+
+#- name: Check if binary logging is enabled
+#  community.mysql.mysql_query:
+#    login_user: root
+#    login_password: "{{ mysql_root_password }}"
+#    query: "SHOW VARIABLES LIKE 'log_bin';"
+#  register: log_bin_check
+
+#- name: Display log_bin_check
+#  debug:
+#    var: log_bin_check
+
+
+##### Dump before sync
+- name: Dump(Backup) mydb and db2 if not already dumped
+  ansible.builtin.shell: >
+    mysqldump --databases mydb db2 --single-transaction --master-data=2
+    --user=root --password={{ mysql_root_password }} > /tmp/master_dump.sql
+  args:
+    creates: /tmp/master_dump.sql
+
+###### Copy dump from ansible host to mysql server
+- name: Copy DB dump to replica server if present
+  ansible.builtin.copy:
+    src: file/master_dump.sql
+    dest: /tmp/master_dump.sql
+  when: ansible_facts['hostname'] != 'localhost' and lookup('ansible.builtin.file', 'file/master_dump.sql', errors='ignore') is not none
+
+##### Synced dump
+- name: Check if dump exists
+  ansible.builtin.stat:
+    path: /tmp/master_dump.sql
+  register: dump_file
+
+###### IMport synced dump
+- name: Load dump if exists and DB not initialized
+  ansible.builtin.shell: >
+    mysql --user=root --password={{ mysql_root_password }} < /tmp/master_dump.sql
+  when: dump_file.stat.exists
+  args:
+    creates: /var/lib/mysql/mydb
+
+

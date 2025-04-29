@@ -1,0 +1,4 @@
+collections:
+  - name: community.grafana
+  - name: community.mysql
+
