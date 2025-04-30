@@ -1,0 +1,4 @@
+mysql_root_password: "213402"
+mysqld_exporter_user: "exporter"
+mysqld_exporter_password: "213406"
+

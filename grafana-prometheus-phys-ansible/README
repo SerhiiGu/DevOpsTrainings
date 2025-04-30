@@ -1,0 +1,42 @@
+====== Проект ======
+    Стек Grafana + Prometheus з моніторингом самих серверів і MySQL master-master кластера
+
+І. Архітектура
+  Основна:
+    1 фізичне середовище з кількома серверами.
+      1 VM/Phys для Prometheus (наприклад prometheus.tst.local)
+      1 VM/Phys для Grafana (наприклад grafana.tst.local)
+  Додаткова(необов'язково):
+      2 VM/Phys for MySQL master-master (наприклад mysql1, mysql2)
+        додаткові сервери, якщо треба (наприклад app1, app2)
+
+ІІ. Компоненти моніторингу
+На кожному сервері (фізичному або VM)
+    node_exporter – метрики системи (CPU, RAM, диски, load).
+    mysqld_exporter – метрики MySQL (на тій самій mysql машині).
+    Опційно:
+        blackbox_exporter – пінг/HTTP-перевірки.
+        alertmanager – алерти через Telegram, Email тощо.
+
+
+
+
+
+====== Примітки ======
+1) Правильний експорт-імпорт дешбордів:
+a) експорт:
+
+curl -X GET http://192.168.1.181:3000/api/dashboards/uid/<Dashboard_UID> \
+    -H "Authorization: Bearer <grafana_api_key>" \
+    -o curl_export.json
+
+b) обробка:
+jq '.dashboard.id = null | {dashboard: .dashboard, folderId: 0, overwrite: true}' curl_export.json > payload.json
+
+c) імпорт:
+curl -X POST http://192.168.1.181:3000/api/dashboards/db \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer <grafana_api_key>" \
+    -d @payload.json
+
+

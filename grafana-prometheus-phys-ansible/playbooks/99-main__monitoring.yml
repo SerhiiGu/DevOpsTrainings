@@ -1,0 +1,31 @@
+- name: Setup monitoring infrastructure
+  hosts: all
+  become: yes
+  roles:
+    - common
+
+- name: Install node_exporter
+  hosts: all
+  become: yes
+  roles:
+    - node_exporter
+  when: "'mysql' not in group_names"
+
+- name: Install MySQL exporter
+  hosts: mysql
+  become: yes
+  roles:
+    - mysqld_exporter
+
+- name: Install Prometheus
+  hosts: prometheus
+  become: yes
+  roles:
+    - prometheus
+
+- name: Install Grafana and dashboards
+  hosts: grafana
+  become: yes
+  roles:
+    - grafana
+

@@ -1,0 +1,46 @@
+---
+- name: Backup all Grafana dashboards
+  hosts: grafana
+  gather_facts: false
+  vars:
+    backup_dir: "./grafana_dashboard_backups"
+
+  tasks:
+    - name: Ensure backup directory exists (на локальній машині)
+      delegate_to: localhost
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Get list of all dashboards
+      uri:
+        url: "http://{{ ansible_host }}:3000/api/search?type=dash-db"
+        headers:
+          Authorization: "Bearer {{ grafana_api_key }}"
+        method: GET
+        return_content: true
+      register: dashboard_list
+
+    - name: Parse dashboard UID list
+      set_fact:
+        dashboards: "{{ dashboard_list.json }}"
+
+    - name: Download each dashboard by UID
+      uri:
+        url: "http://{{ ansible_host }}:3000/api/dashboards/uid/{{ item.uid }}"
+        headers:
+          Authorization: "Bearer {{ grafana_api_key }}"
+        method: GET
+        return_content: true
+      loop: "{{ dashboards }}"
+      register: dashboard_exports
+
+    - name: Save each dashboard to file (локально, без екранування)
+      delegate_to: localhost
+      copy:
+        content: "{{ item.json | to_nice_json }}"
+        dest: "{{ backup_dir }}/{{ item.json.meta.slug }}_{{ item.json.dashboard.uid }}.json"
+      loop: "{{ dashboard_exports.results }}"
+
+

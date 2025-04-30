@@ -1,0 +1,40 @@
+- name: Add Grafana APT repo
+  copy:
+    src: grafana.repo
+    dest: /etc/apt/sources.list.d/grafana.list
+    mode: '0644'
+
+- name: Add Grafana GPG key
+  apt_key:
+    url: https://packages.grafana.com/gpg.key
+    state: present
+
+- name: Install Grafana
+  apt:
+    name: grafana
+    update_cache: yes
+    state: present
+
+- name: Copy custom config
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Enable and start Grafana
+  systemd:
+    name: grafana-server
+    enabled: yes
+    state: started
+
+- name: Wait for Grafana to become available
+  uri:
+    url: http://localhost:3000/api/health
+    status_code: 200
+    timeout: 30
+  retries: 5
+  delay: 3
+  register: result
+  until: result.status == 200
+

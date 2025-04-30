@@ -1,0 +1,11 @@
+grafana_api_key: "glsa_0u2G6BTHdOLdxkiMDHPj1qY4vNyhZCTe_dcefbea1"
+grafana_admin_user: "admin"
+grafana_admin_password: "213402"
+
+prometheus_config_path: "/etc/prometheus/prometheus.yml"
+
+prometheus_version: "3.3.0"
+prometheus_install_dir: "/opt/prometheus"
+prometheus_config_dir: "/etc/prometheus"
+prometheus_data_dir: "/var/lib/prometheus"
+

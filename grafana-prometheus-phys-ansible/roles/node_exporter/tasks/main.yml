@@ -1,0 +1,49 @@
+- name: Create user node_exporter
+  user:
+    name: node_exporter
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Download binary
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v1.9.0/node_exporter-1.9.0.linux-amd64.tar.gz"
+    dest: /tmp/node_exporter.tar.gz
+
+- name: Extract and install
+  unarchive:
+    src: /tmp/node_exporter.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Find binary node_exporter
+  find:
+    paths: /opt/
+    patterns: 'node_exporter'
+    file_type: file
+    recurse: yes
+  register: exporter_binaries
+
+- name: Copy binary
+  copy:
+    src: "{{ exporter_binaries.files.0.path | default('') }}"
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: '0755'
+  when: exporter_binaries.files | length > 0
+
+- name: Create systemd service
+  copy:
+    src: node_exporter.service
+    dest: /etc/systemd/system/node_exporter.service
+
+- name: Execute systemctl daemon-reexec
+  command:
+    cmd: systemctl daemon-reexec
+  become: true
+
+- name: Enable service
+  systemd:
+    name: node_exporter
+    enabled: yes
+    state: started
+

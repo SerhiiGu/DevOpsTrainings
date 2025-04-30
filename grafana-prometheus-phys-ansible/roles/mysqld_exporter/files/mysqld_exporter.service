@@ -1,0 +1,18 @@
+[Unit]
+Description=MySQL Exporter
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/default/mysqld_exporter
+User=mysqld_exporter
+ExecStart=/usr/local/bin/mysqld_exporter \
+    --config.my-cnf="/home/mysqld_exporter/.my.cnf" \
+    --collect.global_status \
+    --collect.global_variables \
+    --collect.info_schema.innodb_metrics \
+    --collect.auto_increment.columns \
+    --collect.slave_status
+
+[Install]
+WantedBy=multi-user.target
+

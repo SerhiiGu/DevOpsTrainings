@@ -1,0 +1,9 @@
+- name: Install node_exporter
+  hosts: all
+#  hosts: monitoring:app   # set the exact groups
+  become: yes
+  roles:
+    - role: node_exporter
+      when: "'mysql' not in group_names"
+
+

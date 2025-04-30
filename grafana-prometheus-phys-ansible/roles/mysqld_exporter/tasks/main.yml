@@ -1,0 +1,84 @@
+- name: Create user mysqld_exporter
+  user:
+    name: mysqld_exporter
+    system: true
+    createhome: yes
+    shell: /usr/sbin/nologin
+
+- name: Ensure .my.cnf exists for mysqld_exporter
+  copy:
+    dest: "/home/mysqld_exporter/.my.cnf"
+    content: |
+      [client]
+      user={{ mysqld_exporter_user }}
+      password={{ mysqld_exporter_password }}
+    owner: "mysqld_exporter"
+    group: "mysqld_exporter"
+    mode: '0600'
+
+- name: Download binary
+  get_url:
+    url: "https://github.com/prometheus/mysqld_exporter/releases/download/v0.17.2/mysqld_exporter-0.17.2.linux-amd64.tar.gz"
+    dest: /tmp/mysqld_exporter.tar.gz
+
+- name: Extract and install
+  unarchive:
+    src: /tmp/mysqld_exporter.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Create systemd service
+  copy:
+    src: mysqld_exporter.service
+    dest: /etc/systemd/system/mysqld_exporter.service
+
+- name: Find binary mysqld_exporter
+  find:
+    paths: /opt/
+    patterns: 'mysqld_exporter'
+    file_type: file
+    recurse: yes
+  register: exporter_binaries
+
+- name: Copy binary
+  copy:
+    src: "{{ exporter_binaries.files.0.path | default('') }}"
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: '0755'
+  when: exporter_binaries.files | length > 0
+
+- name: Create /etc/default/mysqld_exporter
+  copy:
+    dest: /etc/default/mysqld_exporter
+    content: |
+      DATA_SOURCE_NAME="{{ mysqld_exporter_user }}:{{ mysqld_exporter_password }}@(localhost:3306)/"
+    mode: '0644'
+
+- name: Create systemd service
+  copy:
+    src: mysqld_exporter.service
+    dest: /etc/systemd/system/mysqld_exporter.service
+
+- name: Execute systemctl daemon-reexec
+  command:
+    cmd: systemctl daemon-reexec
+  become: true
+
+- name: Enable service
+  systemd:
+    name: mysqld_exporter
+    enabled: yes
+    state: restarted
+
+- name: Create mysql user
+  shell: |
+    mariadb -e "
+    DROP USER IF EXISTS '{{ mysqld_exporter_user }}'@'localhost';
+    CREATE USER '{{ mysqld_exporter_user }}'@'localhost' IDENTIFIED BY '{{ mysqld_exporter_password }}' WITH MAX_USER_CONNECTIONS 3;
+    GRANT PROCESS, REPLICATION CLIENT, SLAVE MONITOR, SELECT ON *.* TO '{{ mysqld_exporter_user }}'@'localhost';
+    FLUSH PRIVILEGES;
+    "
+  args:
+    executable: /bin/bash
+

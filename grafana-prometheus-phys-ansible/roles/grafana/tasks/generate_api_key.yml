@@ -1,0 +1,75 @@
+- name: Check if API key is placeholder
+  set_fact:
+    grafana_api_key_needs_update: "{{ grafana_api_key == 'changeme' }}"
+
+- name: Create Grafana Service Account
+  uri:
+    url: http://localhost:3000/api/serviceaccounts
+    method: POST
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "ansible-serviceaccount"
+      role: "Admin"
+    status_code: 201
+  register: sa_response
+  changed_when: sa_response.status == 201
+  failed_when: >
+    sa_response.status != 201 and
+    'service account already exists' not in sa_response.json.message | default('')
+  when: grafana_api_key_needs_update
+
+- name: Get Service Account info (always, even if already exists)
+  uri:
+    url: http://localhost:3000/api/serviceaccounts/search?query=ansible-serviceaccount
+    method: GET
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+    return_content: yes
+  register: sa_lookup_response
+  when: grafana_api_key_needs_update
+
+- name: Set Service Account ID from lookup
+  set_fact:
+    grafana_sa_id: "{{ sa_lookup_response.json.serviceAccounts[0].id }}"
+  when: grafana_api_key_needs_update
+
+- name: Create token for Grafana Service Account
+  uri:
+    url: "http://localhost:3000/api/serviceaccounts/{{ grafana_sa_id }}/tokens"
+    method: POST
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "ansible-token"
+  register: token_response
+  changed_when: true
+  when: grafana_api_key_needs_update
+
+- name: Set new key as fact
+  set_fact:
+    new_grafana_api_key: "{{ token_response.json.key }}"
+  when: grafana_api_key_needs_update
+
+- name: Replace old API key in group_vars
+  lineinfile:
+    path: "{{ inventory_dir }}/group_vars/monitoring.yml"
+    regexp: '^grafana_api_key:.*'
+    line: "grafana_api_key: \"{{ new_grafana_api_key }}\""
+    backrefs: yes
+  delegate_to: localhost
+  run_once: true
+  when: grafana_api_key_needs_update
+
+

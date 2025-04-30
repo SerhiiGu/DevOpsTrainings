@@ -1,0 +1,6 @@
+- name: Install MySQL exporter
+  hosts: mysql
+  become: yes
+  roles:
+    - mysqld_exporter
+

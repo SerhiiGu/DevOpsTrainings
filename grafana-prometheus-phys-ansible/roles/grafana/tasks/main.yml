@@ -1,0 +1,41 @@
+#- name: Install/Config Grafana
+#  include_tasks: install_config.yml
+#
+#- name: Generate Grafana API key if needed
+#  include_tasks: generate_api_key.yml
+#
+#- name: Add Prometheus Datasource
+#  include_tasks: add_prometheus_datasource.yml
+
+
+
+
+- name: Copy raw dashboards to remote
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item | basename }}"
+  with_fileglob:
+    - "dashboards/*.json"
+  delegate_to: localhost
+
+- name: Transform dashboards (set id=null, wrap for API)
+  shell: |
+    jq '.dashboard.id = null | {dashboard: .dashboard, folderId: 0, overwrite: true}' /tmp/{{ item | basename }} > /tmp/processed_{{ item | basename }}
+  args:
+    executable: /bin/bash
+  with_fileglob:
+    - "files/dashboards/*.json"
+  delegate_to: localhost
+
+- name: Upload dashboards to Grafana via API
+  uri:
+    url: "http://localhost:3000/api/dashboards/db"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ grafana_api_key }}"
+    body: "{{ lookup('file', '/tmp/processed_' + (item | basename)) }}"
+    body_format: json
+    status_code: [200, 202]
+  loop: "{{ query('fileglob', 'dashboards/*.json') }}"
+

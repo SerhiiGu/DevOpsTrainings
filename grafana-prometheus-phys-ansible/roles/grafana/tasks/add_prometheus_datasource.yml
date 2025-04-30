@@ -1,0 +1,24 @@
+- name: Get Prometheus host IP
+  set_fact:
+    prometheus_url: "http://{{ hostvars['prometheus']['ansible_host'] }}:9090"
+
+
+- name: Add Prometheus datasource to Grafana
+  uri:
+    url: "http://localhost:3000/api/datasources"
+    method: POST
+    user: admin
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+    status_code: [200, 409]
+    body_format: json
+    body:
+      name: Prometheus
+      type: prometheus
+      access: proxy
+      url: "{{ prometheus_url }}"
+      isDefault: true
+  when: prometheus_url is defined
+

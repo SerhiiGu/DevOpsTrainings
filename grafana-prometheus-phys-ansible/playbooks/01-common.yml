@@ -1,0 +1,6 @@
+- name: Setup monitoring infrastructure
+  hosts: all
+  become: yes
+  roles:
+    - common
+
