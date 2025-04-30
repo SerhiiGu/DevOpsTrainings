@@ -8,7 +8,7 @@
       vars:
         domain: "app1.tst.local"
 
-    - role: nginx
     - role: php
+    - role: nginx
     - role: mysql
 

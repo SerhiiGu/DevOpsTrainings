@@ -8,6 +8,9 @@
     name: apache2
     enabled: false
     state: stopped
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false
 
 - name: Enable and start Nginx
   systemd:
