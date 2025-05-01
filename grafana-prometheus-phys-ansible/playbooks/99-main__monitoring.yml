@@ -44,4 +44,16 @@
       vars:
         domain: "{{ ssl_domain }}"
 
+- name: "Install Docker"
+  hosts: traefik
+  become: true
+  roles:
+    - docker
+
+- name: "Install/Configure web proxy: traefik"
+  hosts: traefik
+  become: true
+  roles:
+    - traefik
+
 
