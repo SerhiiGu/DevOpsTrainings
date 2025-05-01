@@ -25,98 +25,8 @@
         "editable": true,
         "fiscalYearStartMonth": 0,
         "graphTooltip": 1,
-        "id": 28,
-        "links": [
-            {
-                "icon": "dashboard",
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "QAN"
-                ],
-                "targetBlank": false,
-                "title": "Query Analytics",
-                "type": "link",
-                "url": "/graph/dashboard/db/_pmm-query-analytics"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "OS"
-                ],
-                "targetBlank": false,
-                "title": "OS",
-                "type": "dashboards"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "MySQL"
-                ],
-                "targetBlank": false,
-                "title": "MySQL",
-                "type": "dashboards"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "MongoDB"
-                ],
-                "targetBlank": false,
-                "title": "MongoDB",
-                "type": "dashboards"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "HA"
-                ],
-                "targetBlank": false,
-                "title": "HA",
-                "type": "dashboards"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "Cloud"
-                ],
-                "targetBlank": false,
-                "title": "Cloud",
-                "type": "dashboards"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "Insight"
-                ],
-                "targetBlank": false,
-                "title": "Insight",
-                "type": "dashboards"
-            },
-            {
-                "asDropdown": true,
-                "includeVars": true,
-                "keepTime": true,
-                "tags": [
-                    "PMM"
-                ],
-                "targetBlank": false,
-                "title": "PMM",
-                "type": "dashboards"
-            }
-        ],
+        "id": 30,
+        "links": [],
         "panels": [
             {
                 "collapsed": false,
@@ -3499,7 +3409,7 @@
         "canEdit": true,
         "canSave": true,
         "canStar": true,
-        "created": "2025-04-30T23:34:56+03:00",
+        "created": "2025-05-01T08:14:25+03:00",
         "createdBy": "ansible-serviceaccount",
         "expires": "0001-01-01T00:00:00Z",
         "folderId": 0,
@@ -3512,7 +3422,7 @@
         "provisionedExternalId": "",
         "slug": "mysql-overview",
         "type": "db",
-        "updated": "2025-05-01T08:04:50+03:00",
+        "updated": "2025-05-01T14:14:16+03:00",
         "updatedBy": "admin",
         "url": "/d/MQWgroiiz/mysql-overview",
         "version": 2
