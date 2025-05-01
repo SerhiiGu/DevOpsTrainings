@@ -5,7 +5,7 @@
 
 - name: Install required packages
   apt:
-    name: [wget, git, vim, curl, gnupg2, ca-certificates, lsb-release, software-properties-common, apt-transport-https, python3-pip, python3-pymysql, rsyslog, ntp, ntpdate, net-tools]
+    name: [wget, git, vim, curl, gnupg2, ca-certificates, lsb-release, software-properties-common, apt-transport-https, python3-pip, python3-pymysql, rsyslog, ntp, ntpdate, net-tools, tree]
     state: present
 
 - name: Copy .vimrc
@@ -13,4 +13,13 @@
     src: ".vimrc"
     dest: "/root/.vimrc"
 
+- name: Setup timezone to Kyiv
+  timezone:
+    name: Europe/Kyiv
+
+- name: Ensure NTP is running
+  service:
+    name: ntp
+    state: started
+    enabled: yes
 

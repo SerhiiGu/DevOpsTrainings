@@ -29,3 +29,19 @@
   roles:
     - grafana
 
+- name: "Issue self-signed SSL Certsficates for domains"
+  hosts: traefik
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: "Include role ssl_cert for each domain"
+      include_role:
+        name: ssl_cert
+      loop: "{{ proxy_domains }}"
+      loop_control:
+        loop_var: ssl_domain
+      vars:
+        domain: "{{ ssl_domain }}"
+
+

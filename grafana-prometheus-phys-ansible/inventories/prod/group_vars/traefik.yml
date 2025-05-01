@@ -1,0 +1,9 @@
+base_dir: "/etc"
+traefik_dir: "/opt/traefik"
+
+proxy_domains:
+  - "traefik.tst.local"
+  - "grafana.tst.local"
+  - "prometheus.tst.local"
+  - "lemp1.tst.local"
+

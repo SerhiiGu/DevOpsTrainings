@@ -1,0 +1,6 @@
+- name: "Install/Configure web proxy: traefik"
+  hosts: traefik
+  become: true
+  roles:
+    - traefik
+

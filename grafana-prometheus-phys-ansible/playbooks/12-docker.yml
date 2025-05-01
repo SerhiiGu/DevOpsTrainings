@@ -1,0 +1,6 @@
+- name: "Install Docker"
+  hosts: traefik
+  become: true
+  roles:
+    - docker
+

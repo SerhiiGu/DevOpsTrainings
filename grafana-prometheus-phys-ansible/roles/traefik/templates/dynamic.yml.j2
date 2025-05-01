@@ -1,0 +1,74 @@
+tls:
+  certificates:
+{% for domain in proxy_domains %}
+    - certFile: "/certs/{{ domain }}.crt"
+      keyFile: "/certs/{{ domain }}.key"
+{% endfor %}
+
+http:
+  middlewares:
+    auth:
+      basicAuth:
+        users:
+          - "admin:$2y$05$4icaJ.bhSX6Dm03jTokWNeEcvuHrSKplIoQ2Js1bTOTJjUXDjK/oi"  # htpasswd -nb admin <PASSWORD>
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  # Proxy for external service 1(router+service). You cas use the copy of this service as many time as you need.
+  # One service for config of an each external proxy
+  routers:
+    # HTTP → HTTPS Redirect (for all hosts)
+    http-to-https:
+      rule: "{% for domain in proxy_domains %}Host(`{{ domain }}`){% if not loop.last %} || {% endif %}{% endfor %}"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: noop-service
+
+    grafana1:
+      rule: "Host(`grafana.tst.local`)"
+      service: grafana1
+      entryPoints:
+        - websecure
+      tls: {}
+
+    prometheus1:
+      rule: "Host(`prometheus.tst.local`)"
+      service: prometheus1
+      entryPoints:
+        - websecure
+      tls: {}
+
+    lemp1:
+      rule: "Host(`lemp1.tst.local`)"
+      service: lemp1
+      entryPoints:
+        - websecure
+      tls: {}
+
+
+  services:
+    # Redirect-service (noop-service, just for redirect)
+    noop-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost"  # Nevermind, only for redirect
+
+    grafana1:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.181:3000"
+
+    prometheus1:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.182:9090"
+
+    lemp1:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.180:80"
+

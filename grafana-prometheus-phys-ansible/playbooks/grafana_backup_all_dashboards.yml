@@ -6,7 +6,7 @@
     backup_dir: "./grafana_dashboard_backups"
 
   tasks:
-    - name: Ensure backup directory exists (на локальній машині)
+    - name: Ensure backup directory exists (at localhost)
       delegate_to: localhost
       file:
         path: "{{ backup_dir }}"
@@ -36,8 +36,9 @@
       loop: "{{ dashboards }}"
       register: dashboard_exports
 
-    - name: Save each dashboard to file (локально, без екранування)
+    - name: Save each dashboard to file (local, no escape)
       delegate_to: localhost
+      no_log: true   #if it will be error in this task, comment it!
       copy:
         content: "{{ item.json | to_nice_json }}"
         dest: "{{ backup_dir }}/{{ item.json.meta.slug }}_{{ item.json.dashboard.uid }}.json"

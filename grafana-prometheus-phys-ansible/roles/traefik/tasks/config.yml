@@ -1,0 +1,48 @@
+- name: Create traefik directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+  loop:
+    - "{{ traefik_dir }}/traefik"
+    - "{{ traefik_dir }}/traefik/logs"
+    - "{{ traefik_dir }}/traefik/config"
+    - "{{ traefik_dir }}/traefik/config/dynamic"
+
+- name: Copy configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ traefik_dir }}/traefik/{{ item.dest }}"
+  loop:
+    - { src: 'traefik.yml', dest: 'config/traefik.yml' }
+
+- name: Upload traefik docker stack config
+  template:
+    src: traefik-compose.yml.j2
+    dest: "{{ traefik_dir }}/docker-compose-traefik.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Genarate dynamic.yml
+  template:
+    src: dynamic.yml.j2
+    dest: "{{ traefik_dir }}/traefik/config/dynamic/dynamic.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Ensure global bridge network exists (non-Swarm)
+  docker_network:
+    name: global_net
+    driver: bridge
+    attachable: yes
+    state: present
+
+- name: Deploy Traefik via docker-compose binary
+  command: docker-compose -f {{ traefik_dir }}/docker-compose-traefik.yml up -d
+  args:
+    chdir: "{{ traefik_dir }}"
+
