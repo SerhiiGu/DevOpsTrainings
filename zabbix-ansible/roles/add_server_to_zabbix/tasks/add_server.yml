@@ -1,0 +1,75 @@
+- name: Get Zabbix API authentication token (REAL FIX)
+  uri:
+    url: "{{ zabbix_url }}/api_jsonrpc.php"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "user.login"
+      params:
+        username: "{{ zabbix_user }}"
+        password: "{{ zabbix_pass }}"
+      id: 1
+    headers:
+      Content-Type: "application/json"
+    return_content: yes
+  register: zabbix_auth
+
+- name: Ensure authentication was successful
+  fail:
+    msg: "Authentication to Zabbix failed."
+  when: "'result' not in zabbix_auth.json"
+
+- name: qweqwe
+  debug:
+    msg: "{{ zabbix_auth.json.result }}"
+###########################################
+
+
+
+
+
+
+- name: Create a host in Zabbix using Bearer Token
+  uri:
+    url: "{{ zabbix_url }}/api_jsonrpc.php"
+    method: POST
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ zabbix_auth.json.result }}"
+    body:
+      jsonrpc: "2.0"
+      method: "host.create"
+      params:
+        host: "{{ inventory_hostname }}"
+        interfaces:
+          - type: 1
+            main: 1
+            useip: 1
+            ip: "{{ ansible_default_ipv4.address }}"
+            dns: ""
+            port: "10050"
+        groups:
+          - groupid: "2"
+        templates:
+          - templateid: "10001"
+      id: 2
+    return_content: yes
+  register: zabbix_host_creation
+
+
+
+
+- name: Show Zabbix host creation response
+  debug:
+    var: zabbix_host_creation
+
+
+- name: Ensure host was successfully created in Zabbix (or already exists)
+  fail:
+    msg: "Host creation in Zabbix failed: {{ zabbix_host_creation.json.error.message if zabbix_host_creation.json.error is defined else 'Unknown error' }}"
+  when:
+    - zabbix_host_creation.json.error is defined
+    - "'already exists' not in zabbix_host_creation.json.error.data"
+

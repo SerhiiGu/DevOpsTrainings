@@ -1,0 +1,50 @@
+- name: Ensure MySQL monitor user exists
+  community.mysql.mysql_user:
+    name: "{{ mysql_mon_user }}"
+    password: "{{ mysql_mon_password }}"
+    priv: "*.*:REPLICATION CLIENT,PROCESS,SHOW DATABASES,SELECT,SLAVE MONITOR"
+    host: "localhost"
+    state: present
+
+- name: Check/add Include for zabbix_agentd.conf.d
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^Include=/etc/zabbix/zabbix_agentd\.conf\.d/\*\.conf$'
+    line: 'Include=/etc/zabbix/zabbix_agentd.conf.d/*.conf'
+    state: present
+    insertafter: EOF
+  become: true
+
+- name: Ensure dir exist
+  file:
+    path: /etc/zabbix/zabbix_agentd.conf.d/
+    state: directory
+
+- name: Add custom UserParameter config
+  template:
+    src: mysql_zabbix.conf.j2
+    dest: /etc/zabbix/zabbix_agentd.conf.d/mysql.conf
+    owner: root
+    group: zabbix
+    mode: '0640'
+  become: true
+  notify: Restart zabbix agent
+
+- name: Ensure MySQL client is installed
+  apt:
+    name: default-mysql-client
+    state: present
+
+
+#- name: Import MySQL template via Zabbix API
+#  community.zabbix.zabbix_template:
+#    template_json: "{{ lookup('file', 'files/zbx_template_mysql_mmr.json') }}"
+#    state: present
+#  delegate_to: localhost
+#  run_once: true
+#  vars:
+#    ansible_connection: httpapi
+
+
+#- name: add server to Zabbix
+#  include_tasks: add_server.yml

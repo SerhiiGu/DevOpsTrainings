@@ -1,0 +1,11 @@
+- name: Install Zabbix agent on all monitored hosts
+  hosts:
+    - app
+    - jenkins
+    - monitoring
+    - mysql
+    - traefik_docker
+  become: true
+  roles:
+    - zabbix_agent
+

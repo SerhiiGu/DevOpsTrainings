@@ -1,0 +1,7 @@
+zabbix_url: "http://192.168.1.184/zabbix"
+zabbix_user: "Admin"
+zabbix_pass: "zabbix"
+
+mysql_mon_user: "zabbix_monitor"
+mysql_mon_password: "213408"
+

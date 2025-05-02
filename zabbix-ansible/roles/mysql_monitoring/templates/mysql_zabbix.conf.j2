@@ -1,0 +1,26 @@
+UserParameter=mysql.ping,sh -c 'mysqladmin ping -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | grep -c alive'
+UserParameter=mysql.connections,sh -c 'echo "SHOW STATUS LIKE '\''Threads_connected'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.uptime,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Uptime'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.replication.slave_status,sh -c 'echo "SHOW SLAVE STATUS\G" | mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | grep -c "Slave_IO_Running: Yes"'
+UserParameter=mysql.replication.seconds_behind_master,sh -c 'echo "SHOW SLAVE STATUS\G" | mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | grep "Seconds_Behind_Master" | awk '\''{print $2}'\'''
+UserParameter=mysql.version,sh -c 'mysql -V | awk "{print \$5}" | sed "s/,//"'
+UserParameter=mysql.questions.rate,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Questions'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.queries.rate,sh -c 'mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "\s" | grep "Queries per second avg" | awk '\''{print $NF}'\'''
+UserParameter=mysql.max_used_connections,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Max_used_connections'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.open_tables,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Open_tables'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.open_table_definitions,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Open_table_definitions'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.threads_running,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Threads_running'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.threads_cached,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Threads_cached'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.threads_connected,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Threads_connected'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+UserParameter=mysql.threads_created.rate,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Threads_created'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+
+# InnoDB log file size
+UserParameter=mysql.innodb_log_file_size,sh -c 'echo "SHOW VARIABLES LIKE '\''innodb_log_file_size'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+
+UserParameter=mysql.buffer_pool_utilization,sh -c 't=$(mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW GLOBAL STATUS LIKE '\''Innodb_buffer_pool_pages_total'\'';" | awk '\''{print $2}'\''); u=$(mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW GLOBAL STATUS LIKE '\''Innodb_buffer_pool_pages_data'\'';" | awk '\''{print $2}'\''); awk -v u=$u -v t=$t '\''BEGIN{ if(t>0) printf "%.2f", (u/t)*100; else print 0 }'\'''
+UserParameter=mysql.buffer_pool_efficiency,sh -c 'h=$(mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW GLOBAL STATUS LIKE '\''Innodb_buffer_pool_reads'\'';" | awk '\''{print $2}'\''); a=$(mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW GLOBAL STATUS LIKE '\''Innodb_buffer_pool_read_requests'\'';" | awk '\''{print $2}'\''); awk -v a=$a -v h=$h '\''BEGIN{ if((a+h)>0) printf "%.2f", (1 - h/(a+h)) * 100; else print 0 }'\'''
+UserParameter=mysql.binlog_cache_disk_use,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Binlog_cache_disk_use'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+
+
+UserParameter=mysql.innodb_os_log_written,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Innodb_os_log_written'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+

@@ -1,0 +1,6 @@
+- name: Apply monitoring configurations
+  hosts: mysql
+  become: true
+  roles:
+    - mysql_monitoring
+

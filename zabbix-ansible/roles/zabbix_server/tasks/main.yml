@@ -1,0 +1,95 @@
+- name: Install Zabbix repository
+  apt:
+    deb: "https://repo.zabbix.com/zabbix/7.2/release/debian/pool/main/z/zabbix-release/zabbix-release_7.2-1%2Bdebian12_all.deb"
+    state: present
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Zabbix server and frontend
+  apt:
+    name:
+      - zabbix-server-mysql
+      - zabbix-frontend-php
+      - zabbix-apache-conf
+      - zabbix-sql-scripts
+      - zabbix-agent
+      - mariadb-server
+    state: present
+
+
+- name: MariaDB root fix
+  import_tasks: mariadb_root_fix.yml
+
+
+- name: Start and enable MariaDB
+  systemd:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Create Zabbix database
+  mysql_db:
+    name: "{{ zabbix_mysql_db }}"
+    encoding: utf8mb4
+    collation: utf8mb4_bin
+    state: present
+
+- name: Create Zabbix DB user
+  mysql_user:
+    name: "{{ zabbix_mysql_user }}"
+    password: "{{ zabbix_mysql_password }}"
+    priv: '{{ zabbix_mysql_db }}.*:ALL'
+    host: localhost
+    state: present
+
+- name: Import initial schema
+  shell: |
+    zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql -u{{ zabbix_mysql_user }} -p{{ zabbix_mysql_password }} {{ zabbix_mysql_db }}
+  args:
+    creates: /var/lib/mysql/{{ zabbix_mysql_db }}
+
+- name: Configure Zabbix server DB name
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^DBName='
+    line: 'DBName={{ zabbix_mysql_db }}'
+
+- name: Configure Zabbix server DB user
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^DBUser='
+    line: 'DBUser={{ zabbix_mysql_user }}'
+
+- name: Configure Zabbix server DB password
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^# DBPassword='
+    line: 'DBPassword={{ zabbix_mysql_password }}'
+
+- name: Configure Zabbix frontend config file
+  template:
+    src: zabbix.conf.php.j2
+    dest: /etc/zabbix/web/zabbix.conf.php
+    owner: www-data
+    group: www-data
+    mode: '0640'
+
+- name: Start and enable Zabbix server
+  systemd:
+    name: zabbix-server
+    state: started
+    enabled: yes
+
+- name: Start and enable Apache
+  systemd:
+    name: apache2
+    state: restarted
+    enabled: yes
+
+- name: Restart Zabbix server
+  systemd:
+    name: zabbix-server
+    state: restarted
+

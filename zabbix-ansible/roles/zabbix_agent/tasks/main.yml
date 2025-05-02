@@ -1,0 +1,38 @@
+- name: Install Zabbix repository
+  apt:
+    deb: "https://repo.zabbix.com/zabbix/7.2/release/debian/pool/main/z/zabbix-release/zabbix-release_7.2-1%2Bdebian12_all.deb"
+    state: present
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Zabbix agent
+  apt:
+    name: zabbix-agent
+    state: present
+
+- name: Configure Zabbix agent
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^Server='
+    line: "Server={{ hostvars[groups['zabbix_server'][0]]['ansible_host'] }}"
+  notify: Restart zabbix agent
+
+- name: Set Hostname
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^Hostname='
+    line: "Hostname={{ inventory_hostname }}"
+  notify: Restart zabbix agent
+
+- name: Enable and start Zabbix agent
+  systemd:
+    name: zabbix-agent
+    enabled: true
+    state: started
+
+- name: Open port 10050 if UFW exists
+  shell: ufw allow 10050 || true
+  changed_when: false
+

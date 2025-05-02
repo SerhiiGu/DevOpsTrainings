@@ -1,0 +1,51 @@
+- name: Setup basic things
+  hosts: all
+  become: yes
+  roles:
+    - common
+
+- name: Install and configure Zabbix server
+  hosts: zabbix_server
+  become: true
+  roles:
+    - zabbix_server
+
+- name: Install Zabbix agent on all monitored hosts
+  hosts:
+    - mysql
+    - app
+    - jenkins
+    - monitoring
+    - traefik_docker
+  become: true
+  roles:
+    - zabbix_agent
+
+- name: Apply monitoring configurations
+  hosts: mysql
+  become: true
+  roles:
+    - mysql_monitoring
+
+- hosts: app
+  become: true
+  roles:
+    - lemp_monitoring
+
+- hosts: jenkins
+  become: true
+  roles:
+    - jenkins_monitoring
+
+- hosts: monitoring
+  become: true
+  roles:
+    - { role: grafana_monitoring, when: inventory_hostname == "grafana" }
+    - { role: prometheus_monitoring, when: inventory_hostname == "prometheus" }
+
+- hosts: traefik_docker
+  become: true
+  roles:
+    - traefik_monitoring
+    - docker_monitoring
+

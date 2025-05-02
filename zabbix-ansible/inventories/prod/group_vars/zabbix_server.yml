@@ -1,0 +1,5 @@
+mysql_root_password: "213402"
+
+zabbix_mysql_db: "zabbix7"
+zabbix_mysql_user: "zabb_usr"
+zabbix_mysql_password: "213408"

@@ -1,0 +1,11 @@
+- name: Apply basic monitoring configurations
+  hosts:
+    - app
+    - jenkins
+    - monitoring
+    - mysql
+    - traefik_docker
+  become: true
+  roles:
+    - add_server_to_zabbix
+
