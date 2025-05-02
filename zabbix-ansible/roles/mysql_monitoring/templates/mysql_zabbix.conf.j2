@@ -1,11 +1,12 @@
 UserParameter=mysql.ping,sh -c 'mysqladmin ping -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | grep -c alive'
 UserParameter=mysql.connections,sh -c 'echo "SHOW STATUS LIKE '\''Threads_connected'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
 UserParameter=mysql.uptime,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Uptime'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
-UserParameter=mysql.replication.slave_status,sh -c 'echo "SHOW SLAVE STATUS\G" | mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | grep -c "Slave_IO_Running: Yes"'
-UserParameter=mysql.replication.seconds_behind_master,sh -c 'echo "SHOW SLAVE STATUS\G" | mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | grep "Seconds_Behind_Master" | awk '\''{print $2}'\'''
+
 UserParameter=mysql.version,sh -c 'mysql -V | awk "{print \$5}" | sed "s/,//"'
+
 UserParameter=mysql.questions.rate,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Questions'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
 UserParameter=mysql.queries.rate,sh -c 'mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "\s" | grep "Queries per second avg" | awk '\''{print $NF}'\'''
+
 UserParameter=mysql.max_used_connections,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Max_used_connections'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
 UserParameter=mysql.open_tables,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Open_tables'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
 UserParameter=mysql.open_table_definitions,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Open_table_definitions'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
@@ -23,4 +24,30 @@ UserParameter=mysql.binlog_cache_disk_use,sh -c 'echo "SHOW GLOBAL STATUS LIKE '
 
 
 UserParameter=mysql.innodb_os_log_written,sh -c 'echo "SHOW GLOBAL STATUS LIKE '\''Innodb_os_log_written'\'';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '\''{print $2}'\'''
+
+UserParameter=mysql.bytes_sent.rate,echo "SHOW GLOBAL STATUS LIKE 'Bytes_sent';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.bytes_received.rate,echo "SHOW GLOBAL STATUS LIKE 'Bytes_received';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+
+UserParameter=mysql.com_update.rate,echo "SHOW GLOBAL STATUS LIKE 'Com_update';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.com_insert.rate,echo "SHOW GLOBAL STATUS LIKE 'Com_insert';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.com_select.rate,echo "SHOW GLOBAL STATUS LIKE 'Com_select';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.com_delete.rate,echo "SHOW GLOBAL STATUS LIKE 'Com_delete';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+
+UserParameter=mysql.connections.rate,echo "SHOW GLOBAL STATUS LIKE 'Connections';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+
+UserParameter=mysql.innodb_buffer_pool_pages_free,echo "SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_pages_free';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.innodb_buffer_pool_pages_total,echo "SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_pages_total';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.innodb_buffer_pool_reads,echo "SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_reads';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+UserParameter=mysql.innodb_buffer_pool_read_requests,echo "SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_read_requests';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+
+UserParameter=mysql.innodb_num_open_files,echo "SHOW GLOBAL STATUS LIKE 'Innodb_num_open_files';" | mysql -N -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} | awk '{print $2}'
+
+
+UserParameter=mysql.replication.discovery[*],bash /etc/zabbix/scripts/mysql_replication_discovery.sh "$1" "$2"
+
+UserParameter=mysql.seconds_behind_master[*],/usr/bin/mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW SLAVE STATUS\G" | grep -i 'Seconds_Behind_Master' | cut -d ':' -f2 | tr -d '[:space:]'
+UserParameter=mysql.slave_io_running[*],/usr/bin/mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW SLAVE STATUS\G" | grep -i 'Slave_IO_Running' | cut -d ':' -f2 | tr -d '[:space:]'
+UserParameter=mysql.slave_sql_running_state[*],/usr/bin/mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW SLAVE STATUS\G" | grep -i 'Slave_SQL_Running_State' | cut -d ':' -f2 | tr -d '[:space:]'
+UserParameter=mysql.slave_sql_running[*],/usr/bin/mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW SLAVE STATUS\G" | grep -i 'Slave_SQL_Running:' | cut -d ':' -f2 | tr -d '[:space:]'
+UserParameter=mysql.slave_status[*],/usr/bin/mysql -u{{ mysql_mon_user }} -p{{ mysql_mon_password }} -e "SHOW SLAVE STATUS\G" | grep -i 'Slave_IO_State' | cut -d ':' -f2 | tr -d '[:space:]'
 

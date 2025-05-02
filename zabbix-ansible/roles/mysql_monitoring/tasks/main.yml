@@ -15,10 +15,13 @@
     insertafter: EOF
   become: true
 
-- name: Ensure dir exist
+- name: Create dirs
   file:
-    path: /etc/zabbix/zabbix_agentd.conf.d/
+    path: "{{ item }}"
     state: directory
+  loop:
+    - "/etc/zabbix/zabbix_agentd.conf.d"
+    - "/etc/zabbix/scripts"
 
 - name: Add custom UserParameter config
   template:
@@ -29,6 +32,16 @@
     mode: '0640'
   become: true
   notify: Restart zabbix agent
+
+
+- name: Template mysql_replication_discovery.sh
+  template:
+    src: mysql_replication_discovery.sh.j2
+    dest: "/etc/zabbix/scripts/mysql_replication_discovery.sh"
+    owner: "root"
+    group: "zabbix"
+    mode: 0750
+  become: true
 
 - name: Ensure MySQL client is installed
   apt:

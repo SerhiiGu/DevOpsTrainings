@@ -1,0 +1,17 @@
+#!/bin/bash
+
+MYSQL_HOST="$1"
+MYSQL_PORT="$2"
+MYSQL_USER="{{ mysql_mon_user }}"
+MYSQL_PASS="{{ mysql_mon_password }}"
+
+OUTPUT=$(mysql -h "$MYSQL_HOST" -P "$MYSQL_PORT" -u"$MYSQL_USER" -p"$MYSQL_PASS" -e "SHOW SLAVE STATUS\G" 2>/dev/null)
+if echo "$OUTPUT" | grep -q "Master_Host"; then
+{% raw %}
+  echo '{"data":[{"{#CHANNEL}":"default"}]}'
+{% endraw %}
+else
+  echo '{"data":[]}'
+fi
+
+

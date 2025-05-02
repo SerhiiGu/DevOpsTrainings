@@ -163,25 +163,17 @@
                     {
                         "uuid": "651401c9245a4a3b904d7f7e13aaa9ca",
                         "name": "Bytes received",
-                        "type": "DEPENDENT",
                         "key": "mysql.bytes_received.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "units": "Bps",
                         "description": "Number of bytes received from all clients.",
                         "preprocessing": [
                             {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Bytes_received']/field[@name='Value']/text()"
-                                ]
-                            },
-                            {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -192,25 +184,17 @@
                     {
                         "uuid": "5492647791b14795966c5d59ceab8726",
                         "name": "Bytes sent",
-                        "type": "DEPENDENT",
                         "key": "mysql.bytes_sent.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "units": "Bps",
                         "description": "Number of bytes sent to all clients.",
                         "preprocessing": [
                             {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Bytes_sent']/field[@name='Value']/text()"
-                                ]
-                            },
-                            {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -221,24 +205,16 @@
                     {
                         "uuid": "d169a4f2fd334f28a6b61c9bcdeaa5d0",
                         "name": "Command Delete per second",
-                        "type": "DEPENDENT",
                         "key": "mysql.com_delete.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "description": "The `Com_delete` counter variable indicates the number of times the `DELETE` statement has been executed.",
                         "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Com_delete']/field[@name='Value']/text()"
-                                ]
-                            },
                             {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -249,24 +225,16 @@
                     {
                         "uuid": "b07566ca5c5d48a2a9b2ba9edae23768",
                         "name": "Command Insert per second",
-                        "type": "DEPENDENT",
                         "key": "mysql.com_insert.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "description": "The `Com_insert` counter variable indicates the number of times the `INSERT` statement has been executed.",
                         "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Com_insert']/field[@name='Value']/text()"
-                                ]
-                            },
                             {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -277,24 +245,16 @@
                     {
                         "uuid": "3e6694e747c7473395d27b1a856e45c9",
                         "name": "Command Select per second",
-                        "type": "DEPENDENT",
                         "key": "mysql.com_select.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "description": "The `Com_select` counter variable indicates the number of times the `SELECT` statement has been executed.",
                         "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Com_select']/field[@name='Value']/text()"
-                                ]
-                            },
                             {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -305,24 +265,16 @@
                     {
                         "uuid": "f58152ba35a14196b15823f2ee8eb736",
                         "name": "Command Update per second",
-                        "type": "DEPENDENT",
                         "key": "mysql.com_update.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "description": "The `Com_update` counter variable indicates the number of times the `UPDATE` statement has been executed.",
                         "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Com_update']/field[@name='Value']/text()"
-                                ]
-                            },
                             {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -333,24 +285,16 @@
                     {
                         "uuid": "e392b305c772425f97da172748542a65",
                         "name": "Connections per second",
-                        "type": "DEPENDENT",
                         "key": "mysql.connections.rate",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "description": "Number of connection attempts (successful or not) to the MySQL server.",
                         "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Connections']/field[@name='Value']/text()"
-                                ]
-                            },
                             {
                                 "type": "CHANGE_PER_SECOND"
                             }
                         ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -699,20 +643,10 @@
                     {
                         "uuid": "8ae6267f4df34ea3ade7316733983b4e",
                         "name": "InnoDB buffer pool pages free",
-                        "type": "DEPENDENT",
                         "key": "mysql.innodb_buffer_pool_pages_free",
+                        "history": "7d",
+                        "trends": "90d",
                         "description": "The total size of the InnoDB buffer pool, in pages.",
-                        "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Innodb_buffer_pool_pages_free']/field[@name='Value']/text()"
-                                ]
-                            }
-                        ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -727,26 +661,11 @@
                     {
                         "uuid": "28aae613da1a4be1913611031518f7f1",
                         "name": "InnoDB buffer pool pages total",
-                        "type": "DEPENDENT",
                         "key": "mysql.innodb_buffer_pool_pages_total",
+                        "delay": "5m",
+                        "history": "7d",
+                        "trends": "90d",
                         "description": "The total size of the InnoDB buffer pool, in pages.",
-                        "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Innodb_buffer_pool_pages_total']/field[@name='Value']/text()"
-                                ]
-                            },
-                            {
-                                "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                "parameters": [
-                                    "1h"
-                                ]
-                            }
-                        ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -761,20 +680,10 @@
                     {
                         "uuid": "7ca689c43c174994b952c95248c09974",
                         "name": "InnoDB buffer pool reads",
-                        "type": "DEPENDENT",
                         "key": "mysql.innodb_buffer_pool_reads",
+                        "history": "7d",
+                        "trends": "90d",
                         "description": "Number of logical reads that InnoDB could not satisfy from the buffer pool and had to read directly from the disk.",
-                        "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Innodb_buffer_pool_reads']/field[@name='Value']/text()"
-                                ]
-                            }
-                        ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -821,20 +730,10 @@
                     {
                         "uuid": "3b92fad8ce804764980512d39efb9636",
                         "name": "InnoDB buffer pool read requests",
-                        "type": "DEPENDENT",
                         "key": "mysql.innodb_buffer_pool_read_requests",
+                        "history": "7d",
+                        "trends": "90d",
                         "description": "Number of logical read requests.",
-                        "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Innodb_buffer_pool_read_requests']/field[@name='Value']/text()"
-                                ]
-                            }
-                        ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -941,27 +840,12 @@
                     {
                         "uuid": "3360ce9d457741f5bae8bee35a663300",
                         "name": "Innodb number open files",
-                        "type": "DEPENDENT",
                         "key": "mysql.innodb_num_open_files",
+                        "delay": "2m",
+                        "history": "7d",
                         "value_type": "FLOAT",
+                        "trends": "90d",
                         "description": "Number of open files held by InnoDB. InnoDB only.",
-                        "preprocessing": [
-                            {
-                                "type": "XMLPATH",
-                                "parameters": [
-                                    "/resultset/row[field/text()='Innodb_num_open_files']/field[@name='Value']/text()"
-                                ]
-                            },
-                            {
-                                "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                "parameters": [
-                                    "6h"
-                                ]
-                            }
-                        ],
-                        "master_item": {
-                            "key": "mysql.get_status_variables"
-                        },
                         "tags": [
                             {
                                 "tag": "component",
@@ -1390,7 +1274,7 @@
                         "uuid": "cc8a8299eb014a5c981adc5eea8b81a3",
                         "name": "Version",
                         "key": "mysql.version",
-                        "delay": "15m",
+                        "delay": "1h",
                         "value_type": "CHAR",
                         "description": "MySQL server version.",
                         "tags": [
@@ -1483,189 +1367,20 @@
                         ]
                     },
                     {
-                        "uuid": "70f6bb9bd81e464587eb2779e5d4798f",
-                        "name": "MariaDB discovery",
-                        "type": "DEPENDENT",
-                        "key": "mysql.extra_metric.discovery",
-                        "description": "Used for additional metrics if MariaDB is used.",
-                        "item_prototypes": [
-                            {
-                                "uuid": "6fc4af84064f4dee9a06d79a15305fe1",
-                                "name": "Binlog commits",
-                                "type": "DEPENDENT",
-                                "key": "mysql.binlog_commits[{#SINGLETON}]",
-                                "value_type": "FLOAT",
-                                "description": "Total number of transactions committed to the binary log.",
-                                "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row[field/text()='Binlog_commits']/field[@name='Value']/text()"
-                                        ]
-                                    }
-                                ],
-                                "master_item": {
-                                    "key": "mysql.get_status_variables"
-                                },
-                                "tags": [
-                                    {
-                                        "tag": "component",
-                                        "value": "transactions"
-                                    }
-                                ]
-                            },
-                            {
-                                "uuid": "537dd6c5330744b6a25af5e0adb271bf",
-                                "name": "Binlog group commits",
-                                "type": "DEPENDENT",
-                                "key": "mysql.binlog_group_commits[{#SINGLETON}]",
-                                "value_type": "FLOAT",
-                                "description": "Total number of group commits done to the binary log.",
-                                "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row[field/text()='Binlog_group_commits']/field[@name='Value']/text()"
-                                        ]
-                                    }
-                                ],
-                                "master_item": {
-                                    "key": "mysql.get_status_variables"
-                                },
-                                "tags": [
-                                    {
-                                        "tag": "component",
-                                        "value": "transactions"
-                                    }
-                                ]
-                            },
-                            {
-                                "uuid": "2547652ab98b43c68226e8d9b07a624b",
-                                "name": "Master GTID wait count",
-                                "type": "DEPENDENT",
-                                "key": "mysql.master_gtid_wait_count[{#SINGLETON}]",
-                                "value_type": "FLOAT",
-                                "description": "The number of times `MASTER_GTID_WAIT` called.",
-                                "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row[field/text()='Master_gtid_wait_count']/field[@name='Value']/text()"
-                                        ]
-                                    },
-                                    {
-                                        "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                        "parameters": [
-                                            "6h"
-                                        ]
-                                    }
-                                ],
-                                "master_item": {
-                                    "key": "mysql.get_status_variables"
-                                },
-                                "tags": [
-                                    {
-                                        "tag": "component",
-                                        "value": "transactions"
-                                    }
-                                ]
-                            },
-                            {
-                                "uuid": "09c8c3891f6b41498498c24ca93d3d95",
-                                "name": "Master GTID wait timeouts",
-                                "type": "DEPENDENT",
-                                "key": "mysql.master_gtid_wait_timeouts[{#SINGLETON}]",
-                                "value_type": "FLOAT",
-                                "description": "Number of timeouts occurring in `MASTER_GTID_WAIT`.",
-                                "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row[field/text()='Master_gtid_wait_timeouts']/field[@name='Value']/text()"
-                                        ]
-                                    },
-                                    {
-                                        "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                        "parameters": [
-                                            "6h"
-                                        ]
-                                    }
-                                ],
-                                "master_item": {
-                                    "key": "mysql.get_status_variables"
-                                },
-                                "tags": [
-                                    {
-                                        "tag": "component",
-                                        "value": "transactions"
-                                    }
-                                ]
-                            },
-                            {
-                                "uuid": "76eb95390f354a1f992686c2410d6851",
-                                "name": "Master GTID wait time",
-                                "type": "DEPENDENT",
-                                "key": "mysql.master_gtid_wait_time[{#SINGLETON}]",
-                                "value_type": "FLOAT",
-                                "description": "Total number of time spent in `MASTER_GTID_WAIT`.",
-                                "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row[field/text()='Master_gtid_wait_time']/field[@name='Value']/text()"
-                                        ]
-                                    },
-                                    {
-                                        "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                        "parameters": [
-                                            "6h"
-                                        ]
-                                    }
-                                ],
-                                "master_item": {
-                                    "key": "mysql.get_status_variables"
-                                },
-                                "tags": [
-                                    {
-                                        "tag": "component",
-                                        "value": "transactions"
-                                    }
-                                ]
-                            }
-                        ],
-                        "master_item": {
-                            "key": "mysql.version"
-                        },
-                        "preprocessing": [
-                            {
-                                "type": "JAVASCRIPT",
-                                "parameters": [
-                                    "return JSON.stringify(value.search('MariaDB')>-1 ? [{'{#SINGLETON}': ''}] : []);"
-                                ]
-                            }
-                        ]
-                    },
-                    {
                         "uuid": "e70e656d89f14ec49d317c73d6fba252",
                         "name": "Replication discovery",
                         "key": "mysql.replication.discovery[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\"]",
-                        "delay": "1h",
                         "description": "If \"show slave status\" returns Master_Host, \"Replication: *\" items are created.",
                         "item_prototypes": [
                             {
                                 "uuid": "3b325aeb383445c0bec8355c3185b1cc",
-                                "name": "Replication Seconds Behind Master {#MASTER_HOST}",
-                                "type": "DEPENDENT",
-                                "key": "mysql.seconds_behind_master[\"{#MASTER_HOST}\"]",
+                                "name": "MySQL Replication: Seconds_Behind_Master [{#CHANNEL}]",
+                                "key": "mysql.seconds_behind_master[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"]",
+                                "history": "7d",
+                                "trends": "90d",
                                 "units": "s",
                                 "description": "The number of seconds that the slave SQL thread is behind processing the master binary log.\nA high number (or an increasing one) can indicate that the slave is unable to handle events\nfrom the master in a timely fashion.",
                                 "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row/field[@name='Seconds_Behind_Master']/text()"
-                                        ]
-                                    },
                                     {
                                         "type": "DISCARD_UNCHANGED_HEARTBEAT",
                                         "parameters": [
@@ -1681,9 +1396,6 @@
                                         "error_handler_params": "Replication is not performed."
                                     }
                                 ],
-                                "master_item": {
-                                    "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\"]"
-                                },
                                 "tags": [
                                     {
                                         "tag": "component",
@@ -1693,7 +1405,7 @@
                                 "trigger_prototypes": [
                                     {
                                         "uuid": "6992bbcc9aa94e128f8b51562b5188e5",
-                                        "expression": "min(/Custom MySQL by Zabbix agent/mysql.seconds_behind_master[\"{#MASTER_HOST}\"],5m)>{$MYSQL.REPL_LAG.MAX.WARN}",
+                                        "expression": "min(/Custom MySQL by Zabbix agent/mysql.seconds_behind_master[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"],5m)>{$MYSQL.REPL_LAG.MAX.WARN}",
                                         "name": "MySQL: Replication lag is too high",
                                         "event_name": "MySQL: Replication lag is too high (over {$MYSQL.REPL_LAG.MAX.WARN} for 5m)",
                                         "priority": "WARNING",
@@ -1709,18 +1421,12 @@
                             },
                             {
                                 "uuid": "efd660eb74db4cb18f823005dced7e6a",
-                                "name": "Replication Slave IO Running {#MASTER_HOST}",
-                                "type": "DEPENDENT",
-                                "key": "mysql.slave_io_running[\"{#MASTER_HOST}\"]",
+                                "name": "MySQL Replication: Slave_IO_Running [{#CHANNEL}]",
+                                "key": "mysql.slave_io_running[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"]",
+                                "history": "7d",
                                 "value_type": "CHAR",
                                 "description": "Whether the I/O thread for reading the master's binary log is running.\nNormally, you want this to be Yes unless you have not yet started replication or have\nexplicitly stopped it with STOP SLAVE.",
                                 "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row/field[@name='Slave_IO_Running']/text()"
-                                        ]
-                                    },
                                     {
                                         "type": "DISCARD_UNCHANGED_HEARTBEAT",
                                         "parameters": [
@@ -1728,9 +1434,6 @@
                                         ]
                                     }
                                 ],
-                                "master_item": {
-                                    "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\"]"
-                                },
                                 "tags": [
                                     {
                                         "tag": "component",
@@ -1740,14 +1443,14 @@
                                 "trigger_prototypes": [
                                     {
                                         "uuid": "d2eebcbbcc2944879560fd221311c6da",
-                                        "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{#MASTER_HOST}\"],#1,\"ne\",\"Yes\")=1",
+                                        "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"],#1,\"ne\",\"Yes\")=1",
                                         "name": "MySQL: The slave I/O thread is not connected to a replication master",
                                         "priority": "WARNING",
                                         "description": "Whether the slave I/O thread is connected to the master.",
                                         "dependencies": [
                                             {
                                                 "name": "MySQL: The slave I/O thread is not running",
-                                                "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{#MASTER_HOST}\"],#1,\"eq\",\"No\")=1"
+                                                "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"],#1,\"eq\",\"No\")=1"
                                             }
                                         ],
                                         "tags": [
@@ -1759,7 +1462,7 @@
                                     },
                                     {
                                         "uuid": "f9217be1f26d44bc990665516fa9d3db",
-                                        "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{#MASTER_HOST}\"],#1,\"eq\",\"No\")=1",
+                                        "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"],#1,\"eq\",\"No\")=1",
                                         "name": "MySQL: The slave I/O thread is not running",
                                         "priority": "AVERAGE",
                                         "description": "Whether the I/O thread for reading the master's binary log is running.",
@@ -1774,18 +1477,13 @@
                             },
                             {
                                 "uuid": "91a07ca02c814e45bdb07a1a7b382510",
-                                "name": "Replication Slave SQL Running {#MASTER_HOST}",
-                                "type": "DEPENDENT",
-                                "key": "mysql.slave_sql_running[\"{#MASTER_HOST}\"]",
+                                "name": "Replication Slave SQL Running  [{#CHANNEL}]",
+                                "key": "mysql.slave_sql_running[\"{#MASTER_HOST}\",\"{#CHANNEL}\"]",
+                                "delay": "2m",
+                                "history": "7d",
                                 "value_type": "CHAR",
                                 "description": "Whether the SQL thread for executing events in the relay log is running.\nAs with the I/O thread, this should normally be Yes.",
                                 "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row/field[@name='Slave_SQL_Running']/text()"
-                                        ]
-                                    },
                                     {
                                         "type": "DISCARD_UNCHANGED_HEARTBEAT",
                                         "parameters": [
@@ -1793,9 +1491,6 @@
                                         ]
                                     }
                                 ],
-                                "master_item": {
-                                    "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\"]"
-                                },
                                 "tags": [
                                     {
                                         "tag": "component",
@@ -1805,14 +1500,14 @@
                                 "trigger_prototypes": [
                                     {
                                         "uuid": "47c575eab45544609ef19a011a51511c",
-                                        "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_sql_running[\"{#MASTER_HOST}\"],#1,\"eq\",\"No\")=1",
+                                        "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_sql_running[\"{#MASTER_HOST}\",\"{#CHANNEL}\"],#1,\"eq\",\"No\")=1",
                                         "name": "MySQL: The SQL thread is not running",
                                         "priority": "WARNING",
                                         "description": "Whether the SQL thread for executing events in the relay log is running.",
                                         "dependencies": [
                                             {
                                                 "name": "MySQL: The slave I/O thread is not running",
-                                                "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{#MASTER_HOST}\"],#1,\"eq\",\"No\")=1"
+                                                "expression": "count(/Custom MySQL by Zabbix agent/mysql.slave_io_running[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#CHANNEL}\"],#1,\"eq\",\"No\")=1"
                                             }
                                         ],
                                         "tags": [
@@ -1826,18 +1521,12 @@
                             },
                             {
                                 "uuid": "f83c4498cab24aa981e24fc1faf96b64",
-                                "name": "Replication Slave SQL Running State {#MASTER_HOST}",
-                                "type": "DEPENDENT",
-                                "key": "mysql.slave_sql_running_state[\"{#MASTER_HOST}\"]",
+                                "name": "Replication Slave SQL Running State [{#CHANNEL}]",
+                                "key": "mysql.slave_sql_running_state[\"{#MASTER_HOST}\",\"{#CHANNEL}\"]",
+                                "history": "7d",
                                 "value_type": "TEXT",
                                 "description": "This shows the state of the SQL driver threads.",
                                 "preprocessing": [
-                                    {
-                                        "type": "XMLPATH",
-                                        "parameters": [
-                                            "/resultset/row[field/text()='Slave_SQL_Running_State']/field[@name='Value']/text()"
-                                        ]
-                                    },
                                     {
                                         "type": "DISCARD_UNCHANGED_HEARTBEAT",
                                         "parameters": [
@@ -1845,9 +1534,6 @@
                                         ]
                                     }
                                 ],
-                                "master_item": {
-                                    "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\"]"
-                                },
                                 "tags": [
                                     {
                                         "tag": "component",
@@ -1857,9 +1543,9 @@
                             },
                             {
                                 "uuid": "89cc963a428948e69c34ba8c098f7f50",
-                                "name": "Replication Slave status {#MASTER_HOST}",
-                                "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\"]",
-                                "history": "0",
+                                "name": "Replication Slave status  [{#CHANNEL}]",
+                                "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\",\"{#CHANNEL}\"]",
+                                "history": "7d",
                                 "value_type": "TEXT",
                                 "description": "The item gets status information on the essential parameters of the slave threads.",
                                 "tags": [
@@ -1871,12 +1557,6 @@
                             }
                         ],
                         "preprocessing": [
-                            {
-                                "type": "JAVASCRIPT",
-                                "parameters": [
-                                    "var matches = value.match(/Master_Host.*>(.*)<.*/);\nif (matches) {\n\treturn JSON.stringify([{\"{#MASTER_HOST}\": matches[1]}]);\n}\n\nreturn '[]';"
-                                ]
-                            },
                             {
                                 "type": "DISCARD_UNCHANGED_HEARTBEAT",
                                 "parameters": [
