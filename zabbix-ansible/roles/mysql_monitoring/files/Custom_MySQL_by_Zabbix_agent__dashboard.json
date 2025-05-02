@@ -1304,69 +1304,6 @@
                 ],
                 "discovery_rules": [
                     {
-                        "uuid": "781aa8d85e0e4c4999cd7c0bdfe25f00",
-                        "name": "Database discovery",
-                        "key": "mysql.db.discovery[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\"]",
-                        "delay": "1h",
-                        "filter": {
-                            "evaltype": "AND",
-                            "conditions": [
-                                {
-                                    "macro": "{#DBNAME}",
-                                    "value": "{$MYSQL.DBNAME.MATCHES}"
-                                },
-                                {
-                                    "macro": "{#DBNAME}",
-                                    "value": "{$MYSQL.DBNAME.NOT_MATCHES}",
-                                    "operator": "NOT_MATCHES_REGEX"
-                                }
-                            ]
-                        },
-                        "description": "Scanning databases in DBMS.",
-                        "item_prototypes": [
-                            {
-                                "uuid": "f9eafaba1e3b4d59b81e9f785608cf8d",
-                                "name": "Size of database {#DBNAME}",
-                                "key": "mysql.dbsize[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#DBNAME}\"]",
-                                "delay": "5m",
-                                "units": "B",
-                                "description": "Database size.",
-                                "preprocessing": [
-                                    {
-                                        "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                        "parameters": [
-                                            "1h"
-                                        ]
-                                    }
-                                ],
-                                "tags": [
-                                    {
-                                        "tag": "component",
-                                        "value": "storage"
-                                    },
-                                    {
-                                        "tag": "database",
-                                        "value": "{#DBNAME}"
-                                    }
-                                ]
-                            }
-                        ],
-                        "preprocessing": [
-                            {
-                                "type": "JAVASCRIPT",
-                                "parameters": [
-                                    "return JSON.stringify(value.split(\"\\n\").map(function (name) {\n\treturn ({\"{#DBNAME}\": name});\n}));"
-                                ]
-                            },
-                            {
-                                "type": "DISCARD_UNCHANGED_HEARTBEAT",
-                                "parameters": [
-                                    "1d"
-                                ]
-                            }
-                        ]
-                    },
-                    {
                         "uuid": "e70e656d89f14ec49d317c73d6fba252",
                         "name": "Replication discovery",
                         "key": "mysql.replication.discovery[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\"]",
@@ -1477,7 +1414,7 @@
                             },
                             {
                                 "uuid": "91a07ca02c814e45bdb07a1a7b382510",
-                                "name": "Replication Slave SQL Running  [{#CHANNEL}]",
+                                "name": "MySQL Replication: Slave SQL Running  [{#CHANNEL}]",
                                 "key": "mysql.slave_sql_running[\"{#MASTER_HOST}\",\"{#CHANNEL}\"]",
                                 "delay": "2m",
                                 "history": "7d",
@@ -1521,7 +1458,7 @@
                             },
                             {
                                 "uuid": "f83c4498cab24aa981e24fc1faf96b64",
-                                "name": "Replication Slave SQL Running State [{#CHANNEL}]",
+                                "name": "MySQL Replication: Slave SQL Running State [{#CHANNEL}]",
                                 "key": "mysql.slave_sql_running_state[\"{#MASTER_HOST}\",\"{#CHANNEL}\"]",
                                 "history": "7d",
                                 "value_type": "TEXT",
@@ -1543,7 +1480,7 @@
                             },
                             {
                                 "uuid": "89cc963a428948e69c34ba8c098f7f50",
-                                "name": "Replication Slave status  [{#CHANNEL}]",
+                                "name": "MySQL Replication: Slave status  [{#CHANNEL}]",
                                 "key": "mysql.slave_status[\"{$MYSQL.HOST}\",\"{$MYSQL.PORT}\",\"{#MASTER_HOST}\",\"{#CHANNEL}\"]",
                                 "history": "7d",
                                 "value_type": "TEXT",
