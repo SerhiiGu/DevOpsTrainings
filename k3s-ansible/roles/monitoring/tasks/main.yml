@@ -50,62 +50,23 @@
   set_fact:
     grafana_password: "{{ grafana_secret.resources[0].data['admin-password'] | b64decode }}"
 
-- name: Create Ingress for Grafana
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: grafana-ingress
-        namespace: monitoring
-        annotations:
-          kubernetes.io/ingress.class: traefik
-          traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-          traefik.ingress.kubernetes.io/router.tls: "true"
-      spec:
-        rules:
-          - host: grafana.k3s.local
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: kube-prometheus-stack-grafana
-                      port:
-                        number: 80
-        tls:
-          - hosts:
-              - grafana.k3s.local
-            secretName: grafana-tls
+- name: Copy manifest files to remote host
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware.yaml
+    - grafana-ingress.yaml
+    - prometheus-ingress.yaml
 
-
-- name: Create Ingress for Prometheus
+- name: Apply middleware and ingress manifests
   kubernetes.core.k8s:
-    definition:
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: prometheus-ingress
-        namespace: monitoring
-        annotations:
-          kubernetes.io/ingress.class: traefik
-          traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-          traefik.ingress.kubernetes.io/router.tls: "true"
-      spec:
-        rules:
-          - host: prometheus.k3s.local
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: kube-prometheus-stack-prometheus
-                      port:
-                        number: 9090
-        tls:
-          - hosts:
-              - prometheus.k3s.local
-            secretName: prometheus-tls
+    state: present
+    namespace: monitoring
+    src: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware.yaml
+    - grafana-ingress.yaml
+    - prometheus-ingress.yaml
+
 
