@@ -1,0 +1,21 @@
+- name: Slurp node-token from master1
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  delegate_to: "{{ hostvars['master1'].inventory_hostname }}"
+  register: k3s_token
+
+- name: Write node-token to /tmp/k3s_node_token on agent
+  copy:
+    content: "{{ k3s_token.content | b64decode }}"
+    dest: /tmp/k3s_node_token
+    mode: '0600'
+
+
+- name: Join K3s agent to master
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['master1'].ansible_host }}:6443 \
+    K3S_TOKEN=`cat /tmp/k3s_node_token` \
+    INSTALL_K3S_EXEC="--node-name {{ inventory_hostname }}" sh -
+  args:
+    creates: /etc/rancher/k3s/k3s-agent.yaml
+

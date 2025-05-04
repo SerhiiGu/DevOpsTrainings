@@ -1,0 +1,5 @@
+- name: Traefik
+  hosts: master
+  become: yes
+  roles:
+    - traefik

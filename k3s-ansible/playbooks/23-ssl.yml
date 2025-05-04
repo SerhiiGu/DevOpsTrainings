@@ -1,0 +1,5 @@
+- name: SSL for Traefik
+  hosts: master
+  become: yes
+  roles:
+    - ssl

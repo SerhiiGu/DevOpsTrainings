@@ -1,0 +1,6 @@
+- name: Apply common things
+  hosts: all
+  become: yes
+  roles:
+    - common
+

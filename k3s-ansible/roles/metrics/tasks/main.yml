@@ -1,0 +1,37 @@
+- name: Check K3s nodes status
+  command: kubectl get nodes -o wide
+  delegate_to: master1
+  register: node_output
+
+- debug:
+    var: node_output.stdout_lines
+
+- name: Check all pods in all namspaces
+  command: kubectl get pods -A
+  register: node_output
+
+- debug:
+    var: node_output.stdout_lines
+
+- name: Check all services
+  command: kubectl get svc -A
+  register: node_output
+
+- debug:
+    var: node_output.stdout_lines
+
+# kubectl get events -A               # last events - debug purpose
+# kubectl describe node <name>        # node details
+# kubectl top node & kubectl top pod  # from  metrics-server
+
+- name: Check if metrics-server is already installed
+  shell: "kubectl get deployment metrics-server -n kube-system --no-headers"
+  register: metrics_server_check
+  failed_when: false
+  changed_when: false
+
+- name: Install metrics-server if not present
+  when: metrics_server_check.stdout == ""
+  shell: |
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+

@@ -1,0 +1,34 @@
+- name: Install K3s master node
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig-mode 644 --node-name {{ inventory_hostname }}" sh -
+  args:
+    creates: /etc/rancher/k3s/k3s.yaml
+
+- name: Ensure dir exist
+  file:
+    path: /root/.cube
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Ensure kubeconfig is in place
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /root/.kube/config
+    remote_src: yes
+    mode: '0600'
+
+- name: Replace localhost with actual IP in kubeconfig
+  replace:
+    path: /root/.kube/config
+    regexp: 'https://127.0.0.1:6443'
+    replace: "https://{{ ansible_host }}:6443"
+
+- name: Ensure Python modules are installed
+  apt:
+    name: 
+      - python3-pip
+      - python3-kubernetes
+    state: present
+  become: true
+

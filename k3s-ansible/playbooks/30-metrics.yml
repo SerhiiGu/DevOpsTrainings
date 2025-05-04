@@ -1,0 +1,5 @@
+- name: Get some metrics from K3s Master
+  hosts: master
+  become: yes
+  roles:
+    - metrics
