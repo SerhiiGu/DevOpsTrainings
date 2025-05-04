@@ -11,3 +11,9 @@ traefik_ssl_domains:
     domain: traefik.k3s.local
     port: 8082
     namespace: kube-system
+  - name: dashboard
+    domain: dashboard.k3s.local
+    port: 8443
+    namespace: kubernetes-dashboard
+
+

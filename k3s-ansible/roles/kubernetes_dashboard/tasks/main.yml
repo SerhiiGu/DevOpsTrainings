@@ -1,0 +1,163 @@
+---
+- name: Ensure Kubernetes Dashboard Helm repo is added
+  ansible.builtin.shell: |
+    helm repo list | grep -q "^kubernetes-dashboard"
+  register: helm_repo_check
+  failed_when: false
+  changed_when: false
+
+- name: Add Kubernetes Dashboard repo if not present
+  ansible.builtin.shell: |
+    helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+  when: helm_repo_check.rc != 0
+
+- name: Update Helm repos
+  ansible.builtin.shell: helm repo update
+  changed_when: false
+
+- name: Deploy Kubernetes Dashboard via Helm
+  ansible.builtin.shell: |
+    helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
+      --create-namespace \
+      --namespace {{ k8s_dashboard_namespace }}
+  changed_when: true
+
+- name: Create ClusterRoleBinding for Kubernetes Dashboard access
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: kubernetes-dashboard
+      subjects:
+        - kind: ServiceAccount
+          name: kubernetes-dashboard
+          namespace: "{{ k8s_dashboard_namespace }}"
+      roleRef:
+        kind: ClusterRole
+        name: cluster-admin
+        apiGroup: rbac.authorization.k8s.io
+
+
+- name: Create HTTP Service for Kubernetes Dashboard Web (no TLS)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kubernetes-dashboard-web-http
+        namespace: kubernetes-dashboard
+      spec:
+        selector:
+          app.kubernetes.io/component: web
+        ports:
+          - protocol: TCP
+            port: 80
+            targetPort: 8000
+  tags: ingress
+
+- name: Create IngressRoute for Kubernetes Dashboard (HTTP backend)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: kubernetes-dashboard
+        namespace: "{{ k8s_dashboard_namespace }}"
+      spec:
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`{{ dashboard_domain }}`)
+            kind: Rule
+            services:
+              - name: kubernetes-dashboard-web-http
+                port: 80
+        tls:
+          secretName: "{{ dashboard_tls_secret_name }}"
+  when: dashboard_enable_ingress
+  tags: ingress
+
+- name: Create IngressRoute for redirecting HTTP to HTTPS (Dashboard)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: kubernetes-dashboard-redirect
+        namespace: "{{ k8s_dashboard_namespace }}"
+      spec:
+        entryPoints:
+          - web
+        routes:
+          - match: Host(`{{ dashboard_domain }}`)
+            kind: Rule
+            middlewares:
+              - name: redirect-https
+            services:
+              - name: kubernetes-dashboard-web-http  # будь-який сервіс, навіть "dummy"
+                port: 80
+  tags: ingress
+
+- name: Wait for Kubernetes Dashboard Service to be ready
+  kubernetes.core.k8s_info:
+    kind: Service
+    namespace: "{{ k8s_dashboard_namespace }}"
+    name: kubernetes-dashboard-kong-proxy
+  register: dashboard_service
+  retries: 10
+  delay: 5
+  until: dashboard_service.resources | length > 0
+  tags: token
+
+
+- name: Create ServiceAccount for Kubernetes Dashboard
+  kubernetes.core.k8s:
+    state: present
+    api_version: v1
+    kind: ServiceAccount
+    namespace: "{{ k8s_dashboard_namespace }}"
+    name: kubernetes-dashboard
+  tags: token
+
+
+- name: Create ClusterRoleBinding for Kubernetes Dashboard ServiceAccount
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: kubernetes-dashboard
+      subjects:
+        - kind: ServiceAccount
+          name: kubernetes-dashboard
+          namespace: "{{ k8s_dashboard_namespace }}"
+      roleRef:
+        kind: ClusterRole
+        name: cluster-admin
+        apiGroup: rbac.authorization.k8s.io
+  tags: role_binding
+
+
+- name: Get token for kubernetes-dashboard ServiceAccount
+  shell: |
+    kubectl -n {{ k8s_dashboard_namespace }} create token kubernetes-dashboard
+  register: dashboard_token
+  failed_when: dashboard_token.rc != 0
+  changed_when: false
+  tags: token
+
+
+- name: Display Dashboard access information
+  ansible.builtin.debug:
+    msg: |
+      ✅ Kubernetes Dashboard доступний за адресою: https://{{ dashboard_domain }}
+      🔐 Токен для входу:
+      {{ dashboard_token.stdout }}
+  tags: token
+
