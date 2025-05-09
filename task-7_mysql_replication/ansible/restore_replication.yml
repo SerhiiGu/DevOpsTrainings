@@ -17,14 +17,14 @@
       ignore_errors: true
 
 
-- name: Dump databases (mydb, db2)
+- name: Dump databases (mydb, vocabulary)
   hosts: mysql_servers
   become: yes
   tasks:
     - name: Create MySQL dump with master data
       ansible.builtin.shell: >
         mysqldump -u root -p{{ mysql_root_password }} \
-          --databases mydb db2 --master-data=2 --single-transaction \
+          --databases mydb vocabulary --master-data=2 --single-transaction \
           --flush-logs --hex-blob > /tmp/dump_{{ inventory_hostname }}.sql
 
 

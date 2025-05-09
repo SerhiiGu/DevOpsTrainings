@@ -5,7 +5,7 @@
 
 - name: Create second database
   mysql_db:
-    name: db2
+    name: vocabulary
     state: present
 
 - name: Remove database test
@@ -47,14 +47,14 @@
     - { regexp: '^auto_increment_offset=', line: "auto_increment_offset={{ server_id }}" }
     - { regexp: '^log_bin=', line: "log_bin=mysql-bin" }
     - { regexp: '^binlog_do_db=mydb$', line: "binlog_do_db=mydb" }
-    - { regexp: '^binlog_do_db=db2$', line: "binlog_do_db=db2" }
+    - { regexp: '^binlog_do_db=vocabulary$', line: "binlog_do_db=vocabulary" }
     - { regexp: '^gtid_strict_mode=', line: "gtid_strict_mode=ON" }
     - { regexp: '^log_slave_updates=', line: "log_slave_updates=ON" }
     - { regexp: '^read_only=', line: "read_only=OFF" }
     - { regexp: '^expire_logs_days=', line: "expire_logs_days=3" }
     - { regexp: '^max_binlog_size=', line: "max_binlog_size=1024M" }
     - { regexp: '^replicate-do-db=mydb$', line: "replicate-do-db=mydb" }
-    - { regexp: '^replicate-do-db=db2$', line: "replicate-do-db=db2" }
+    - { regexp: '^replicate-do-db=vocabulary$', line: "replicate-do-db=vocabulary" }
 
 
 - name: Start MySQL server
