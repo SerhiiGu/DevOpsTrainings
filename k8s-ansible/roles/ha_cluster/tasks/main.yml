@@ -1,0 +1,35 @@
+- name: Ensure HAProxy and Keepalived are installed
+  apt:
+    name:
+      - haproxy
+      - keepalived
+    state: present
+
+- name: Create HAProxy config from template
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Create Keepalived config from template
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Deploy check_apiserver script
+  template:
+    src: check_apiserver.sh.j2
+    dest: /etc/keepalived/check_apiserver.sh
+    mode: '0755'
+
+- name: Enable and start keepalived
+  systemd:
+    name: keepalived
+    enabled: yes
+    state: restarted
+
+- name: Enable and start haproxy
+  systemd:
+    name: haproxy
+    enabled: yes
+    state: restarted
+

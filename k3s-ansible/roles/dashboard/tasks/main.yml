@@ -1,0 +1,37 @@
+- name: Ensure Kubernetes Dashboard Helm repo is added
+  ansible.builtin.shell: |
+    helm repo list | grep -q "^kubernetes-dashboard"
+  register: helm_repo_check
+  failed_when: false
+  changed_when: false
+
+- name: Add Kubernetes Dashboard repo if not present
+  ansible.builtin.shell: |
+    helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+  when: helm_repo_check.rc != 0
+
+- name: Update Helm repos
+  ansible.builtin.shell: helm repo update
+  changed_when: false
+
+- name: Deploy Kubernetes Dashboard via Helm
+  ansible.builtin.shell: |
+    helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
+      --create-namespace \
+      --namespace {{ dashboard_namespace }} \
+      --set protocolHttp=true \
+      --set ingress.enabled=false \
+      --set service.type=ClusterIP
+  changed_when: true
+
+
+- name: Create NodePort Service for Kubernetes Dashboard
+  include_tasks: service.yml
+
+- name: Create admin access for Kubernetes Dashboard
+  include_tasks: access.yml
+
+- name: Get login token for Kubernetes Dashboard
+  include_tasks: get_token.yml
+
+

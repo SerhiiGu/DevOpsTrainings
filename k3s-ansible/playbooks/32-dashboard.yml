@@ -1,0 +1,6 @@
+- name: Setup Kubernetes Dashboard
+  hosts: master
+  become: true
+  roles:
+    - dashboard
+

@@ -1,0 +1,8 @@
+dashboard_namespace: kubernetes-dashboard
+dashboard_domain: dashboard.k3s.local
+dashboard_tls_secret: dashboard-tls
+dashboard_port: 31443
+dashboard_image: kubernetesui/dashboard:v2.7.0
+
+
+

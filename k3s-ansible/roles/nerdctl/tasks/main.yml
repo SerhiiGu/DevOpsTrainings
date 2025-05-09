@@ -1,0 +1,63 @@
+- name: Fetch latest nerdctl release URL
+  shell: |
+    curl -s https://api.github.com/repos/containerd/nerdctl/releases/latest \
+    | grep '"browser_download_url": "https.*nerdctl-full.*linux-amd64.tar.gz"' \
+    | cut -d '"' -f 4
+  register: nerdctl_url
+
+- name: Download nerdctl archive
+  get_url:
+    url: "{{ nerdctl_url.stdout }}"
+    dest: /tmp/nerdctl.tar.gz
+
+
+- name: Create /opt/nerdctl
+  file:
+    path: "/opt/nerdctl"
+    state: directory
+
+#- name: Extract nerdctl
+#  unarchive:
+#    src: /tmp/nerdctl.tar.gz
+#    dest: /opt/nerdctl
+#    remote_src: yes
+
+- name: Copy binaries
+  copy:
+    src: "/opt/nerdctl/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    mode: "0755"
+    remote_src: yes
+  loop:
+    - nerdctl
+    - buildkitd
+    - buildctl
+    - runc
+
+- name: Copy service file
+  copy:
+    src: "buildkitd.service"
+    dest: "/etc/systemd/system/buildkitd.service"
+
+- name: Execute systemctl daemon-reexec
+  command:
+    cmd: systemctl daemon-reexec
+  become: true
+
+- name: Enable buildkitd service
+  systemd:
+    name: buildkitd
+    enabled: yes
+    state: started
+
+
+#- name: Remove nerdctl archive
+#  file:
+#    path: /tmp/nerdctl.tar.gz
+#    state: absent
+
+#- name: Remove nerdctl archive
+#  file:
+#    path: /opt/nerdctl
+#    state: absent
+

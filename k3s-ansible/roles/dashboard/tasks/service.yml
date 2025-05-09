@@ -1,0 +1,21 @@
+---
+- name: Create NodePort service with custom TLS
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ dashboard_namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kubernetes-dashboard-nodeport
+      spec:
+        type: NodePort
+        selector:
+          app.kubernetes.io/name: kubernetes-dashboard
+          app.kubernetes.io/component: web
+        ports:
+          - port: 80
+            targetPort: 8000
+            nodePort: 31443
+            protocol: TCP
+

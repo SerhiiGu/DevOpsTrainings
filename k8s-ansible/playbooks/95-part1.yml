@@ -1,0 +1,14 @@
+- hosts: all
+  become: true
+  roles:
+    - common
+    - basic
+    - containerd
+
+- name: Setup of the high-avaliability cluster
+  hosts: master
+  become: true
+  roles:
+    - ha_cluster
+
+

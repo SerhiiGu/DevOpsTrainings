@@ -1,0 +1,7 @@
+- name: Setup of the high-avaliability cluster
+  hosts: master
+  become: true
+  roles:
+    - ha_cluster
+
+

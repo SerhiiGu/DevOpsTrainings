@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: svclb-traefik
+  namespace: kube-system
+  labels:
+    app: klipper-lb
+spec:
+  selector:
+    matchLabels:
+      app: klipper-lb
+  template:
+    metadata:
+      labels:
+        app: klipper-lb
+    spec:
+      containers:
+      - name: klipper-lb
+        image: rancher/klipper-lb:v0.4.4
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        securityContext:
+          privileged: true
+      hostNetwork: true
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+

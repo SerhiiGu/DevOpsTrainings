@@ -1,0 +1,15 @@
+---
+- name: Wait for token creation
+  ansible.builtin.pause:
+    seconds: 5
+
+- name: Отримати admin-user токен
+  ansible.builtin.shell: |
+    kubectl -n kubernetes-dashboard create token admin-user
+  register: dashboard_token
+  changed_when: false
+
+- name: Вивести токен
+  ansible.builtin.debug:
+    msg: "{{ dashboard_token.stdout }}"
+

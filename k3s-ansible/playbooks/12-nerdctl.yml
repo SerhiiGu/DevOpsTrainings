@@ -1,0 +1,6 @@
+- name: Setup nerdctl at K3s Master
+  hosts: master
+  become: yes
+  roles:
+    - nerdctl
+
