@@ -33,6 +33,9 @@
       - ntpdate
       - jq
       - htop
+      - python3-pip
+      - python3-kubernetes
+      - python3-pretty-yaml
     state: present
   become: true
 

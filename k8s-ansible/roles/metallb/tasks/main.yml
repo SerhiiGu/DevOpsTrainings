@@ -1,0 +1,29 @@
+- name: Create MetalLB namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: metallb-system
+    state: present
+
+- name: Install MetalLB manifests
+  kubernetes.core.k8s:
+    state: present
+    src: https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+
+- name: Wait until MetalLB controller pod is ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: metallb-system
+  register: metallb_pods
+
+- name: Fail if controller pod not found
+  fail:
+    msg: "MetalLB controller pod not found!"
+  when: metallb_pods.resources | selectattr('metadata.name', 'search', 'controller') | list | length == 0
+
+- name: Deploy MetalLB IPAddressPool and L2Advertisement
+  kubernetes.core.k8s:
+    state: present
+    namespace: metallb-system
+    definition: "{{ lookup('template', 'metallb-config.yaml.j2') | from_yaml_all }}"
+

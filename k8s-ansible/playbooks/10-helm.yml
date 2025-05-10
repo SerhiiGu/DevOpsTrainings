@@ -1,0 +1,6 @@
+- name: Setup Helm
+  hosts: master
+  become: true
+  roles:
+    - helm
+

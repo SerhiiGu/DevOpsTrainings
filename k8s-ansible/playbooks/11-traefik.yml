@@ -1,0 +1,6 @@
+- name: Setup Traefik Ingress Controller
+  hosts: master3
+  become: true
+  roles:
+    - traefik
+

@@ -1,0 +1,38 @@
+- name: Generate SSL for Traefik
+  include_tasks: ssl.yml
+
+
+- name: Add Helm repo for Traefik
+  shell: helm repo add traefik https://traefik.github.io/charts && helm repo update
+  args:
+    creates: /tmp/traefik_repo_added
+
+- name: Install or upgrade Traefik via Helm
+  kubernetes.core.helm:
+    name: traefik
+    chart_ref: traefik/traefik
+    release_namespace: kube-system
+    create_namespace: false
+    values: "{{ lookup('file', 'traefik-values.yaml') | from_yaml }}"
+    wait: true
+    update_repo_cache: true
+
+
+- name: Copy manifest files to remote host
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware-kube-system.yaml
+    - traefik-dasboard-ingress.yaml
+
+- name: Apply middleware and ingress manifest for traefik dashboard
+  kubernetes.core.k8s:
+    state: present
+    namespace: kube-system
+    src: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware-kube-system.yaml
+    - traefik-dasboard-ingress.yaml
+
+

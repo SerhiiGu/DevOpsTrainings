@@ -1,4 +1,0 @@
-- hosts: master
-  become: true
-  roles:
-    - cni_calico
