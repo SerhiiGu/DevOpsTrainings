@@ -17,3 +17,41 @@
 - debug:
     var: helm_version.stdout
 
+
+# Cert-manager
+
+####  USE this task when cert-manager install fails
+#- name: Remove old cert-manager Helm release (if exists)
+#  kubernetes.core.helm:
+#    name: cert-manager
+#    release_namespace: cert-manager
+#    state: absent
+#    kubeconfig: /root/.kube/config
+
+
+- name: Add Jetstack Helm repository
+  kubernetes.core.helm_repository:
+    name: jetstack
+    repo_url: https://charts.jetstack.io
+
+- name: Download cert-manager CRDs
+  ansible.builtin.get_url:
+    url: https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.crds.yaml
+    dest: /tmp/cert-manager.crds.yaml
+    mode: '0644'
+
+- name: Apply cert-manager CRDs
+  kubernetes.core.k8s:
+    state: present
+    src: /tmp/cert-manager.crds.yaml
+    kubeconfig: /root/.kube/config
+
+- name: Install cert-manager via Helm (CRDs already applied)
+  kubernetes.core.helm:
+    name: cert-manager
+    chart_ref: jetstack/cert-manager
+    release_namespace: cert-manager
+    create_namespace: true
+    wait: true
+    skip_crds: true
+    kubeconfig: /root/.kube/config

@@ -45,6 +45,13 @@ k8s-master-3   Ready    control-plane   5m      v1.33.0
 k8s-worker-1   Ready    <none>          8m30s   v1.33.0
 
 
+====== Примітки ======
+    1) Робочі контейнери крутитимуться виключно на worker нодах за замовчуванням.
+       Для дозволу робити це на контролері, треба виконати(але дуже обережно, щоб їх не перевантажити)
+kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane- --overwrite
+
+
+
 
 
 PS. https://habr.com/ru/articles/725640/

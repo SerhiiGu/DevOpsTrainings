@@ -36,6 +36,7 @@
       - python3-pip
       - python3-kubernetes
       - python3-pretty-yaml
+      - open-iscsi
     state: present
   become: true
 
