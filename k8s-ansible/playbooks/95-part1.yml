@@ -5,10 +5,13 @@
     - basic
     - containerd
 
-- name: Setup of the high-avaliability cluster
-  hosts: master
+- hosts: master
   become: true
   roles:
     - ha_cluster
-
+    - metallb
+    - nerdctl
+    - rancher
+    - helm
+    - traefik
 
