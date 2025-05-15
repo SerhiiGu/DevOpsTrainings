@@ -1,0 +1,30 @@
+- name: Add Grafana Helm repo
+  command: helm repo add grafana https://grafana.github.io/helm-charts
+  register: add_repo
+  changed_when: "'has been added' in add_repo.stdout"
+
+- name: Update Helm repos
+  command: helm repo update
+
+- name: Create namespace for Loki
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: loki
+
+- name: Template Loki Helm values
+  template:
+    src: values-loki.yaml.j2
+    dest: /tmp/values-loki.yaml
+
+- name: Deploy Loki via Helm
+  kubernetes.core.helm:
+    name: loki
+    chart_ref: grafana/loki
+    release_namespace: loki
+    values_files:
+      - /tmp/values-loki.yaml
+
+- name: Add Loki DataSource to Grafana
+  include_tasks: create_grafana_datasource.yml
+

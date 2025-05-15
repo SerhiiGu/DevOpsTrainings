@@ -1,0 +1,46 @@
+- name: Add Loki as Grafana DataSource
+  uri:
+    url: "https://grafana.k8s.local/api/datasources"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ grafana_api_token }}"
+    body_format: json
+    body:
+      name: Loki
+      type: loki
+      access: proxy
+      url: http://loki.loki.svc.cluster.local:3100
+      isDefault: false
+    status_code: 200,409
+    validate_certs: false
+
+- name: Import Loki Dashboard from Grafana.com
+  uri:
+    url: "https://grafana.k8s.local/api/dashboards/db"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ grafana_api_token }}"
+    body_format: json
+    body:
+      dashboard:
+        id: null
+        uid: "loki-central"
+        title: "Loki Centralized Logs"
+        editable: true
+        tags: ["loki", "logs"]
+        timezone: "browser"
+        schemaVersion: 26
+        version: 1
+        panels: []
+      overwrite: true
+      folderId: 0
+      inputs:
+        - name: "DS_LOKI"
+          type: "datasource"
+          pluginId: "loki"
+          value: "Loki"
+    status_code: 200
+    validate_certs: false
+
