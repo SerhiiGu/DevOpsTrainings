@@ -1,0 +1,6 @@
+- name: Setup nerdctl build env
+  hosts: master
+  become: true
+  roles:
+    - nerdctl
+

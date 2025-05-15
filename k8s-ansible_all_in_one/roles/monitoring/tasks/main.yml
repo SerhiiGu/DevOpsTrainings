@@ -1,0 +1,82 @@
+- name: Add Helm repo for Prometheus stack
+  shell: |
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo update
+  args:
+    creates: ~/.cache/helm/repository/prometheus-community-index.yaml
+
+- name: Check if Prometheus stack already installed
+  shell: helm list -n monitoring | grep kube-prometheus-stack
+  register: helm_stack_check
+  failed_when: false
+  changed_when: false
+
+- name: Ensure "monitoring" namespace exists
+  shell: |
+    kubectl get ns monitoring || kubectl create namespace monitoring
+  args:
+    executable: /bin/bash
+
+- name: Install Prometheus stack
+  when: helm_stack_check.stdout == ""
+  shell: |
+    helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+      --namespace monitoring \
+      --kubeconfig /root/.kube/config
+
+- name: Get node-exporter pods
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: monitoring
+    label_selectors:
+      - app.kubernetes.io/name=node-exporter
+  register: node_exporter_pods
+
+- name: Ensure all node-exporter pods are Running
+  fail:
+    msg: "Some node-exporter pods are not Running"
+  when: >
+    node_exporter_pods.resources | selectattr('status.phase', 'ne', 'Running') | list | length > 0
+
+
+- name: Create ssl for domains
+  include_tasks: ssl.yml
+
+
+- name: Get Grafana password
+  kubernetes.core.k8s_info:
+    kind: Secret
+    namespace: monitoring
+    name: kube-prometheus-stack-grafana
+  register: grafana_secret
+
+### kubectl get secret -n monitoring kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d && echo
+- name: Decode Grafana password
+  set_fact:
+    grafana_password: "{{ grafana_secret.resources[0].data['admin-password'] | b64decode }}"
+
+- name: Show Grafana password
+  debug:
+    msg: "{{ grafana_password }}"
+
+
+- name: Copy manifest files to remote host
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware.yaml
+    - grafana-ingress.yaml
+    - prometheus-ingress.yaml
+
+- name: Apply middleware and ingress manifests
+  kubernetes.core.k8s:
+    state: present
+    namespace: monitoring
+    src: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware.yaml
+    - grafana-ingress.yaml
+    - prometheus-ingress.yaml
+
+

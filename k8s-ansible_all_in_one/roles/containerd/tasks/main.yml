@@ -1,0 +1,90 @@
+- name: Download containerd archive
+  get_url:
+    url: https://github.com/containerd/containerd/releases/download/v2.1.0/containerd-2.1.0-linux-amd64.tar.gz
+    dest: /tmp/containerd.tar.gz
+
+- name: Extract containerd to /usr/local
+  unarchive:
+    src: /tmp/containerd.tar.gz
+    dest: /usr/local
+    remote_src: yes
+
+- name: Remove containerd archive
+  file:
+    path: /tmp/containerd.tar.gz
+    state: absent
+
+- name: Create /etc/containerd directory
+  file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Generate default containerd config
+  command: containerd config default
+  register: containerd_config
+
+- name: Write containerd config to file
+  copy:
+    dest: /etc/containerd/config.toml
+    content: "{{ containerd_config.stdout }}"
+
+- name: Download containerd systemd unit file
+  get_url:
+    url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+    dest: /etc/systemd/system/containerd.service
+  notify: Reload systemd
+
+- name: Download runc binary
+  get_url:
+    url: https://github.com/opencontainers/runc/releases/download/v1.3.0/runc.amd64
+    dest: /tmp/runc.amd64
+    mode: '0755'
+
+- name: Install runc binary
+  copy:
+    src: /tmp/runc.amd64
+    dest: /usr/local/sbin/runc
+    remote_src: yes
+    mode: '0755'
+
+- name: Remove runc binary
+  file:
+    path: /tmp/runc.amd64
+    state: absent
+
+- name: Download CNI plugins
+  get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/v1.7.1/cni-plugins-linux-amd64-v1.7.1.tgz
+    dest: /tmp/cni-plugins.tgz
+
+- name: Create /opt/cni/bin directory
+  file:
+    path: /opt/cni/bin
+    state: directory
+    mode: '0755'
+
+- name: Extract CNI plugins
+  unarchive:
+    src: /tmp/cni-plugins.tgz
+    dest: /opt/cni/bin
+    remote_src: yes
+
+- name: Remove CNI plugins archive
+  file:
+    path: /tmp/cni-plugins.tgz
+    state: absent
+
+- name: Create /etc/crictl.yaml
+  copy:
+    dest: /etc/crictl.yaml
+    content: |
+      runtime-endpoint: unix:///run/containerd/containerd.sock
+      image-endpoint: unix:///run/containerd/containerd.sock
+
+- name: Restart and enable containerd
+  service:
+    name: containerd
+    state: restarted
+    enabled: true
+

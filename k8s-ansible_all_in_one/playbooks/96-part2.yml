@@ -1,0 +1,9 @@
+- hosts: master
+  become: true
+  roles:
+    - metallb
+    - nerdctl
+#    - rancher
+    - helm
+    - traefik
+

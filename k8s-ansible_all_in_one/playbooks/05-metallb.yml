@@ -1,0 +1,6 @@
+- name: Setup MetalLB
+  hosts: master
+  become: true
+  roles:
+    - metallb
+

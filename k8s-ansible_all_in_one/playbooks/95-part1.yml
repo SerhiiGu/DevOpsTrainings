@@ -1,0 +1,16 @@
+- hosts: all
+  become: true
+  roles:
+    - common
+    - basic
+    - containerd
+
+- hosts: master
+  become: true
+  roles:
+    - metallb
+    - nerdctl
+#    - rancher
+    - helm
+    - traefik
+

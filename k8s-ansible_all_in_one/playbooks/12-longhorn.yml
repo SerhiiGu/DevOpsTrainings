@@ -1,0 +1,6 @@
+- name: Setup Longhorn
+  hosts: master1
+  become: true
+  roles:
+    - longhorn
+

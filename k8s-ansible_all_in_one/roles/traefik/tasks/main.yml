@@ -28,13 +28,13 @@
     wait: true
 #    update_repo_cache: true
 
-#- name: Apply middleware and ingress manifest for traefik dashboard
-#  kubernetes.core.k8s:
-#    state: present
-#    namespace: kube-system
-#    src: "/tmp/{{ item }}"
-#  loop:
-#    - redirect-https-middleware-kube-system.yaml
-#    - traefik-dasboard-ingress.yaml
+- name: Apply middleware and ingress manifest for traefik dashboard
+  kubernetes.core.k8s:
+    state: present
+    namespace: kube-system
+    src: "/tmp/{{ item }}"
+  loop:
+    - redirect-https-middleware-kube-system.yaml
+    - traefik-dasboard-ingress.yaml
 
 

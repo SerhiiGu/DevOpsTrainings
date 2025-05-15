@@ -1,0 +1,57 @@
+Тут розгортаємо та налаштовуємо простий Kubernetes-кластер.
+
+====== Структура ======
+    1 master node
+    1 worker node
+    Container Runtime: containerd
+    CNI plugin: Flannel
+    Kubernetes: остання стабільна версія
+    Операційна система: Debian 12
+
+
+====== Підготовка ======
+    1) Налаштування /etc/hosts . На кожному сервері кластера бажано, щоб резолвилися всі інші його сервери.
+
+
+====== Установка ======
+    1) Виконуємо плейбук, частину першу:
+ansible-playbook playbooks/95-part1.yml
+
+    2) Виконуємо на одному мастері
+kubeadm init --pod-network-cidr=10.244.0.0/16
+
+    отримуємо команду для підключення робочих станцій(worker) вигляду:
+kubeadm join Master_IP:6443 --token KUBERNETES_TOKEN \
+        --discovery-token-ca-cert-hash LONG_CA_CERT_STRING_HASH
+
+    Ними підключаємо інші мастери та воркери.
+
+    Також:
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    Опісля на мастері підключаємо мережевий плагін:
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+    і через кілька хвилин ноди в кластері мають перейти у стан Ready:
+root@k8s-master:~# kubectl get nodes
+NAME           STATUS   ROLES           AGE     VERSION
+k8s-master     Ready    control-plane   14m     v1.33.0
+k8s-worker-1   Ready    <none>          8m30s   v1.33.0
+
+    1) Виконуємо плейбук, частину другу:
+ansible-playbook playbooks/96-part2.yml
+
+
+====== Примітки ======
+    1) Робочі контейнери крутитимуться виключно на worker нодах за замовчуванням.
+       Для дозволу робити це на контролері, треба виконати(але дуже обережно, щоб їх не перевантажити)
+kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane- --overwrite
+
+
+
+
+
+PS. https://habr.com/ru/articles/725640/
+
