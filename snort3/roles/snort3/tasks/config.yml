@@ -61,3 +61,12 @@
     mode: '0644'
   when: not lookup('fileglob', '/opt/snort3/**/snort_modules.lua', errors='ignore')
 
+- name: Ensure empty disable.conf exists
+  ansible.builtin.file:
+    path: /etc/snort/disable.conf
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+

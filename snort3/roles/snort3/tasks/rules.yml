@@ -3,20 +3,11 @@
     /usr/local/bin/pulledpork3 -c /etc/snort/pulledpork.conf
   register: pulledpork_result
 
-- name: Show update result
-  debug:
-    msg: "{{ pulledpork_result.stdout_lines }}"
+- name: Unite test.rules and snort.rules in combined.rules
+  shell: >
+    cat /etc/snort/rules/local.rules /etc/snort/rules/snort.rules > /etc/snort/rules/combined.rules
 
-#- name: Fix bad Snort 3 rules syntax with double port vars
-#  replace:
-#    path: /etc/snort/rules/snort.rules
-#    regexp: '\$HTTP_SERVERS\s+\$HTTP_PORTS'
-#    replace: '$HTTP_SERVERS any'
-#
-#- name: Replace bad destination port syntax in Snort rules
-#  replace:
-#    path: /etc/snort/rules/snort.rules
-#    regexp: '\$HOME_NET\s+\$HTTP_PORTS'
-#    replace: 'any $HTTP_PORTS'
-
+- name: Remove rules with sid 105, 108, 115 from combined.rules
+  shell: >
+    sed -i '/sid:105;/d; /sid:108;/d; /sid:115;/d' /etc/snort/rules/combined.rules
 

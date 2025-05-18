@@ -1,6 +1,6 @@
-- name: Install dependencies
-  import_tasks: deps.yml
-
+#- name: Install dependencies
+#  import_tasks: deps.yml
+#
 #- name: Build libdaq
 #  import_tasks: libdaq.yml
 #
@@ -13,8 +13,8 @@
 - name: Configure directories and permissions
   import_tasks: config.yml
 
-- name: Deploy test rule
-  import_tasks: test_rule.yml
+- name: Deploy local rules
+  import_tasks: local_rules.yml
 
 - name: Install pulledpork
   import_tasks: pulledpork.yml

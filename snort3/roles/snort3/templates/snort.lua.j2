@@ -1,10 +1,9 @@
 include '/etc/snort/snort_defaults.lua'
 include '/etc/snort/snort_modules.lua'
-
+include '/etc/snort/disable.conf'
 
 ips = {
-  include = "/etc/snort/rules/test.rules",
-  include = "/etc/snort/rules/snort.rules",
+  include = "/etc/snort/rules/combined.rules",
     variables = {
       nets = {
         EXTERNAL_NET = 'any',
