@@ -1,0 +1,20 @@
+---
+- name: Clone libdaq repository
+  git:
+    repo: https://github.com/snort3/libdaq
+    dest: /opt/libdaq
+    version: v3.0.19
+    depth: 1
+
+- name: Build and install libdaq
+  shell: |
+    ./bootstrap
+    ./configure
+    make -j$(nproc)
+    make install
+  args:
+    chdir: /opt/libdaq
+
+- name: Refresh linker cache
+  shell: ldconfig
+

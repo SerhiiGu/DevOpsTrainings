@@ -1,0 +1,40 @@
+---
+- name: Clone PulledPork3 repository
+  git:
+    repo: https://github.com/shirkdog/pulledpork3.git
+    dest: /opt/pulledpork3
+    version: main
+    force: yes
+
+- name: Install PulledPork3 dependencies system-wide (with --break-system-packages)
+  command: >
+    pip3 install --break-system-packages -r /opt/pulledpork3/requirements.txt
+  args:
+    creates: /usr/local/lib/python3*/dist-packages/pulledpork*
+
+- name: Install PulledPork3 script system-wide
+  copy:
+    dest: /usr/local/bin/pulledpork3
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      exec python3 /opt/pulledpork3/pulledpork.py "$@"
+
+- name: Create pulledpork config directory
+  file:
+    path: /etc/snort
+    state: directory
+
+- name: Deploy pulledpork.conf
+  template:
+    src: pulledpork.conf.j2
+    dest: /etc/snort/pulledpork.conf
+    mode: "0644"
+
+#- name: Add cron job for rule updates
+#  cron:
+#    name: "Update Snort rules daily"
+#    minute: "30"
+#    hour: "3"
+#    job: "/usr/local/bin/pulledpork3 -c /etc/snort/pulledpork.conf -P"
+

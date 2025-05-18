@@ -1,0 +1,22 @@
+---
+- name: Run configure script
+  shell: ./configure_cmake.sh --prefix={{ snort_install_dir }}
+  args:
+    chdir: "/opt/snort3"
+
+- name: Build Snort
+  shell: make -j$(nproc)
+  args:
+    chdir: "/opt/snort3/build"
+
+- name: Install Snort
+  shell: make install
+  args:
+    chdir: "/opt/snort3/build"
+
+- name: Link snort binary to /usr/sbin
+  file:
+    src: "{{ snort_install_dir }}/bin/snort"
+    dest: /usr/sbin/snort
+    state: link
+

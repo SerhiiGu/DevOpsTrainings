@@ -1,0 +1,6 @@
+- name: Install and configure Snort 3
+  hosts: ids
+  become: yes
+  roles:
+    - snort3
+

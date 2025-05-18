@@ -1,0 +1,15 @@
+oinkcode={{ snort_oinkcode }}
+
+rule_url=https://www.snort.org/rules/snortrules-snapshot-31470.tar.gz?oinkcode={{ snort_oinkcode }}
+
+community_ruleset = True
+snort_path=/usr/sbin/snort
+rule_mode = simple
+rule_path=/etc/snort/rules/snort.rules
+local_rules=/etc/snort/rules/local.rules
+sid_msg=/etc/snort/rules/snort3-sid-msg.map
+snort_config=/etc/snort/snort.lua
+distro=debian-x64
+temp_path=/tmp
+version=3
+

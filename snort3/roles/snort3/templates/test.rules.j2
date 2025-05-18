@@ -1,0 +1,2 @@
+alert icmp any any -> {{ snort_home_net }} any (msg:"ICMP test detected"; sid:1000001; rev:1;)
+

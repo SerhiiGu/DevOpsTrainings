@@ -1,0 +1,9 @@
+snort_interface: enp0s3
+snort_home_net: 192.168.1.0/24
+snort_version: 3.7.4.0
+snort_install_dir: /usr/local/snort
+
+snort_oinkcode: "c352919c9afbebba352e752d82fba93c9066ca4f"
+snort_sid_msg: "/etc/snort/rules/snort3-sid-msg.map"
+snort_rules_url: "https://www.snort.org/rules/snortrules-snapshot-31470.tar.gz"
+

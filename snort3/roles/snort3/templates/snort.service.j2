@@ -1,0 +1,16 @@
+[Unit]
+Description=Snort 3 NIDS
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/snort -c /etc/snort/snort.lua -R /etc/snort/rules/test.rules -i {{ snort_interface }} -A alert_fast -k none
+ExecReload=/bin/kill -HUP $MAINPID
+User=snort
+Group=snort
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+

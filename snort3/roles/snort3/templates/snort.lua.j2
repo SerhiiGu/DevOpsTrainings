@@ -1,0 +1,26 @@
+HOME_NET = '192.168.1.0/24'
+EXTERNAL_NET = 'any'
+HTTP_PORTS = '80 8080 8000 443'
+
+
+include '/etc/snort/snort_defaults.lua'
+include '/etc/snort/snort_modules.lua'
+
+
+{% raw %}
+ips = {{
+    include = "/etc/snort/rules/test.rules",
+    include = "/etc/snort/rules/snort.rules",
+}}
+{% endraw %}
+
+file_logger =
+{
+    log_path = "/var/log/snort/",
+    file_name = "alert.fast",
+    limit = 0,
+    max_size = 0,
+    compression = 0
+}
+
+

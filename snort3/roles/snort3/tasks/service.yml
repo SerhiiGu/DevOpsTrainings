@@ -1,0 +1,32 @@
+---
+- name: Deploy Snort systemd unit file
+  template:
+    src: snort.service.j2
+    dest: /etc/systemd/system/snort.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Restart snort service
+  ansible.builtin.systemd:
+    name: snort
+    state: restarted
+    enabled: yes
+
+- name: Wait for snort service to be active
+  ansible.builtin.systemd:
+    name: snort
+    state: started
+    enabled: yes
+  register: snort_status
+
+- name: Check if snort is running
+  ansible.builtin.assert:
+    that:
+      - snort_status.status.ActiveState == "active"
+    fail_msg: "Snort service is not running!"
+

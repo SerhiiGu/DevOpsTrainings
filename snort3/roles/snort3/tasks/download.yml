@@ -1,0 +1,8 @@
+---
+- name: Clone Snort3 GitHub repository
+  git:
+    repo: "https://github.com/snort3/snort3"
+    dest: "/opt/snort3"
+    version: "{{ snort_version | default('3.7.4.0') }}"
+    depth: 1
+

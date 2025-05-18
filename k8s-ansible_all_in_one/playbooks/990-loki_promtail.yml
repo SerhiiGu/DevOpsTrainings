@@ -1,3 +1,4 @@
+# необов'язкове
 - name: Setup loki+promtail
   hosts: master
   become: true

@@ -1,0 +1,63 @@
+---
+- name: Create snort group
+  group:
+    name: snort
+    system: yes
+
+- name: Create snort user
+  user:
+    name: snort
+    system: yes
+    shell: /usr/sbin/nologin
+    comment: "Snort IDS"
+    group: snort
+    home: /var/log/snort
+    create_home: yes
+
+- name: Add snort user to netdev group
+  ansible.builtin.user:
+    name: snort
+    groups: netdev
+    append: yes
+
+- name: Set capabilities on Snort binary via command
+  ansible.builtin.command: setcap cap_net_raw,cap_net_admin=eip /usr/local/snort/bin/snort
+  become: yes
+
+- name: Create necessary directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: snort
+    group: snort
+    mode: "0775"
+  loop:
+    - /etc/snort
+    - /etc/snort/rules
+    - /etc/snort/so_rules
+    - /etc/snort/lua
+    - /var/log/snort
+    - "{{ snort_install_dir }}/lib/snort_dynamicrules"
+
+- name: Deploy snort.lua config
+  template:
+    src: snort.lua.j2
+    dest: /etc/snort/snort.lua
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy snort_defaults.lua to /etc/snort
+  copy:
+    src: /opt/snort3/lua/snort_defaults.lua
+    dest: /etc/snort/snort_defaults.lua
+    remote_src: yes
+    mode: '0644'
+
+- name: Deploy fallback snort_modules.lua if missing
+  copy:
+    src: snort_modules.lua
+    dest: /etc/snort/snort_modules.lua
+    mode: '0644'
+  when: not lookup('fileglob', '/opt/snort3/**/snort_modules.lua', errors='ignore')
+
