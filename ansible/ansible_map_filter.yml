@@ -1,0 +1,85 @@
+---
+- name: Map filter examples
+  hosts: localhost
+  gather_facts: false
+  vars:
+    users:
+      - name: Alice
+        age: 30
+        email: alice@example.com
+      - name: Bob
+        age: 25
+        email: bob@example.com
+      - name: Carol
+        age: 22
+        email: carol@example.com
+
+    numbers: [1, 2, 3, 4, 5]
+
+    dicts_list:
+      - key1: 100
+        key2: 200
+      - key1: 300
+        key2: 400
+
+    mixed_list:
+      - {name: "John", scores: [90, 80]}
+      - {name: "Jane", scores: [85, 95]}
+
+  tasks:
+
+    - name: 1. Map attribute 'name' from users
+      debug:
+        msg: "{{ users | map(attribute='name') | list }}"
+
+    - name: 2. Map attribute 'age' from users
+      debug:
+        msg: "{{ users | map(attribute='age') | list }}"
+
+    - name: 3. Map attribute 'email' from users
+      debug:
+        msg: "{{ users | map(attribute='email') | list }}"
+
+    - name: 4. Map upper filter on list of names
+      debug:
+        msg: "{{ users | map(attribute='name') | map('upper') | list }}"
+
+    - name: 5. Map string conversion on numbers
+      debug:
+        msg: "{{ numbers | map('string') | list }}"
+
+    - name: Initialize result list
+      set_fact:
+        numbers_plus_10: []
+
+    - name: Add 10 to each number
+      set_fact:
+        numbers_plus_10: "{{ numbers_plus_10 + [item + 10] }}"
+      loop: "{{ numbers }}"
+
+    - debug:
+        msg: "{{ numbers_plus_10 }}"
+
+    - name: 7. Map attribute 'key1' from list of dicts
+      debug:
+        msg: "{{ dicts_list | map(attribute='key1') | list }}"
+
+    - name: 8. Map length of each user's name
+      debug:
+        msg: "{{ users | map(attribute='name') | map('length') | list }}"
+
+    - name: 9. Map nested list attribute 'scores' from mixed_list
+      debug:
+        msg: "{{ mixed_list | map(attribute='scores') | list }}"
+
+    - name: 10. Map sum of scores for each user in mixed_list
+      debug:
+        msg: >-
+          {{
+            mixed_list
+            | map(attribute='scores')
+            | map('sum')
+            | list
+          }}
+
+

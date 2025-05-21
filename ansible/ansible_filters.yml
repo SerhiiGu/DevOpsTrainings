@@ -1,0 +1,131 @@
+---
+- name: Full Ansible Filter Demo
+  hosts: localhost
+  gather_facts: false
+  vars:
+    my_string: "  ansible filters  "
+    my_list: [3, 1, 2, 2, 3]
+    list1: [1, 2]
+    list2: [3, 4]
+    my_dict:
+      key1: val1
+      key2: val2
+    timestamp: 1680000000
+    csv_string: "a,b,c"
+    users:
+      - name: alice
+        uid: 1001
+      - name: bob
+        uid: 1002
+      - name: charlie
+        uid: 1003
+    pair_list:
+      - { key: a, value: 1 }
+      - { key: b, value: 2 }
+    maybe_var: null
+    file_path: "/etc/ansible/ansible.cfg"
+
+  tasks:
+
+    - name: 1️⃣ String filters
+      debug:
+        msg:
+          # Зміна до верхнього регістру
+          upper: "{{ my_string | upper }}" # Результат: '  ANSIBLE FILTERS  '
+          # Видалення пробілів з початку та кінця
+          trimmed: "{{ my_string | trim }}" # Результат: 'ansible filters'
+          # Заміна тексту
+          replaced: "{{ 'example.com' | replace('.com', '.org') }}" # Результат: 'example.org'
+
+    - name: 2️⃣ List filters
+      debug:
+        msg:
+          # Унікальні значення та сортування(2 фільтри)
+          unique_sorted: "{{ my_list | unique | sort }}" # Результат: [1, 2, 3]
+          # Об'єднання списків
+          merged: "{{ list1 + list2 }}" # Результат: [1,2,3,4]
+          # Витягнути список значень поля зі списку.
+          mapped_names: "{{ users | map(attribute='name') | list }}" # Результат: ['alice', 'bob', 'charlie']
+
+    - name: 3️⃣ Dict filters
+      debug:
+        msg:
+          # Вивести всі ключі
+          keys: "{{ my_dict | dict2items | map(attribute='key') | list }}" # Результат: ['key1', 'key2']
+          # Перетворити dict на список пар
+          dict2items: "{{ my_dict | dict2items }}" # Результат: [{'key': 'key1', 'value': 'val1'}, {'key': 'key2', 'value': 'val2'}]
+          # Перевірити наявність ключа
+          has_key1: "{{ 'key1' in my_dict }}" # Результат: true
+
+    - name: 4️⃣ Number filters
+      debug:
+        msg:
+          # Форматування числа з нулями
+          formatted: "{{ '{:03d}'.format(5) }}" # Результат: '005'
+          # Конвертація в int
+          as_integer: "{{ '42' | int }}" # Результат: 42
+          # Обчислення абсолютного значення
+          abs_val: "{{ -10 | abs }}" # Результат: 10
+
+    - name: 6️⃣ Type & conditional filters
+      debug:
+        msg:
+          # Перевірка типу
+          is_string: "{{ my_string is string }}" # Повертає true, якщо рядок
+          # Перетворення у список
+          split_list: "{{ csv_string | split(',') }}" # Результат: ['a', 'b', 'c']
+          # Перевірка пустоти
+          is_empty: "{{ [] | length == 0 }}" # Результат: true
+          # Визначення типу змінної my_list
+          type_debug: "{{ my_list | type_debug }}" # Результат: list
+
+    - name: 7️⃣ Select/Reject filters
+      debug:
+        msg:
+          # # Вибрати лише користувачів з uid > 1001
+          uids_gt_1001: "{{ users | selectattr('uid', '>', 1001) | list }}" # Результат: [{'name': 'bob', 'uid': 1002}, {'name': 'charlie', 'uid': 1003}]
+          # Відкинути користувачів з ім’ям 'bob'
+          not_bob: "{{ users | rejectattr('name', 'equalto', 'bob') | list }}" # Результат: [{'name': 'alice', 'uid': 1001}, {'name': 'charlie', 'uid': 1003}]
+          # Витягти лише uid користувачів
+          names: "{{ users | map(attribute='name') | list }}" # Результат: ['alice', 'bob', 'charlie']
+
+    - name: 8️⃣ Dict conversion filters
+      debug:
+        msg:
+          # Перетворення списку пар у словник
+          items2dict: "{{ pair_list | items2dict }}" # Результат: {'a': 1, 'b': 2}
+          # Злиття словників
+          combined: "{{ {'a': 1} | combine({'b': 2}) }}" # Результат: {'a': 1, 'b': 2}
+
+    - name: 9️⃣ Default & ternary filters
+      debug:
+        msg:
+          # Якщо maybe_var не задано — поверне 'fallback'
+          default_value: "{{ maybe_var | default('fallback') }}"
+          # Тернарний оператор
+          ternary_check: "{{ true | ternary('yes', 'no') }}" # Result: 'yes'
+
+    - name: 🔟 Path filters
+      debug:
+        msg:
+          # basename
+          basename: "{{ file_path | basename }}" # Result: 'ansible.cfg'
+          # dirname
+          dirname: "{{ file_path | dirname }}" # Result: '/etc/ansible'
+          # realpath
+          realpath: "{{ file_path | realpath }}" # Result: '/etc/ansible/ansible.cfg'
+          # fileglob (знайти всі .conf файли)
+          fileglob: "{{ lookup('fileglob', '/etc/*.conf') }}"
+
+    - name: 1️⃣1️⃣ Random, shuffle, min/max/sum
+      debug:
+        msg:
+          # Випадковий елемент
+          random_item: "{{ my_list | random }}"
+          # Перемішати список
+          shuffled: "{{ my_list | shuffle }}"
+          # Мінімум/максимум/сума
+          min_val: "{{ my_list | min }}"
+          max_val: "{{ my_list | max }}"
+          sum_val: "{{ my_list | sum }}"
+
