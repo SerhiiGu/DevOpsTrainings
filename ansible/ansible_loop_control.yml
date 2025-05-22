@@ -1,0 +1,116 @@
+# Конструкція loop_control в Ansible дозволяє керувати поведінкою циклів (loop, with_items, with_dict, тощо). 
+#     Вона використовується всередині tasks і надає більше контролю над тим, як виконуються і виводяться ітерації.
+#
+# Основні параметри loop_control:
+#    label: задає, що буде відображатися у виводі замість повного елемента циклу.
+#    index_var: змінна, в яку записується індекс поточної ітерації.
+#    extended: дозволяє доступ до додаткових змінних (ansible_loop).
+
+---
+- name: Demo playbook for loop_control
+  hosts: localhost
+  gather_facts: false
+  vars:
+    users:
+      - { name: "john", shell: "/bin/bash" }
+      - { name: "doe", shell: "/sbin/nologin" }
+
+    users2: [ alice, bob ]
+    groups: [ dev, ops ]
+    user_group_pairs: "{{ users2 | product(groups) | list }}"
+
+    users3:
+      - name: alice
+        groups: [ dev, qa ]
+      - name: bob
+        groups: [ ops, infra ]
+
+  tasks:
+
+    - name: 1. Установка пакетів з кастомним label
+      ansible.builtin.debug:
+        msg: "Installing {{ item }}"
+      loop: [ "vim", "htop", "curl" ]
+      loop_control:
+        label: "Package: {{ item }}"
+
+    - name: 2. Виведення індексу ітерації
+      ansible.builtin.debug:
+        msg: "Index {{ i }}: {{ item }}"
+      loop: [ "apple", "banana", "cherry" ]
+      loop_control:
+        index_var: i
+
+    - name: 3. Форматований label для читабельності
+      ansible.builtin.debug:
+        msg: "Processing element: {{ item }}"
+      loop: [ "alpha", "beta", "gamma" ]
+      loop_control:
+        label: "Item: {{ item }}"
+
+    - name: 4. Доступ до розширених змінних циклу
+      ansible.builtin.debug:
+        msg: "Loop {{ ansible_loop.index }} of {{ ansible_loop.length }}: {{ item }}"
+      loop: [ "step1", "step2", "step3" ]
+      loop_control:
+        extended: true
+
+    - name: 5. Пауза між кроками (через шаблонний label)
+      ansible.builtin.pause:
+        seconds: 1
+      loop: [ "Phase A", "Phase B", "Phase C" ]
+      loop_control:
+        label: "Waiting after {{ item }}"
+
+    - name: 6. Комбінація label + індекс
+      ansible.builtin.debug:
+        msg: "Running task #{{ idx }}: {{ item }}"
+      loop: [ "taskA", "taskB", "taskC" ]
+      loop_control:
+        index_var: idx
+        label: "{{ item }}"
+
+    - name: 7. Обробка структурованих об'єктів (користувачі)
+      ansible.builtin.debug:
+        msg: "User {{ item.name }} uses shell {{ item.shell }}"
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: 8. Імітація створення конфігів
+      ansible.builtin.debug:
+        msg: "Would create config for {{ item }}"
+      loop: [ "web", "db", "cache" ]
+      loop_control:
+        label: "Config: {{ item }}"
+
+    - name: 9. Старий стиль with_items з loop_control
+      ansible.builtin.debug:
+        msg: "Old-style loop: {{ item }}"
+      with_items:
+        - nginx
+        - mysql
+      loop_control:
+        label: "{{ item }}"
+
+    - name: 10. Створення файлів з індексацією
+      ansible.builtin.debug:
+        msg: "Touch file_{{ i }}.txt"
+      loop: [1, 2, 3]
+      loop_control:
+        index_var: i
+
+    - name: Print user-group pairs
+      debug:
+        msg: "User {{ item.0 }} assigned to group {{ item.1 }}"
+      loop: "{{ user_group_pairs }}"
+      loop_control:
+        label: "{{ item.0 }} -> {{ item.1 }}"
+        index_var: pair_index
+
+    - name: Add users to groups
+      debug:
+        msg: "User {{ item.0.name }} -> Group {{ item.1 }}"
+      loop: "{{ users3 | subelements('groups') }}"
+      loop_control:
+        label: "{{ item.0.name }} -> {{ item.1 }}"
