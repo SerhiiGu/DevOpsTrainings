@@ -1,0 +1,10 @@
+traefik_ssl_domains:
+  - name: grafana
+    domain: grafana.k8s.local
+    port: 3000
+    namespace: monitoring
+  - name: prometheus
+    domain: prometheus.k8s.local
+    port: 9090
+    namespace: monitoring
+

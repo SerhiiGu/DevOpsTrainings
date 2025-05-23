@@ -1,0 +1,5 @@
+dashboard_namespace: kubernetes-dashboard
+dashboard_version: latest
+  #dashboard_version: v2.7.0
+dashboard_hostname: kubernetes-dashboard.k8s.local
+

@@ -1,0 +1,5 @@
+- name: Install Kubernetes Dashboard
+  hosts: master
+  roles:
+    - role: kubernetes_dashboard
+

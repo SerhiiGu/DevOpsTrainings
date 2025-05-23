@@ -1,0 +1,6 @@
+- name: Setup monitoring stack
+  hosts: master
+  become: true
+  roles:
+    - monitoring
+

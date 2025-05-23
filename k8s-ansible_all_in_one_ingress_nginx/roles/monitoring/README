@@ -1,0 +1,5 @@
+Grafana + Prometheus + node_exporter
+Alertmanager
+
+базові метрики кластера, алерти
+

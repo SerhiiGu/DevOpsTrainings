@@ -1,0 +1,8 @@
+- hosts: master
+  become: true
+  roles:
+    - metallb
+    - nerdctl
+    - helm
+    - nginx_ingress
+

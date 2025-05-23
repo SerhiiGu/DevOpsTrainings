@@ -1,0 +1,9 @@
+nginx_ingress_namespace: ingress-nginx
+nginx_ingress_helm_chart: ingress-nginx/ingress-nginx
+nginx_ingress_controller_values:
+  controller:
+    replicaCount: 2
+    minReadySeconds: 5
+    progressDeadlineSeconds: 60
+    service:
+      type: LoadBalancer

@@ -1,0 +1,104 @@
+- name: Create namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ dashboard_namespace }}"
+    state: present
+
+- name: Create ServiceAccount for Dashboard
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: kubernetes-dashboard
+        namespace: "{{ dashboard_namespace }}"
+
+- name: Create ClusterRoleBinding for Dashboard
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: kubernetes-dashboard
+      subjects:
+        - kind: ServiceAccount
+          name: kubernetes-dashboard
+          namespace: "{{ dashboard_namespace }}"
+      roleRef:
+        kind: ClusterRole
+        name: cluster-admin
+        apiGroup: rbac.authorization.k8s.io
+
+- name: Generate CSRF token
+  set_fact:
+    csrf_token: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') | b64encode }}"
+
+- name: Ensure CSRF token secret exists
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: kubernetes-dashboard-csrf
+        namespace: "{{ dashboard_namespace }}"
+      type: Opaque
+      data:
+        csrf: "{{ csrf_token }}"
+
+- name: Deploy Kubernetes Dashboard
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: kubernetes-dashboard
+        namespace: "{{ dashboard_namespace }}"
+        labels:
+          k8s-app: kubernetes-dashboard
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            k8s-app: kubernetes-dashboard
+        template:
+          metadata:
+            labels:
+              k8s-app: kubernetes-dashboard
+          spec:
+            serviceAccountName: kubernetes-dashboard
+            containers:
+              - name: kubernetes-dashboard
+                image: kubernetesui/dashboard:{{ dashboard_version }}
+                ports:
+                  - containerPort: 8443
+                args:
+                  - --auto-generate-certificates
+                  - --namespace={{ dashboard_namespace }}
+                volumeMounts:
+                  - name: kubernetes-dashboard-certs
+                    mountPath: /certs
+            volumes:
+              - name: kubernetes-dashboard-certs
+                emptyDir: {}
+
+- name: Create Dashboard service
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kubernetes-dashboard
+        namespace: "{{ dashboard_namespace }}"
+      spec:
+        ports:
+          - port: 443
+            targetPort: 8443
+        selector:
+          k8s-app: kubernetes-dashboard
+
+- name: Apply Ingress
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'ingress.yaml.j2') | from_yaml }}"
+

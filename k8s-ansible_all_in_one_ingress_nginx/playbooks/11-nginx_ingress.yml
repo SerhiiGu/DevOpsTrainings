@@ -1,0 +1,5 @@
+- name: Install NGINX Ingress Controller
+  hosts: master
+  roles:
+    - role: nginx_ingress
+

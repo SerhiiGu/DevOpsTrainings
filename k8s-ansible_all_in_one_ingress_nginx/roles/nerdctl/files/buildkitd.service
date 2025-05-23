@@ -1,0 +1,11 @@
+[Unit]
+Description=BuildKit Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/buildkitd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
