@@ -1,3 +1,11 @@
+# 🔸 Kubernetes Dashboard  ### playbooks/991-kubernetes_dashboard.yml
+#     ✔ Візуальний огляд кластера.
+#     ✔ Добре для перевірки стану кластеру або навчання.
+#     🔒 Потрібне налаштування доступу (RBAC, токени, TLS).
+#
+#     Токен для входу:
+# kubectl -n kubernetes-dashboard create token kubernetes-dashboard
+
 - name: Install Kubernetes Dashboard
   hosts: master
   roles:

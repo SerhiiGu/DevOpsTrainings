@@ -55,24 +55,3 @@ kubectl taint nodes k8s-master-3 node-role.kubernetes.io/control-plane- --overwr
 
 PS. https://habr.com/ru/articles/725640/
 
-
-
-====== Корисні команди ======
-    Конфіг nginx роутів:
-kubectl describe ingress -n kubernetes-dashboard kubernetes-dashboard
-
-
-
-=====================================================
-Додаткові ресурси
-=====================================================
-🔸 Kubernetes Dashboard  ### playbooks/991-kubernetes_dashboard.yml
-    ✔ Візуальний огляд кластера.
-    ✔ Добре для перевірки стану кластеру або навчання.
-    🔒 Потрібне налаштування доступу (RBAC, токени, TLS).
-
-    Токен для входу:
-kubectl -n kubernetes-dashboard create token kubernetes-dashboard
-
-==============================
-

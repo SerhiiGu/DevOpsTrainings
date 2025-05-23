@@ -1,0 +1,60 @@
+# ✅ Loki + Promtail
+#     ✔ Централізований логінг.
+#     ✔ Інтегрується з Grafana.
+#     🔧 Швидкий запуск, потребує небагато ресурсів.
+
+
+### DO NOT FORGET: Create in Grafana => Service account, and then token in it
+###     Furthermore, update token in "inventories/prod/group_vars/all.yml" 
+- name: Setup loki+promtail
+  hosts: master
+  become: true
+  roles:
+    - loki
+    - promtail
+
+### Home => Eplore => Loki (LogQL here)
+#
+### Examples:
+#
+### Basic queries (LogQL)
+#
+# Logs from entire namespace
+#     {namespace="kube-system"}
+#
+# Logs from pod
+#     {pod="coredns-6d4b75cb6d-mbqxl"}
+#
+# Logs from container
+#     {container="grafana"}
+#
+# Text search
+#      positive:
+#     {app="nginx"} |= "GET"
+#     negative:
+#     {app="nginx"} != "healthz"
+#
+#
+### Aggregation queries (Advanced LogQL)
+#
+# Queries with time
+#     count_over_time({app="grafana"}[5m])
+#
+# Sort by status codes
+#     sum by (status) ( count_over_time({app="grafana"} |= "HTTP"[5m]) )
+#
+# 5xx codes
+#     {app="nginx"} |= "HTTP" |~ "5.."
+#
+#
+### Label filtering
+#
+# Promtail add labels to the logs. For ex.:
+#     labels:
+#       job: varlogs
+#       host: node1
+#       app: nginx
+#
+# So, you can filter by them
+#      {job="varlogs", app="nginx", host="node1"} |= "error"
+

@@ -17,11 +17,13 @@
   args:
     executable: /bin/bash
 
+# To reinstall, remove first:   helm uninstall kube-prometheus-stack -n monitoring --kubeconfig /root/.kube/config
 - name: Install Prometheus stack
   when: helm_stack_check.stdout == ""
   shell: |
     helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
       --namespace monitoring \
+      --set prometheus.prometheusSpec.maximumStartupDurationSeconds=300 \
       --kubeconfig /root/.kube/config
 
 - name: Get node-exporter pods
@@ -37,10 +39,6 @@
     msg: "Some node-exporter pods are not Running"
   when: >
     node_exporter_pods.resources | selectattr('status.phase', 'ne', 'Running') | list | length > 0
-
-
-- name: Create ssl for domains
-  include_tasks: ssl.yml
 
 
 - name: Get Grafana password
@@ -65,7 +63,6 @@
     src: "{{ item }}"
     dest: "/tmp/{{ item }}"
   loop:
-    - redirect-https-middleware.yaml
     - grafana-ingress.yaml
     - prometheus-ingress.yaml
 
@@ -75,7 +72,6 @@
     namespace: monitoring
     src: "/tmp/{{ item }}"
   loop:
-    - redirect-https-middleware.yaml
     - grafana-ingress.yaml
     - prometheus-ingress.yaml
 

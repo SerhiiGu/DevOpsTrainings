@@ -1,0 +1,13 @@
+- name: Template Promtail Helm values
+  template:
+    src: values-promtail.yaml.j2
+    dest: /tmp/values-promtail.yaml
+
+- name: Deploy Promtail via Helm
+  kubernetes.core.helm:
+    name: promtail
+    chart_ref: grafana/promtail
+    release_namespace: loki
+    values_files:
+      - /tmp/values-promtail.yaml
+
