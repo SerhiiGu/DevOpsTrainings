@@ -1,0 +1,64 @@
+- name: Stop MariaDB service
+  service:
+    name: mariadb
+    state: stopped
+
+- name: Ensure skip-grant-tables is set under [mysqld]
+  lineinfile:
+    path: /etc/mysql/my.cnf
+    insertafter: '^\[mysqld\]'
+    line: 'skip-grant-tables'
+    state: present
+
+- name: Ensure skip-networking is set under [mysqld]
+  lineinfile:
+    path: /etc/mysql/my.cnf
+    insertafter: '^\[mysqld\]'
+    line: 'skip-networking'
+    state: present
+
+- name: Start MariaDB with skips
+  service:
+    name: mariadb
+    state: started
+
+- name: Fix root users inside MariaDB
+  shell: |
+    mariadb -e "
+    FLUSH PRIVILEGES;
+    DROP USER IF EXISTS 'root'@'localhost';
+    CREATE USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';
+    GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+
+    DROP USER IF EXISTS 'root'@'%';
+    CREATE USER 'root'@'%' IDENTIFIED BY '{{ mysql_root_password }}';
+    GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+    FLUSH PRIVILEGES;
+    "
+  args:
+    executable: /bin/bash
+
+- name: Stop MariaDB after fix
+  service:
+    name: mariadb
+    state: stopped
+
+- name: Remove skip-grant-tables option
+  lineinfile:
+    path: /etc/mysql/my.cnf
+    line: 'skip-grant-tables'
+    state: absent
+
+- name: Remove skip-networking option
+  lineinfile:
+    path: /etc/mysql/my.cnf
+    line: 'skip-networking'
+    state: absent
+
+- name: Start MariaDB cleanly
+  service:
+    name: mariadb
+    state: started
+
+

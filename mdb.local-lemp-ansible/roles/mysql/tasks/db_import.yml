@@ -1,0 +1,37 @@
+- name: Find local file movies_db_*.zip
+  find:
+    paths: roles/mysql/files/
+    patterns: 'movies_db_*.zip'
+    use_regex: false
+  register: mysql_zip_files
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy movies_db_*.zip to the remote server
+  copy:
+    src: "{{ item.path }}"
+    dest: /tmp/movies_db.zip
+  when: mysql_zip_files.files | length > 0
+  loop: "{{ mysql_zip_files.files }}"
+  loop_control:
+    loop_var: item
+  run_once: true
+
+- name: Unzip movies_db.zip to /tmp
+  unarchive:
+    src: /tmp/movies_db.zip
+    dest: /tmp
+    remote_src: yes
+
+- name: Replace unsupported collation in SQL dump for MariaDB
+  replace:
+    path: /tmp/movies_db.sql
+    regexp: 'utf8mb4_0900_ai_ci'
+    replace: 'utf8mb4_unicode_ci'
+
+- name: Import to MySQL
+  mysql_db:
+    name: movies_db
+    state: import
+    target: /tmp/movies_db.sql
+

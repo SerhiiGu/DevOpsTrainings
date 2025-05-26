@@ -1,0 +1,40 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Logging Settings
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    gzip on;
+    gzip_disable "msie6";
+
+    upstream php_backend {
+        server 127.0.0.1:9000;
+    }
+
+    # Cache for PHP (FastCGI)
+    fastcgi_cache_path /var/cache/nginx/fastcgi levels=1:2 keys_zone=php_cache:20m inactive=60m max_size=250m;
+    fastcgi_cache_key "$scheme$request_method$host$request_uri";
+    fastcgi_ignore_headers Cache-Control Expires Set-Cookie ;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    include /etc/nginx/sites-enabled/*;
+}
+

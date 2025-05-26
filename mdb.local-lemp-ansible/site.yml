@@ -1,0 +1,14 @@
+- name: "Setup LEMP environment"
+  hosts: all
+  become: true
+
+  roles:
+    - role: common
+    - role: ssl
+      vars:
+        domain: "mdb.local"
+
+    - role: php
+    - role: nginx
+    - role: mysql
+

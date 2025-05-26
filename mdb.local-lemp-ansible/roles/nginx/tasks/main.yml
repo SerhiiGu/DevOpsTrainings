@@ -1,0 +1,41 @@
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Stop and disable Apache2
+  systemd:
+    name: apache2
+    enabled: false
+    state: stopped
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false
+
+- name: Enable and start Nginx
+  systemd:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Copy default nginx config
+  template:
+    src: default.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+  notify: Reload Nginx
+
+- name: Remove index.html
+  file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: Create index.php
+  shell: >
+    echo "<?php phpinfo(); ?>" > /var/www/html/index.php
+
+
+
+- name: Enable fcgi_cache and SSL
+  include_tasks: fcgi_cache.yml
+

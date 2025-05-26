@@ -1,0 +1,7 @@
+- name: MySQL DB import
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Include DB import tasks
+      import_tasks: roles/mysql/tasks/db_import.yml

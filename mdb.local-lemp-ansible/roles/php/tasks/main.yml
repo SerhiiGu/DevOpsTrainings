@@ -1,0 +1,58 @@
+- name: Install PHP and extensions
+  apt:
+    name:
+      - php
+      - php-fpm
+      - php-mysql
+      - php-mbstring
+    state: present
+
+- name: Find local file mdb.local_*.zip
+  find:
+    paths: roles/php/files/
+    patterns: 'mdb.local_*.zip'
+    use_regex: false
+  register: mdb_zip_files
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy found mdb zip file to remote host
+  copy:
+    src: "{{ item.path }}"
+    dest: /tmp/mdb.zip
+  loop: "{{ mdb_zip_files.files }}"
+  loop_control:
+    loop_var: item
+  when: mdb_zip_files.files | length > 0
+
+- name: Unpack mdb.zip to /var/www/html
+  unarchive:
+    src: /tmp/mdb.zip
+    dest: /var/www/html
+    remote_src: yes
+
+- name: Move and overwrite all files from /var/www/html/mdb to /var/www/html
+  shell: |
+    rsync -a --remove-source-files --exclude='mdb' /var/www/html/mdb/ /var/www/html/
+    rm -rf /var/www/html/mdb
+  args:
+    executable: /bin/bash
+
+- name: Remove /var/www/html/index.nginx-debian.html
+  file:
+    path: /var/www/html/index.nginx-debian.html
+    state: absent
+
+- name: Replace MySQL server from mysql with localhost in PHP config
+  replace:
+    path: /var/www/html/includes/mysql_config.php
+    regexp: '\$m_server\s*=\s*"mysql";'
+    replace: '$m_server = "localhost";'
+  become: true
+
+- name: Ensure PHP-FPM is started
+  systemd:
+    name: php{{ php_version }}-fpm
+    state: restarted
+    enabled: true
+
