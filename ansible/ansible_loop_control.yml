@@ -5,7 +5,7 @@
 #    label: задає, що буде відображатися у виводі замість повного елемента циклу.
 #    index_var: змінна, в яку записується індекс поточної ітерації.
 #    extended: дозволяє доступ до додаткових змінних (ansible_loop).
-
+#    loop_var:  перейменовуємо змінну за замовчуванням (item) на ту, що задали в loop_var. Для читабельності чи уникнення конфліктів
 ---
 - name: Demo playbook for loop_control
   hosts: localhost
@@ -14,19 +14,26 @@
     users:
       - { name: "john", shell: "/bin/bash" }
       - { name: "doe", shell: "/sbin/nologin" }
-
+    envs: [ "dev", "prod", "test" ]
+    packages: [ htop, curl ]
     users2: [ alice, bob ]
     groups: [ dev, ops ]
     user_group_pairs: "{{ users2 | product(groups) | list }}"
-
     users3:
       - name: alice
         groups: [ dev, qa ]
       - name: bob
         groups: [ ops, infra ]
+    firewall_hosts:
+      - name: web1
+        rules:
+          - { port: 80, proto: tcp }
+          - { port: 443, proto: tcp }
+      - name: db1
+        rules:
+          - { port: 5432, proto: tcp }
 
   tasks:
-
     - name: 1. Установка пакетів з кастомним label
       ansible.builtin.debug:
         msg: "Installing {{ item }}"
@@ -58,7 +65,7 @@
     - name: 5. Пауза між кроками (через шаблонний label)
       ansible.builtin.pause:
         seconds: 1
-      loop: [ "Phase A", "Phase B", "Phase C" ]
+      loop: [ "Phase A", "Phase B" ]
       loop_control:
         label: "Waiting after {{ item }}"
 
@@ -100,7 +107,7 @@
       loop_control:
         index_var: i
 
-    - name: Print user-group pairs
+    - name: 11. Print user-group pairs
       debug:
         msg: "User {{ item.0 }} assigned to group {{ item.1 }}"
       loop: "{{ user_group_pairs }}"
@@ -108,9 +115,57 @@
         label: "{{ item.0 }} -> {{ item.1 }}"
         index_var: pair_index
 
-    - name: Add users to groups
+    - name: 12. Simulate adding users to groups
       debug:
         msg: "User {{ item.0.name }} -> Group {{ item.1 }}"
       loop: "{{ users3 | subelements('groups') }}"
       loop_control:
         label: "{{ item.0.name }} -> {{ item.1 }}"
+
+    - name: 13. Simulate installing packages using loop_var(just rename "item" to "pkg")
+      debug:
+        msg: "{{ pkg }}"
+      loop: "{{ packages }}"
+      loop_control:
+        loop_var: pkg
+
+    - name: 14. Simulate adding users to groups (nested loop)
+      debug:
+        msg: "{{ user }} to {{ group }}"
+      with_nested:
+        - [ 'alice', 'bob' ]
+        - [ 'devs', 'admins' ]
+      loop_control:
+        loop_var: nested_item
+      vars:
+        user: "{{ nested_item[0] }}"
+        group: "{{ nested_item[1] }}"
+
+    - name: 15. Simulate creation user dirs for each environment
+      debug:
+        msg: "Creating /home/{{ pair.0.name }}/{{ pair.1 }} directory"
+      with_nested:
+        - "{{ users }}"
+        - "{{ envs }}"
+      loop_control:
+        loop_var: pair
+
+    - name: 16. Simulate creation user dirs for each environment(modern way)
+      ansible.builtin.debug:
+        msg: "Creating /home/{{ entry.0 }}/{{ entry.1 }} directory"
+      loop: "{{ users | map(attribute='name') | list | product(envs) | list }}"
+      loop_control:
+        loop_var: entry
+
+    - name: 17. Create firewall rules per host
+      ansible.builtin.debug:
+        msg: "Applying rule {{ rule.port }}/{{ rule.proto }} to {{ host.name }}"
+      with_subelements:
+        - "{{ firewall_hosts }}"
+        - rules
+      loop_control:
+        loop_var: fw_entry
+      vars:
+        host: "{{ fw_entry.0 }}"
+        rule: "{{ fw_entry.1 }}"
+
