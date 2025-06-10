@@ -1,0 +1,28 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+  become: true
+
+- name: Install system packages
+  apt:
+    name:
+      - git
+      - curl
+      - wget
+      - nginx
+      - build-essential
+    state: present
+  become: true
+
+- name: Copy .vimrc
+  copy:
+    src: ".vimrc"
+    dest: "/root/.vimrc"
+  become: true
+
+- name: Setup timezone to Kyiv
+  timezone:
+    name: Europe/Kyiv
+  become: true
+

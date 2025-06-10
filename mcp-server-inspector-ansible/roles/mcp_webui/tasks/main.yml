@@ -1,0 +1,36 @@
+- name: Upload HTTP config (local IP)
+  template:
+    src: nginx.conf_http.j2
+    dest: /etc/nginx/sites-available/mcp
+    mode: '0644'
+  when: ansible_default_ipv4.address is match("^192\\.168\\..*")
+
+- name: Upload HTTPS config (non-local IP)
+  template:
+    src: nginx.conf_https.j2
+    dest: /etc/nginx/sites-available/mcp
+    mode: '0644'
+  when: ansible_default_ipv4.address is not match("^192\\.168\\..*")
+
+- name: Enable MCP site
+  file:
+    src: /etc/nginx/sites-available/mcp
+    dest: /etc/nginx/sites-enabled/mcp
+    state: link
+    force: true
+
+- name: Disable default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Test NGINX config
+  command: nginx -t
+  register: nginx_test
+  failed_when: "'successful' not in nginx_test.stderr"
+
+- name: Reload NGINX
+  systemd:
+    name: nginx
+    state: reloaded
+

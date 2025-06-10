@@ -1,0 +1,10 @@
+- name: MCP server and inspector basic installation
+  hosts: ec2
+  become: yes
+  roles:
+    - common
+    - mcp
+    - certbot
+    - mcp_server
+    - mcp_webui
+

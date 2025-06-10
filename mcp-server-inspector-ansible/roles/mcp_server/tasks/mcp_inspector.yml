@@ -1,0 +1,54 @@
+- name: Clone MCP inspector repo
+  git:
+    repo: https://github.com/modelcontextprotocol/inspector.git
+    dest: "{{ mcp_inspector_path }}"
+    version: main
+    update: yes
+
+- name: Add missing dev dependencies for tests
+  shell: >
+    pnpm add -Dw
+    @jest/globals
+    @types/jest
+    ts-node
+    typescript
+    vitest
+    jest
+  args:
+    chdir: "{{ mcp_inspector_path }}"
+
+- name: Create pnpm workspace file
+  copy:
+    dest: "{{ mcp_inspector_path }}/pnpm-workspace.yaml"
+    content: |
+      packages:
+        - 'server'
+        - 'client'
+        - 'cli'
+
+- name: Install all MCP inspector dependencies recursively
+  shell: pnpm install -r --ignore-scripts
+  args:
+    chdir: "{{ mcp_inspector_path }}"
+
+- name: Build MCP inspector server manually
+  shell: pnpm build
+  args:
+    chdir: "{{ mcp_inspector_path }}/server"
+
+- name: Deploy mcp-inspector systemd service
+  template:
+    src: mcp-inspector.service.j2
+    dest: /etc/systemd/system/mcp-inspector.service
+    mode: '0644'
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start mcp-inspector
+  systemd:
+    name: mcp-inspector
+    enabled: yes
+    state: started
+

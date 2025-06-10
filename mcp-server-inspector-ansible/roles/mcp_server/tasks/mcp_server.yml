@@ -1,0 +1,35 @@
+- name: Clone MCP server repo
+  git:
+    repo: https://github.com/cloudflare/ai.git
+    dest: "{{ mcp_server_path }}"
+    version: main
+    update: yes
+
+#- name: Clone MCP server repo
+#  git:
+#    repo: https://github.com/cloudflare/mcp-server-cloudflare.git
+#    dest: "{{ mcp_server_path }}"
+#    version: main
+#    update: yes
+#
+- name: Install MCP server dependencies
+  shell: pnpm install
+  args:
+    chdir: "{{ mcp_server_path }}/demos/remote-mcp-authless"
+
+- name: Deploy mcp-server systemd service
+  template:
+    src: mcp-server.service.j2
+    dest: /etc/systemd/system/mcp-server.service
+    mode: '0644'
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start mcp-server
+  systemd:
+    name: mcp-server
+    enabled: yes
+    state: started
+

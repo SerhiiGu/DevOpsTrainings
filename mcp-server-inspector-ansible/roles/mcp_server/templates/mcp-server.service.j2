@@ -1,0 +1,17 @@
+[Unit]
+Description=Cloudflare MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User={{ mcp_user }}
+WorkingDirectory={{ mcp_server_path }}/demos/remote-mcp-authless
+#ExecStart=/usr/bin/pnpm start
+ExecStart=npx wrangler dev --local --ip=0.0.0.0
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+

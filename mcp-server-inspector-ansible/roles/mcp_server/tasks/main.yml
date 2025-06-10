@@ -1,0 +1,18 @@
+- name: Ensure TypeScript is installed globally
+  npm:
+    name: typescript
+    global: yes
+
+- name: Install Wrangler globally
+  npm:
+    name: wrangler
+    global: yes
+
+
+#- name: MCP inspector installation
+#  include_tasks: mcp_inspector.yml
+
+
+- name: MCP server installation
+  include_tasks: mcp_server.yml
+

@@ -1,0 +1,4 @@
+mcp_user: "{{ ansible_user }}"
+mcp_server_path: /opt/ai-mcp-server
+mcp_inspector_path: /opt/inspector
+

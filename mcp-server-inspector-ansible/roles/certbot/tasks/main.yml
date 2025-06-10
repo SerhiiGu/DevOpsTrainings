@@ -1,0 +1,72 @@
+- name: Install nginx and certbot
+  apt:
+    name:
+      - nginx
+      - certbot
+      - python3-certbot
+    state: present
+
+- name: Create webroot directory for certbot challenges
+  file:
+    path: /var/www/certbot
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Create default nginx config for certbot challenges
+  copy:
+    dest: /etc/nginx/sites-available/letsencrypt
+    content: |
+      server {
+          listen 80 default_server;
+          listen [::]:80 default_server;
+          server_name _;
+
+          root /var/www/html;
+
+          location /.well-known/acme-challenge/ {
+              root /var/www/certbot;
+          }
+
+          location / {
+              return 200 'LE challenge default site';
+              add_header Content-Type text/plain;
+          }
+      }
+    mode: '0644'
+
+- name: Enable default certbot site
+  file:
+    src: /etc/nginx/sites-available/letsencrypt
+    dest: /etc/nginx/sites-enabled/letsencrypt
+    state: link
+
+- name: Remove default nginx config link, if exists
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Remove default nginx config itself, if exists
+  file:
+    path: /etc/nginx/sites-available/default
+    state: absent
+
+- name: Test nginx config
+  command: nginx -t
+
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: Request Let's Encrypt certificate for {{ mcp_host }}
+  command: >
+    certbot certonly --webroot -w /var/www/certbot
+    -d {{ mcp_host }}
+    --email {{ mcp_email }}
+    --agree-tos
+    --non-interactive
+  args:
+    creates: /etc/letsencrypt/live/{{ mcp_host }}/fullchain.pem
+

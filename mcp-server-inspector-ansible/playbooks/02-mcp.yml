@@ -1,0 +1,5 @@
+- name: MCP core
+  hosts: ec2
+  become: yes
+  roles:
+    - mcp

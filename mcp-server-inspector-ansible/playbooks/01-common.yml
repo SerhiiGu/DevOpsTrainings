@@ -1,0 +1,5 @@
+- name: Basic configs and packages on EC2
+  hosts: ec2
+  become: yes
+  roles:
+    - common

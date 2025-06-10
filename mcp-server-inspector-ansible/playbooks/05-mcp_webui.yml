@@ -1,0 +1,5 @@
+- name: MCS WebUI Interface itself
+  hosts: ec2
+  become: yes
+  roles:
+    - mcp_webui

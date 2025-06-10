@@ -1,0 +1,48 @@
+- name: Deploy MCP config for Groq LLM
+  copy:
+    dest: /opt/ai-mcp-server/demos/remote-mcp-authless/mcp-config.json
+    content: |
+      {
+        "llm": {
+          "type": "openai",
+          "api_url": "https://api.groq.com/openai/v1/chat/completions",
+          "api_key": "{{ llm_api_key }}",
+          "model": "{{ llm_model }}"
+        }
+      }
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Ensure context directory exists
+  file:
+    path: /opt/ai-mcp-server/demos/remote-mcp-authless/contexts
+    state: directory
+    mode: '0755'
+
+- name: Add "ask" context
+  copy:
+    dest: /opt/ai-mcp-server/demos/remote-mcp-authless/contexts/ask.mjs
+    content: |
+      export default {
+        name: 'ask',
+        description: 'Ask anything using LLM',
+        run: async ({ message, context }) => {
+          const input = message.content || 'What is AI?';
+          const result = await context.llm.chat({
+            messages: [
+              { role: 'system', content: 'You are a helpful assistant.' },
+              { role: 'user', content: input }
+            ]
+          });
+          return result.content;
+        }
+      };
+    mode: '0644'
+
+- name: Restart MCP server
+  systemd:
+    name: mcp-server
+    state: restarted
+    enabled: true
+

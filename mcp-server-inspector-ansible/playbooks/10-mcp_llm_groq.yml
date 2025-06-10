@@ -1,0 +1,5 @@
+- name: Add Groq to MCP server
+  hosts: ec2
+  become: yes
+  roles:
+    - mcp_llm_groq

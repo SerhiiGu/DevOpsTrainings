@@ -1,0 +1,5 @@
+- name: MCP Server+Inspector
+  hosts: ec2
+  become: yes
+  roles:
+    - mcp_server

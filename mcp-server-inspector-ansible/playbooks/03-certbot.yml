@@ -1,0 +1,6 @@
+- name: SSL Certbot for MCP WebUI
+  hosts: ec2
+  become: yes
+  roles:
+    - certbot
+

@@ -1,0 +1,17 @@
+[Unit]
+Description=MCP Inspector Agent
+After=network.target
+
+[Service]
+Type=simple
+User={{ mcp_user }}
+WorkingDirectory={{ mcp_inspector_path }}
+ExecStart=/usr/bin/pnpm start
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+#Environment=REMOTE_MCP_SERVER=http://127.0.0.1:8080
+
+[Install]
+WantedBy=multi-user.target
+

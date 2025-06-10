@@ -1,0 +1,6 @@
+mcp_host: "domain" # your domain here
+mcp_email: "mail@email" # your e-mail hete
+
+llm_model: "llama3-70b-8192" # Groq LLM model
+llm_api_key: "gsk_D..." # your Groq API key here
+
