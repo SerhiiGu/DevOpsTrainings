@@ -1,0 +1,23 @@
+- name: Check if cloudflared binary exists
+  ansible.builtin.stat:
+    path: /usr/bin/cloudflared
+  register: cloudflared_binary
+
+- name: Download cloudflared deb package
+  ansible.builtin.get_url:
+    url: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+    dest: /tmp/cloudflared-linux-amd64.deb
+    mode: '0644'
+  when: not cloudflared_binary.stat.exists
+
+- name: Install cloudflared deb package
+  ansible.builtin.apt:
+    deb: /tmp/cloudflared-linux-amd64.deb
+  when: not cloudflared_binary.stat.exists
+
+- name: Remove cloudflared deb package file
+  ansible.builtin.file:
+    path: /tmp/cloudflared-linux-amd64.deb
+    state: absent
+  when: not cloudflared_binary.stat.exists
+

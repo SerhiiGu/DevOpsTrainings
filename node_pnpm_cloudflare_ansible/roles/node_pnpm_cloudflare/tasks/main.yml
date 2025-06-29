@@ -1,0 +1,14 @@
+- name: Install nodejs last LTS
+  include_tasks: node.yml
+
+- name: Install last npm&pnpm
+  include_tasks: npm_pnpm.yml
+
+- name: Install wrangler
+  include_tasks: wrangler.yml
+
+- name: Install AWS CLI
+  include_tasks: aws.yml
+
+- name: Install CloudFlared
+  include_tasks: cloudflared.yml

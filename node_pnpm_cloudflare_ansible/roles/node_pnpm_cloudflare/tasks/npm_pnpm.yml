@@ -1,0 +1,19 @@
+- name: Upgrade npm to latest
+  ansible.builtin.shell: |
+    npm install -g npm
+  args:
+    creates: /usr/bin/npm
+
+- name: Install pnpm globally (latest or specific version)
+  ansible.builtin.shell: |
+    npm install -g pnpm{{ '@"%s"' | format(pnpm_version) if pnpm_version else '' }}
+  args:
+    executable: /bin/bash
+    creates: /usr/bin/pnpm
+
+- name: Run pnpm setup (creates global bin dir)
+  ansible.builtin.shell: |
+    pnpm setup
+  args:
+    executable: /bin/bash
+

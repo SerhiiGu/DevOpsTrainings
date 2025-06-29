@@ -1,0 +1,17 @@
+- name: Download AWS CLI installer
+  ansible.builtin.get_url:
+    url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: /tmp/awscliv2.zip
+
+- name: Unzip AWS CLI installer
+  ansible.builtin.unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp/
+    remote_src: yes
+
+- name: Install AWS CLI
+  ansible.builtin.shell: |
+    /tmp/aws/install
+  args:
+    creates: /usr/local/bin/aws
+

@@ -1,0 +1,4 @@
+node_version: ""     # blank for last LTS
+pnpm_version: ""     # blank for last version
+cloudflare_project_name: "my-cloudflare-app"
+

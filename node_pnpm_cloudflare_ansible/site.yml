@@ -1,0 +1,6 @@
+- hosts: all
+  become: yes
+  roles:
+    - role: node_pnpm_cloudflare
+      vars:
+        cloudflare_project_name: "awesome-cloudflare-app"

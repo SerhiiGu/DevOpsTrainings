@@ -1,0 +1,6 @@
+- name: Install wrangler globally
+  ansible.builtin.shell: |
+    pnpm add -g wrangler
+  args:
+    executable: /bin/bash
+

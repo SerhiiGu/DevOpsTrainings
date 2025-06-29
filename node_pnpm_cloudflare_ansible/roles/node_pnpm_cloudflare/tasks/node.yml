@@ -1,0 +1,13 @@
+- name: Add Node.js repository (nodesource)
+  ansible.builtin.shell: |
+    curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/sources.list.d/nodesource.list
+  when: ansible_os_family == "Debian"
+
+- name: Install Node.js
+  ansible.builtin.package:
+    name: nodejs
+    state: present
+
