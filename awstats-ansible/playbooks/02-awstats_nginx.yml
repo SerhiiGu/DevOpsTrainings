@@ -1,0 +1,6 @@
+- name: Config Awstats for Nginx, set SSL wit Certbot
+  hosts: all
+  become: yes
+  roles:
+    - awstats_nginx
+

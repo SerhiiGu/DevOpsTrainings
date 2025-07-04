@@ -1,0 +1,58 @@
+- name: Check if NGINX config for AWStats already exists
+  stat:
+    path: /etc/nginx/sites-available/awstats
+  register: awstats_conf_stat
+
+- name: Deploy NGINX config for AWStats
+  template:
+    src: awstats.conf.j2
+    dest: /etc/nginx/sites-available/awstats
+    owner: root
+    group: root
+    mode: '0644'
+  when: not awstats_conf_stat.stat.exists
+
+- name: Enable AWStats site in NGINX
+  file:
+    src: /etc/nginx/sites-available/awstats
+    dest: /etc/nginx/sites-enabled/awstats
+    state: link
+    force: true
+  when: not awstats_conf_stat.stat.exists
+
+- name: Reload NGINX to apply HTTP config
+  service:
+    name: nginx
+    state: reloaded
+  when: not awstats_conf_stat.stat.exists
+
+- name: Check if certificate already exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ awstats_domain_name }}/fullchain.pem"
+  register: cert_stat
+
+- name: Obtain Let's Encrypt certificate with Certbot
+  command: >
+    certbot certonly \
+    --webroot -w /var/www/certbot/ \
+    -d {{ awstats_domain_name }} \
+    --email {{ certbot_email }} \
+    --agree-tos \
+    --non-interactive
+  when: not cert_stat.stat.exists
+  
+- name: Deploy SSL-enabled NGINX config for AWStats
+  template:
+    src: awstats_ssl.conf.j2
+    dest: /etc/nginx/sites-available/awstats
+    owner: root
+    group: root
+    mode: '0644'
+  when: cert_stat.stat.exists
+
+- name: Reload NGINX with SSL config
+  service:
+    name: nginx
+    state: reloaded
+  when: cert_stat.stat.exists
+

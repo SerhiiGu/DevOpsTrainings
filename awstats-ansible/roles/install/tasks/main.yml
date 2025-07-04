@@ -1,0 +1,57 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+
+- name: Install required packages
+  apt:
+    name:
+      - unzip
+      - wget
+      - perl
+      - libjson-xs-perl
+      - libgeo-ip-perl
+      - libtimedate-perl
+      - liburi-perl
+      - libtry-tiny-perl
+    state: present
+
+- name: Create required directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ awstats_config_dir }}"
+    - "{{ awstats_data_dir }}"
+    - "{{ awstats_html_dir }}"
+
+- name: Download AWStats
+  get_url:
+    url: "{{ awstats_download_url }}"
+    dest: /opt/awstats.zip
+
+- name: Unzip AWStats
+  unarchive:
+    src: /opt/awstats.zip
+    dest: /opt/
+    remote_src: true
+
+- name: Remove awstats_root_dir if exists
+  file:
+    path: "{{ awstats_root_dir }}"
+    state: absent
+
+- name: Move AWStats to target directory
+  command: mv /opt/AWStats-develop {{ awstats_root_dir }}
+  args:
+    creates: "{{ awstats_root_dir }}/wwwroot"
+
+- name: Cleanup
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/opt/awstats.zip"
+    - "/opt/AWStats-develop"
+

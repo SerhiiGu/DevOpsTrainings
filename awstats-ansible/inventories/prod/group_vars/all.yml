@@ -1,0 +1,12 @@
+ansible_user: "root"
+
+awstats_download_url: https://github.com/eldy/awstats/archive/refs/heads/master.zip
+awstats_root_dir: /opt/awstats
+awstats_config_dir: /etc/awstats
+awstats_data_dir: /var/lib/awstats
+awstats_html_dir: /var/www/html/awstats
+awstats_domain_name: awstats.deus207.pp.ua
+
+certbot_email: "adm@deus207.pp.ua"
+
+

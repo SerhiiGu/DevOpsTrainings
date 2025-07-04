@@ -1,0 +1,41 @@
+server {
+    listen 80;
+    server_name {{ awstats_domain_name }} ;
+    error_log   /var/log/nginx/{{ awstats_domain_name }}_error.log;
+    access_log  /var/log/nginx/{{ awstats_domain_name }}_access.log main;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot/;
+        allow all;
+    }
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name {{ awstats_domain_name }};
+    error_log   /var/log/nginx/{{ awstats_domain_name }}_error.log;
+    access_log  /var/log/nginx/{{ awstats_domain_name }}_access.log main;
+
+    ssl_certificate /etc/letsencrypt/live/{{ awstats_domain_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ awstats_domain_name }}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    root {{ awstats_html_dir }};
+    index index.html;
+
+    location /awstats/icon/ {
+        alias {{ awstats_root_dir }}/wwwroot/icon/;
+    }
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot/;
+        allow all;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+

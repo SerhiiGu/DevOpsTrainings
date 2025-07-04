@@ -1,0 +1,57 @@
+- name: Copy default config to domain-specific config
+  copy:
+    src: "{{ awstats_root_dir }}/wwwroot/cgi-bin/awstats.model.conf"
+    dest: "{{ awstats_config_dir }}/awstats.{{ awstats_domain }}.conf"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure AWStats for nginx
+  lineinfile:
+    path: "{{ awstats_config_dir }}/awstats.{{ awstats_domain }}.conf"
+    regexp: "^{{ item.key }}\\b"
+    line: "{{ item.key }}={{ item.value }}"
+    state: present
+    backrefs: no
+  loop:
+    - { key: 'LogFile', value: '"{{ nginx_log_file }}"' }
+    - { key: 'LogFormat', value: '"%host %other %logname %time1 %methodurl %code %bytesd %refererquot %uaquot"' }
+    - { key: 'SiteDomain', value: '"{{ awstats_domain }}"' }
+    - { key: 'HostAliases', value: '"localhost 127.0.0.1 {{ awstats_domain }} www.{{ awstats_domain }}"' }
+    - { key: 'DirData', value: '"{{ awstats_data_dir }}"' }
+    - { key: 'DirCgi', value: '"/awstats"' }
+    - { key: 'DirIcons', value: '"/awstats/icon"' }
+
+- name: Generate static HTML pages
+  command: >
+    perl {{ awstats_root_dir }}/tools/awstats_buildstaticpages.pl
+    -awstatsprog={{ awstats_root_dir }}/wwwroot/cgi-bin/awstats.pl
+    -dir={{ awstats_html_dir }}
+    -update
+    -config={{ awstats_domain }}
+  args:
+    creates: "{{ awstats_html_dir }}/index.html"
+
+- name: Create index.html redirecting to main AWStats page
+  template:
+    src: index.html.j2
+    dest: "{{ awstats_html_dir }}/index.html"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Setup cronjob to update stats
+  cron:
+    name: "Daily AWStats update"
+    minute: "7"
+    hour: "*"
+    user: root
+    job: >
+      perl {{ awstats_root_dir }}/tools/awstats_buildstaticpages.pl
+      -awstatsprog={{ awstats_root_dir }}/wwwroot/cgi-bin/awstats.pl
+      -dir={{ awstats_html_dir }}
+      -update
+      -config={{ awstats_domain }} &&
+      cp {{ awstats_html_dir }}/index.html {{ awstats_html_dir }}/index.html
+

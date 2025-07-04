@@ -1,0 +1,10 @@
+- name: Config domain for awstats check
+  hosts: all
+  become: yes
+  vars:
+    - awstats_domain: voc.deus207.pp.ua
+    - nginx_log_file: /var/log/nginx/voc.deus207.pp.ua_access.log
+
+  roles:
+    - config_domain
+
