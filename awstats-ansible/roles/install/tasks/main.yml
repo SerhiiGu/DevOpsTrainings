@@ -14,6 +14,9 @@
       - libtimedate-perl
       - liburi-perl
       - libtry-tiny-perl
+      - libmaxmind-db-reader-perl
+      - libmaxmind-db-reader-xs-perl
+      - libgeoip2-perl
     state: present
 
 - name: Create required directories
