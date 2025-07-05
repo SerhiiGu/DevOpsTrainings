@@ -1,0 +1,18 @@
+perl_version: "5.42.0"
+perl_prefix: "/opt/perl"
+perl_download_url: "https://www.cpan.org/src/5.0/perl-{{ perl_version }}.tar.gz"
+build_dependencies:
+  - build-essential
+  - wget
+  - tar
+  - unzip
+  - libgdbm-dev
+  - libdb-dev
+  - libncurses-dev
+  - libbz2-dev
+  - libssl-dev
+  - zlib1g-dev
+  - libreadline-dev
+  - libffi-dev
+  - libmaxminddb-dev
+

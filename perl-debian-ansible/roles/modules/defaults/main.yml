@@ -1,0 +1,10 @@
+perl_prefix: "/opt/perl"
+perl_modules:
+  - "DBI"
+  - "JSON"
+  - "Math::Int64"
+  - "Math::Int128"
+  - "Net::Works::Network"
+  - "MaxMind::DB::Reader"
+  - "MaxMind::DB::Reader::XS"
+

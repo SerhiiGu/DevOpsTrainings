@@ -1,0 +1,6 @@
+- name: Build Perl from source on Debian 12
+  hosts: all
+  become: yes
+  roles:
+    - build
+

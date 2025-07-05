@@ -1,0 +1,64 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+  become: true
+
+- name: Ensure build dependencies are installed
+  apt:
+    name: "{{ build_dependencies }}"
+    state: present
+
+- name: Create temp directory for Perl source
+  tempfile:
+    state: directory
+    suffix: perl-build
+  register: perl_temp_dir
+
+- name: Download Perl source archive
+  get_url:
+    url: "{{ perl_download_url }}"
+    dest: "{{ perl_temp_dir.path }}/perl-{{ perl_version }}.tar.gz"
+
+- name: Extract Perl source
+  unarchive:
+    src: "{{ perl_temp_dir.path }}/perl-{{ perl_version }}.tar.gz"
+    dest: "{{ perl_temp_dir.path }}"
+    remote_src: yes
+
+- name: Configure Perl build
+  command: "./Configure -des -Dprefix={{ perl_prefix }}"
+  args:
+    chdir: "{{ perl_temp_dir.path }}/perl-{{ perl_version }}"
+  environment:
+    LC_ALL: C
+
+- name: Compile Perl
+  command: "make -j {{ ansible_facts.processor_cores | default(2) }}"
+  args:
+    chdir: "{{ perl_temp_dir.path }}/perl-{{ perl_version }}"
+
+- name: Install compiled Perl
+  command: "make install"
+  args:
+    chdir: "{{ perl_temp_dir.path }}/perl-{{ perl_version }}"
+
+- name: Add Perl binary to system PATH via /etc/profile.d
+  copy:
+    dest: "/etc/profile.d/perl.sh"
+    content: |
+      export PATH={{ perl_prefix }}/bin:$PATH
+    mode: "0644"
+
+- name: Check if cpanm is already present
+  stat:
+    path: "{{ perl_prefix }}/bin/cpanm"
+  register: cpanm_check
+
+- name: Download cpanm directly if not present
+  get_url:
+    url: https://cpanmin.us
+    dest: "{{ perl_prefix }}/bin/cpanm"
+    mode: "0755"
+  when: not cpanm_check.stat.exists
+

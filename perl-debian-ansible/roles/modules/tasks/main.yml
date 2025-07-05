@@ -1,0 +1,4 @@
+- name: Install requested Perl modules via cpanm
+  command: "{{ perl_prefix }}/bin/cpanm {{ item }}"
+  loop: "{{ perl_modules }}"
+

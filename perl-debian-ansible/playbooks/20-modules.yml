@@ -1,0 +1,6 @@
+- name: Install Perl modules via cpanm
+  hosts: all
+  become: yes
+  roles:
+    - modules
+
