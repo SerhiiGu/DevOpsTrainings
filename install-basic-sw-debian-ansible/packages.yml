@@ -1,0 +1,6 @@
+- name: Install Debian core packages
+  hosts: all
+  become: yes
+  roles:
+    - packages
+

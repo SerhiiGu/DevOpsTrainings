@@ -1,0 +1,12 @@
+build_dependencies:
+  - curl
+  - wget
+  - tar
+  - zip
+  - unzip
+  - gpg
+  - bat  # cat, but better. Uses as 'batcat' (or 'bat' with alias)
+  - ripgrep # grep on steriods. Uses as 'rg'
+  - fd-find # much faster find with highlightning and a bit different syntax. Uses as 'fdfind' (and 'fd' with alias)
+  - fzf
+

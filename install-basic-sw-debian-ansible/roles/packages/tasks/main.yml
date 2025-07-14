@@ -1,0 +1,62 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+  become: true
+
+- name: Install all needed packages
+  apt:
+    name: "{{ build_dependencies }}"
+    state: present
+
+
+- name: Gather installed packages
+  ansible.builtin.package_facts:
+    manager: apt
+
+
+- name: Check if eza is already installed
+  ansible.builtin.debug:
+    msg: "eza is already installed"
+  when: "'eza' in ansible_facts.packages"
+
+- name: Download eza deb package
+  ansible.builtin.get_url:
+    url: http://deb.gierens.de/pool/main/e/eza/eza_0.21.6_amd64.deb
+    dest: /tmp/eza_0.21.6_amd64.deb
+    mode: '0644'
+  when: "'eza' not in ansible_facts.packages"
+
+- name: Install eza deb package
+  ansible.builtin.apt:
+    deb: /tmp/eza_0.21.6_amd64.deb
+  when: "'eza' not in ansible_facts.packages"
+
+- name: Remove downloaded deb file
+  ansible.builtin.file:
+    path: /tmp/eza_0.21.6_amd64.deb
+    state: absent
+  when: "'eza' not in ansible_facts.packages"
+
+
+
+- name: Set system-wide alias
+  copy:
+    dest: /etc/profile.d/aliases.sh
+    content: |
+      # System-wide aliases
+      alias bat='batcat'
+      alias fd='fdfind -H'
+      alias ee='eza -l'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set system-wide EZA_COLORS
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/profile.d/eza_colors.sh
+    content: |
+      export EZA_COLORS="da=33:uu=35:gu=36"
+    mode: '0644'
+
