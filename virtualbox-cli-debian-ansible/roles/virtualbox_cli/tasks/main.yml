@@ -1,0 +1,35 @@
+- name: Add Oracle VirtualBox GPG key
+  ansible.builtin.apt_key:
+    url: "{{ virtualbox_key_url }}"
+    state: present
+
+- name: Add VirtualBox repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] {{ virtualbox_repo_url }} {{ virtualbox_debian_codename }} contrib"
+    state: present
+    filename: virtualbox
+
+- name: Install VirtualBox CLI packages
+  ansible.builtin.apt:
+    name: "{{ virtualbox_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Ensure vboxdrv kernel module is loaded
+  ansible.builtin.modprobe:
+    name: vboxdrv
+    state: present
+
+- name: Add user to vboxusers group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: vboxusers
+    append: true
+
+- name: Enable vboxdrv service (if applicable)
+  ansible.builtin.systemd:
+    name: vboxdrv
+    state: started
+    enabled: yes
+  ignore_errors: yes
+

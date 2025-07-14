@@ -1,0 +1,8 @@
+- name: Copy vm-manager.sh to the remote server
+  ansible.builtin.copy:
+    src: vm-manager.sh
+    dest: /usr/local/bin/vm-manager.sh
+    mode: '0755'
+    owner: root
+    group: root
+

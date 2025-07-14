@@ -1,0 +1,7 @@
+virtualbox_version: "7.1"
+virtualbox_repo_url: "https://download.virtualbox.org/virtualbox/debian"
+virtualbox_debian_codename: "bookworm"
+virtualbox_key_url: "https://www.virtualbox.org/download/oracle_vbox_2016.asc"
+virtualbox_packages:
+  - virtualbox-7.1
+

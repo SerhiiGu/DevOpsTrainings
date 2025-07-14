@@ -1,0 +1,4 @@
+- name: Reload kernel modules for VirtualBox
+  ansible.builtin.command: modprobe vboxdrv
+  become: true
+
