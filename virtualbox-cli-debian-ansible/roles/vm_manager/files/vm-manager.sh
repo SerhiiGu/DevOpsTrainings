@@ -43,6 +43,13 @@ check_vm_exists() {
     fi
 }
 
+check_vm_not_exists() {
+    local vm="$1"
+    if VBoxManage showvminfo "$vm" >/dev/null 2>&1; then
+        error_exit "VM '$vm' already exists."
+    fi
+}
+
 check_vm_powered_off() {
     local vm="$1"
     local state
@@ -104,12 +111,10 @@ create_vm() {
     # Set network
     if [[ "$NET_TYPE" == "bridged" ]]; then
         IFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep -Ev 'lo|vboxnet|virbr' | head -n1)
-        if [[ -z "$IFACE" ]]; then
-            error_exit "No suitable bridged interface found."
-        fi
-        VBoxManage modifyvm "$NAME" --nic1 bridged --bridgeadapter1 "$IFACE"
+        [[ -z "$IFACE" ]] && error_exit "No suitable bridged interface found."
+        VBoxManage modifyvm "$NAME" --nic1 bridged --bridgeadapter1 "$IFACE" || error_exit "Failed to modify network."
     else
-        VBoxManage modifyvm "$NAME" --nic1 "$NET_TYPE"
+        VBoxManage modifyvm "$NAME" --nic1 "$NET_TYPE" || error_exit "Failed to modify network."
     fi
 
     # Storage controller
@@ -416,6 +421,64 @@ config_vm() {
 }
 
 #--------------------------------------------
+# Function: clone
+#--------------------------------------------
+clone_vm() {
+    local VM_NAME=""
+    local NEW_VM_NAME=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --name) VM_NAME="$2"; shift 2 ;;
+            --new_name) NEW_VM_NAME="$2"; shift 2 ;;
+            *) error_exit "Unknown parameter: $1" ;;
+        esac
+    done
+
+    [[ -z "$VM_NAME" ]] && error_exit "Please provide --name VM_NAME."
+    [[ -z "$NEW_VM_NAME" ]] && error_exit "Please provide --new_name NEW_VM_NAME."
+    check_vm_exists "$VM_NAME"
+    check_vm_not_exists "$NEW_VM_NAME"
+
+    echo "Cloning VM '$VM_NAME' to '$NEW_VM_NAME'..."
+
+    # Clone VM
+    VBoxManage clonevm "$VM_NAME" --name "$NEW_VM_NAME" \
+        --register || error_exit "Failed to clone VM."
+
+    # Find the cloned VM's disk
+    local CLONED_DISK
+    CLONED_DISK=$(VBoxManage showvminfo "$NEW_VM_NAME" --machinereadable | grep 'SATA Controller-0-0' | awk -F'"' '{print $4}') 
+    [[ -z "$CLONED_DISK" ]] && error_exit "Cannot find cloned VM disk."
+
+    echo "Found cloned disk: $CLONED_DISK"
+
+    # Prepare target path
+    local DISK_FILENAME
+    DISK_FILENAME=$(basename "$CLONED_DISK")
+    local NEW_DISK_PATH="$VM_DIR/$DISK_FILENAME"
+
+    # Detach disk from VM
+    VBoxManage storageattach "$NEW_VM_NAME" --storagectl "SATA Controller" \
+        --port 0 --device 0 --medium none || error_exit "Failed to detach disk."
+
+    # Close medium in VirtualBox registry
+    VBoxManage closemedium disk "$CLONED_DISK" || error_exit "Failed to close medium."
+
+    # Move disk
+    echo "Moving disk to: $NEW_DISK_PATH"
+    mv "$CLONED_DISK" "$NEW_DISK_PATH" || error_exit "Failed to move disk."
+
+    # Update storage controller to point to new disk
+    VBoxManage storageattach "$NEW_VM_NAME" \
+        --storagectl "SATA Controller" \
+        --port 0 --device 0 --type hdd --nonrotational on \
+        --medium "$NEW_DISK_PATH" || error_exit "Failed to update disk attachment."
+
+    echo "VM '$NEW_VM_NAME' successfully cloned and disk moved to $NEW_DISK_PATH."
+}
+
+#--------------------------------------------
 # Function: console
 #--------------------------------------------
 console_vm() {
@@ -562,6 +625,129 @@ restart_vm() {
 }
 
 #--------------------------------------------
+# Function: import_vm
+#--------------------------------------------
+import_vm() {
+    local VM_NAME=""
+    local VDI_PATH=""
+    local ORIGINAL_CONFIG_PATH="" # Renamed to avoid confusion
+    local NET_TYPE="bridged"
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --name) VM_NAME="$2"; shift 2 ;;
+            --disk) VDI_PATH="$2"; shift 2 ;;
+            --config) ORIGINAL_CONFIG_PATH="$2"; shift 2 ;;
+            --net) NET_TYPE="$2"; shift 2 ;;
+            *) error_exit "Unknown parameter: $1" ;;
+        esac
+    done
+
+    # --- VALIDATION ---
+    [[ -z "$VM_NAME" ]] && error_exit "Please provide --name VM_NAME."
+    [[ -z "$VDI_PATH" ]] && error_exit "Please provide --disk VDI_PATH."
+    [[ -z "$ORIGINAL_CONFIG_PATH" ]] && error_exit "Please provide --config CONFIG_PATH."
+
+    VDI_PATH=$(realpath "$VDI_PATH") || error_exit "Failed to resolve VDI path."
+    ORIGINAL_CONFIG_PATH=$(realpath "$ORIGINAL_CONFIG_PATH") || error_exit "Failed to resolve config path."
+
+    [[ ! -f "$VDI_PATH" ]] && error_exit "Disk file does not exist: $VDI_PATH"
+    [[ ! -f "$ORIGINAL_CONFIG_PATH" ]] && error_exit "Config file does not exist: $ORIGINAL_CONFIG_PATH"
+
+    check_vm_not_exists "$VM_NAME"
+
+    echo "Importing VM: $VM_NAME"
+    echo "Original disk path: $VDI_PATH"
+    echo "Original config path: $ORIGINAL_CONFIG_PATH"
+
+    # --- PREPARE TARGET LOCATIONS ---
+    local VM_DIR="${HOME}/VirtualBox VMs/${VM_NAME}"
+    local TARGET_VDI_PATH="${VM_DIR}/${VM_NAME}.vdi"
+    local TARGET_CONFIG_PATH="${VM_DIR}/${VM_NAME}.vbox"
+
+    mkdir -p "$VM_DIR" || error_exit "Failed to create VM directory at ${VM_DIR}."
+
+    # --- PROCESS DISK ---
+    if [[ "$VDI_PATH" != "$TARGET_VDI_PATH" ]]; then
+        echo "Moving disk to $TARGET_VDI_PATH..."
+        mv "$VDI_PATH" "$TARGET_VDI_PATH" || error_exit "Failed to move disk."
+    else
+        echo "Disk already in correct location."
+    fi
+    VDI_PATH="$TARGET_VDI_PATH" # Update VDI_PATH to the new location
+
+    VBoxManage closemedium disk "$VDI_PATH" &>/dev/null || true
+
+    echo "Setting new UUID for disk $VDI_PATH..."
+    VBoxManage internalcommands sethduuid "$VDI_PATH" || error_exit "Failed to change disk UUID."
+
+    local NEW_UUID
+    NEW_UUID=$(VBoxManage showmediuminfo "$VDI_PATH" | awk -F': +' '/^UUID:/ {print $2}')
+    echo "New disk UUID: {$NEW_UUID}"
+
+    # --- PROCESS CONFIG FILE ---
+    # 1. Get old info from the ORIGINAL config BEFORE any changes
+    echo "Reading old parameters from $ORIGINAL_CONFIG_PATH..."
+    local OLD_UUID
+    OLD_UUID=$(grep -oP 'HardDisk uuid="\K{[^}]+}' "$ORIGINAL_CONFIG_PATH" | head -n1)
+    echo "Old disk UUID from config: $OLD_UUID"
+
+    local OLD_NAME
+    OLD_NAME=$(grep '<Machine' "$ORIGINAL_CONFIG_PATH" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
+    echo "Old VM name from config: $OLD_NAME"
+
+    # 2. Copy config file to the new location
+    echo "Copying config to $TARGET_CONFIG_PATH..."
+    cp "$ORIGINAL_CONFIG_PATH" "$TARGET_CONFIG_PATH" || error_exit "Failed to copy config."
+    
+    # 3. Modify the NEW config file IN-PLACE
+    echo "Updating configuration in $TARGET_CONFIG_PATH..."
+    
+    # Update disk UUID
+    if [[ -n "$OLD_UUID" ]]; then
+        sed -i "s|$OLD_UUID|{$NEW_UUID}|g" "$TARGET_CONFIG_PATH" || error_exit "Failed to update UUID in config."
+    fi
+    
+    # *** CRITICAL FIX 2 ***: Update disk path with a more robust method.
+    # This finds any 'location' attribute ending in .vdi within a HardDisk tag and replaces it.
+    echo "Updating disk path in config (robust method)..."
+    sed -i "/<HardDisk/s#location=\"[^\"]*\\.vdi\"#location=\"$VDI_PATH\"#" "$TARGET_CONFIG_PATH" || error_exit "Failed to update disk path in config."
+
+    # Update VM name
+    if [[ -n "$OLD_NAME" ]]; then
+        sed -i "s/name=\"$OLD_NAME\"/name=\"$VM_NAME\"/" "$TARGET_CONFIG_PATH" || error_exit "Failed to update VM name in config."
+    fi
+
+    # *** CRITICAL FIX 1 ***: Remove the reference to the old settings file.
+    echo "Clearing old settingsFile attribute..."
+    sed -i 's/ settingsFile="[^"]*"//' "$TARGET_CONFIG_PATH" || error_exit "Failed to clear settingsFile attribute."
+
+    # --- REGISTER AND CONFIGURE VM ---
+    echo "Registering VM..."
+    VBoxManage registervm "$TARGET_CONFIG_PATH" || error_exit "Failed to register VM."
+
+    echo "Attaching disk..."
+    VBoxManage storageattach "$VM_NAME" \
+        --storagectl "SATA Controller" \
+        --port 0 --device 0 --type hdd --medium "$VDI_PATH" \
+        --nonrotational on || error_exit "Failed to attach disk."
+
+    echo "Configuring network..."
+    if [[ "$NET_TYPE" == "bridged" ]]; then
+        local IFACE
+        IFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep -Ev 'lo|vboxnet|virbr' | head -n1)
+        [[ -z "$IFACE" ]] && error_exit "No suitable bridged interface found."
+        VBoxManage modifyvm "$VM_NAME" --nic1 bridged \
+            --bridgeadapter1 "$IFACE" || error_exit "Failed to modify network."
+    else
+        VBoxManage modifyvm "$VM_NAME" --nic1 "$NET_TYPE" || error_exit "Failed to modify network."
+    fi
+
+    echo "VM '$VM_NAME' imported successfully."
+}
+
+#--------------------------------------------
 # Function: list
 #--------------------------------------------
 list_vms() {
@@ -658,7 +844,7 @@ Usage:
   vm-manager.sh FUNCTION [parameters]
 Functions:
   create
-      --name         VM_NAME
+      --name         VM_NAME (required)
       --size         Disk size in GB (default: 20)
       --iso          ISO file from $ISO_DIR
       --boot_order   Comma-separated (default: dvd,disk,net)
@@ -666,7 +852,7 @@ Functions:
       --ram          RAM in MB (default: 1024)
       --net          Network type (default: bridged)
   modify
-      --name         VM_NAME
+      --name         VM_NAME (required)
       --new_name     NEW_VM_NAME       Rename VM and DISK
       --cpu          Number of CPUs
       --ram          RAM in MB
@@ -675,10 +861,18 @@ Functions:
       --boot_order   Comma-separated boot order
   destroy --name VM_NAME               Destroy VM (with confirmation)
   config --name VM_NAME [--all]        Show VM configuration (short or full/all)
+  clone                                Clone VM to the new one
+      --name         VM_NAME (required)
+      --new_name     NEW_VM_NAME (required)
   console --name VM_NAME               Start console for VM
   start --name VM_NAME
-  restart --name VM_NAME [--reset]     Perform soft [or hard] server restart
   stop --name VM_NAME [--mode acpi|poweroff]
+  restart --name VM_NAME [--reset]     Perform soft [or hard] server restart
+  import 
+      --name         VM_NAME (required)
+      --disk         VDI_PATH (required)
+      --config       CONFIG_PATH (required)
+      --net          Network type (default: bridged)
   list
   list_autostart
   enable_autostart --name VM_NAME
@@ -700,10 +894,12 @@ main() {
         modify) modify_vm "$@" ;;
 	destroy) destroy_vm "$@" ;;
 	config) config_vm "$@" ;;
+	clone) clone_vm "$@" ;;
 	console) console_vm "$@" ;;
         start) start_vm "$@" ;;
         stop) stop_vm "$@" ;;
 	restart) restart_vm "$@" ;;
+	import) import_vm "$@" ;;
         list) list_vms ;;
         list_autostart) list_autostart_vms ;;
         enable_autostart) enable_autostart_vm "$@" ;;
