@@ -1,0 +1,25 @@
+---
+- name: Ensure autostart directory exists
+  file:
+    path: "{{ autostart_db_path }}"
+    state: directory
+    owner: "{{ autostart_user }}"
+    group: "{{ autostart_user }}"
+    mode: "1777"
+
+- name: Set VirtualBox autostartdbpath property
+  command: VBoxManage setproperty autostartdbpath "{{ autostart_db_path }}"
+  changed_when: false
+  register: setproperty_result
+  failed_when: setproperty_result.rc != 0 and 'already set' not in setproperty_result.stderr.lower()
+
+- name: Create autostart configuration file with user permissions
+  copy:
+    dest: "{{ autostart_cfg_path }}"
+    content: |
+      default_policy = deny
+      user={{ autostart_user }} allow
+    owner: "{{ autostart_user }}"
+    group: "{{ autostart_user }}"
+    mode: "0644"
+

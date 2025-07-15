@@ -1,0 +1,6 @@
+- name: Set VirtualBox autostart database
+  hosts: all
+  become: yes
+  roles:
+    - virtualbox_autostart
+

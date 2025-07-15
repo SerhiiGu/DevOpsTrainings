@@ -421,6 +421,7 @@ config_vm() {
 console_vm() {
     local VM_NAME=""
     local VRDE_PORT=""
+    local FIXED_PORT="5005"
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -430,27 +431,37 @@ console_vm() {
     done
 
     [[ -z "$VM_NAME" ]] && error_exit "Please provide --name VM_NAME."
-
     check_vm_exists "$VM_NAME"
-
-    # Check if VRDE is enabled
-    VRDE_STATE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -E '^VRDE=' | cut -d'=' -f2 | tr -d '"')
-
-    if [[ "$VRDE_STATE" != "on" ]]; then
-        echo "Enabling VRDE on VM $VM_NAME..."
-        VBoxManage modifyvm "$VM_NAME" --vrde on || error_exit "Failed to enable VRDE."
-    fi
-
-    # Get VRDE port
-    VRDE_PORT=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -E '^VRDEPort=' | cut -d'=' -f2 | tr -d '"')
-    if [[ "$VRDE_PORT" == "0" ]]; then
-        # Let VBox assign a random port
-        VBoxManage modifyvm "$VM_NAME" --vrdeport 5000-5050 || error_exit "Failed to set VRDE port range."
-        VRDE_PORT=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -E '^VRDEPort=' | cut -d'=' -f2 | tr -d '"')
-    fi
 
     # Check VM state
     VMSTATE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -E '^VMState=' | cut -d'"' -f2)
+
+    # Check if VRDE is enabled
+    VRDE_STATE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -i '^VRDE=' | cut -d'=' -f2 | tr -d '"')
+
+    if [[ "$VRDE_STATE" != "on" ]]; then
+        echo "Enabling VRDE on VM $VM_NAME..."
+        if [[ "$VMSTATE" == "poweroff" ]]; then
+            VBoxManage modifyvm "$VM_NAME" --vrde on || error_exit "Failed to enable VRDE."
+        else
+            VBoxManage controlvm "$VM_NAME" vrde on || error_exit "Failed to enable VRDE while VM is running."
+        fi
+    fi
+
+    # Get vrdeport from machinereadable
+    VRDE_PORT=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -i '^vrdeport=' | cut -d'=' -f2 | tr -d '"')
+
+    # If port is -1 or 0 → not set → set it to a fixed port
+    if [[ -z "$VRDE_PORT" || "$VRDE_PORT" == "-1" || "$VRDE_PORT" == "0" ]]; then
+        echo "Setting fixed VRDE port to $FIXED_PORT..."
+        if [[ "$VMSTATE" == "poweroff" ]]; then
+            VBoxManage modifyvm "$VM_NAME" --vrdeport "$FIXED_PORT" || error_exit "Failed to set VRDE port."
+        else
+            VBoxManage controlvm "$VM_NAME" vrdeport "$FIXED_PORT" || error_exit "Failed to set VRDE port while VM is running."
+        fi
+        VRDE_PORT="$FIXED_PORT"
+    fi
+
     if [[ "$VMSTATE" == "poweroff" ]]; then
         echo "Starting VM $VM_NAME in headless mode..."
         VBoxManage startvm "$VM_NAME" --type headless || error_exit "Failed to start VM."
@@ -515,6 +526,39 @@ stop_vm() {
     fi
 
     echo "VM '$VM_NAME' stopped via $MODE."
+
+    VBoxManage controlvm "$VM_NAME" vrde off
+}
+
+#--------------------------------------------
+# Function: restart/reset
+#--------------------------------------------
+restart_vm() {
+    local VM_NAME=""
+    local HARD_RESET=0
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --name) VM_NAME="$2"; shift 2 ;;
+            --reset) HARD_RESET=1; shift ;;
+            *) error_exit "Unknown parameter: $1" ;;
+        esac
+    done
+
+    [[ -z "$VM_NAME" ]] && error_exit "Please provide --name VM_NAME."
+    check_vm_exists "$VM_NAME"
+
+    if [[ $HARD_RESET -eq 1 ]]; then
+        echo "Performing hard reset of VM '$VM_NAME'..."
+        VBoxManage controlvm "$VM_NAME" poweroff || error_exit "Failed to power off VM."
+        sleep 3
+        VBoxManage startvm "$VM_NAME" --type headless || error_exit "Failed to start VM."
+        echo "VM '$VM_NAME' was hard reseted."
+    else
+        echo "Performing soft restart of VM '$VM_NAME'..."
+        VBoxManage controlvm "$VM_NAME" reset || error_exit "Failed to reset VM."
+        echo "VM '$VM_NAME' was soft restarted."
+    fi
 }
 
 #--------------------------------------------
@@ -538,12 +582,16 @@ list_vms() {
 # Function: list_autostart
 #--------------------------------------------
 list_autostart_vms() {
-    VBoxManage list vms | while read -r line; do
+    echo "List from VBoxManage showvminfo:"
+    	VBoxManage list vms | while read -r line; do
         VM=$(echo "$line" | awk '{print $1}' | tr -d '"')
-        if VBoxManage showvminfo "$VM" | grep -q "Autostart enabled: on"; then
+        if VBoxManage showvminfo "$VM" | grep -q "Autostart Enabled:[[:space:]]*enabled"; then
             echo "$VM"
         fi
     done
+
+    echo "List from root.start"
+    cat /etc/vbox/autostart/root.start
 }
 
 #--------------------------------------------
@@ -564,6 +612,11 @@ enable_autostart_vm() {
 
     VBoxManage modifyvm "$VM_NAME" --autostart-enabled on || error_exit "Failed to enable autostart."
     echo "VM '$VM_NAME' autostart enabled."
+    # Додати VM у root.start, якщо її ще нема
+    grep -qxF "$VM_NAME" /etc/vbox/autostart/root.start || \
+        echo "$VM_NAME" | sudo tee -a /etc/vbox/autostart/root.start > /dev/null
+
+    echo "VM '$VM_NAME' autostart enabled and added to root.start"
 }
 
 #--------------------------------------------
@@ -582,7 +635,14 @@ disable_autostart_vm() {
     [[ -z "$VM_NAME" ]] && error_exit "Please provide --name VM_NAME."
     check_vm_exists "$VM_NAME"
 
+    # Видалити з root.start перед викликом VBoxManage, щоб не було VERR_NO_DIGITS
+    if grep -qxF "$VM_NAME" /etc/vbox/autostart/root.start; then
+        sudo sed -i "\|^$VM_NAME$|d" /etc/vbox/autostart/root.start
+        echo "VM '$VM_NAME' removed from root.start"
+    fi
+
     VBoxManage modifyvm "$VM_NAME" --autostart-enabled off || error_exit "Failed to disable autostart."
+
     echo "VM '$VM_NAME' autostart disabled."
 }
 
@@ -615,8 +675,9 @@ Functions:
       --boot_order   Comma-separated boot order
   destroy --name VM_NAME               Destroy VM (with confirmation)
   config --name VM_NAME [--all]        Show VM configuration (short or full/all)
-  console_vm --name VM_NAME            Start console for VM
+  console --name VM_NAME               Start console for VM
   start --name VM_NAME
+  restart --name VM_NAME [--reset]     Perform soft [or hard] server restart
   stop --name VM_NAME [--mode acpi|poweroff]
   list
   list_autostart
@@ -642,6 +703,7 @@ main() {
 	console) console_vm "$@" ;;
         start) start_vm "$@" ;;
         stop) stop_vm "$@" ;;
+	restart) restart_vm "$@" ;;
         list) list_vms ;;
         list_autostart) list_autostart_vms ;;
         enable_autostart) enable_autostart_vm "$@" ;;

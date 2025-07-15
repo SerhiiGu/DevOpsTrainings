@@ -1,0 +1,4 @@
+- name: Install VirtualBox Extension Pack
+  hosts: all
+  roles:
+    - virtualbox_extpack

@@ -1,0 +1,4 @@
+autostart_db_path: "/etc/vbox/autostart"
+autostart_cfg_path: "/etc/vbox/autostart.cfg"
+autostart_user: "{{ ansible_env.USER | default(ansible_user) }}"
+

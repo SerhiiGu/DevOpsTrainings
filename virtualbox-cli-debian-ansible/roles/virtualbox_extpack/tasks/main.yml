@@ -1,0 +1,30 @@
+- name: Get VirtualBox version
+  shell: VBoxManage --version | cut -d'r' -f1
+  register: vbox_version
+  changed_when: false
+
+- name: Set extpack filename
+  set_fact:
+    extpack_filename: "Oracle_VirtualBox_Extension_Pack-{{ vbox_version.stdout }}.vbox-extpack"
+
+- name: Download Extension Pack
+  get_url:
+    url: "https://download.virtualbox.org/virtualbox/{{ vbox_version.stdout }}/{{ extpack_filename }}"
+    dest: "/tmp/{{ extpack_filename }}"
+    mode: '0644'
+  when: vbox_version.stdout is match("^[0-9]+\\.[0-9]+\\.[0-9]+$")
+
+- name: Check if Extension Pack already installed
+  shell: VBoxManage list extpacks | grep -q "Oracle VM VirtualBox Extension Pack"
+  register: extpack_installed
+  ignore_errors: true
+  changed_when: false
+
+- name: Install VirtualBox Extension Pack with expect
+  become: true
+  expect:
+    command: VBoxManage extpack install --replace /tmp/{{ extpack_filename }}
+    responses:
+      'Do you agree to these license terms and conditions.*': 'y'
+  when: extpack_installed.rc != 0
+
