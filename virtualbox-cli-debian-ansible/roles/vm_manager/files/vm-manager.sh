@@ -59,6 +59,14 @@ check_vm_powered_off() {
     fi
 }
 
+get_sata_controller_name() {
+    local config_path="$1"
+    local controller
+    controller=$(grep -oP '<StorageController[^>]+name="[^"]+"' "$config_path" \
+        | grep SATA | head -n1 | sed -E 's/.*name="([^"]+)".*/\1/')
+    echo "$controller"
+}
+
 #--------------------------------------------
 # Function: create
 #--------------------------------------------
@@ -182,8 +190,11 @@ modify_vm() {
                 NEW_VM_NAME="${ARGS[i+1]}"
                 [[ -z "$NEW_VM_NAME" ]] && error_exit "--new_name requires a value."
 
+                # Get SATA Controller name
+                local TARGET_CONFIG_PATH="${HOME}/VirtualBox VMs/${VM_NAME}/${VM_NAME}.vbox"
+                CONTROLLER=$(get_sata_controller_name "$TARGET_CONFIG_PATH")
                 # Find attached SATA disk UUID
-                DISK_LINE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep 'SATA Controller' | grep 'UUID')
+                DISK_LINE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep "$CONTROLLER" | grep 'UUID')
 
                 if [[ -z "$DISK_LINE" ]]; then
                     error_exit "No disk found attached to SATA Controller port 0 device 0."
@@ -203,7 +214,7 @@ modify_vm() {
 
                 # Detach disk for rename
                 VBoxManage storageattach "$VM_NAME" \
-                         --storagectl "SATA Controller" --port 0 --device 0 --medium none
+                         --storagectl "$CONTROLLER" --port 0 --device 0 --medium none
 
                 # Unregister the old disk
                 VBoxManage closemedium disk "$UUID" || error_exit "Failed to close medium."
@@ -215,7 +226,7 @@ modify_vm() {
                 mv "$VDI_PATH" "$NEW_VDI_PATH" || error_exit "Failed to rename disk file."
 
 		# Reattach disk to VM(automatic register)
-                VBoxManage storageattach "$VM_NAME" --storagectl "SATA Controller" \
+                VBoxManage storageattach "$VM_NAME" --storagectl "$CONTROLLER" \
                     --port 0 --device 0 --type hdd --medium "$NEW_VDI_PATH" \
                     --nonrotational on || error_exit "Failed to reattach renamed disk."
 
@@ -333,13 +344,15 @@ destroy_vm() {
         echo "Searching for attached disks..."
 
         # Find SATA disk and detach it
-        DISK=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep 'SATA Controller' | grep 'UUID')
+        local TARGET_CONFIG_PATH="${HOME}/VirtualBox VMs/${VM_NAME}/${VM_NAME}.vbox"
+        CONTROLLER=$(get_sata_controller_name "$TARGET_CONFIG_PATH")
+        DISK=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep "$CONTROLLER" | grep 'UUID')
         if [[ -n "$DISK" ]]; then
                 UUID=$(echo "$DISK" | grep "UUID" | cut -d'=' -f2 | tr -d '"')
                 if [[ -n "$UUID" && "$UUID" != "none" ]]; then
                     echo "Detaching disk on port 0 (UUID: $UUID)..."
                     VBoxManage storageattach "$VM_NAME" \
-                        --storagectl "SATA Controller" \
+                        --storagectl "$CONTROLLER" \
                         --port 0 --device 0 \
                         --medium none || error_exit "Failed to detach disk on port $PORT"
 
@@ -446,9 +459,12 @@ clone_vm() {
     VBoxManage clonevm "$VM_NAME" --name "$NEW_VM_NAME" \
         --register || error_exit "Failed to clone VM."
 
+    local TARGET_CONFIG_PATH="${HOME}/VirtualBox VMs/${VM_NAME}/${VM_NAME}.vbox"
+    CONTROLLER=$(get_sata_controller_name "$TARGET_CONFIG_PATH")
+
     # Find the cloned VM's disk
     local CLONED_DISK
-    CLONED_DISK=$(VBoxManage showvminfo "$NEW_VM_NAME" --machinereadable | grep 'SATA Controller-0-0' | awk -F'"' '{print $4}') 
+    CLONED_DISK=$(VBoxManage showvminfo "$NEW_VM_NAME" --machinereadable | grep "${CONTROLLER}-0-0" | awk -F'"' '{print $4}')
     [[ -z "$CLONED_DISK" ]] && error_exit "Cannot find cloned VM disk."
 
     echo "Found cloned disk: $CLONED_DISK"
@@ -459,7 +475,7 @@ clone_vm() {
     local NEW_DISK_PATH="$VM_DIR/$DISK_FILENAME"
 
     # Detach disk from VM
-    VBoxManage storageattach "$NEW_VM_NAME" --storagectl "SATA Controller" \
+    VBoxManage storageattach "$NEW_VM_NAME" --storagectl "${CONTROLLER}" \
         --port 0 --device 0 --medium none || error_exit "Failed to detach disk."
 
     # Close medium in VirtualBox registry
@@ -471,7 +487,7 @@ clone_vm() {
 
     # Update storage controller to point to new disk
     VBoxManage storageattach "$NEW_VM_NAME" \
-        --storagectl "SATA Controller" \
+        --storagectl "$CONTROLLER" \
         --port 0 --device 0 --type hdd --nonrotational on \
         --medium "$NEW_DISK_PATH" || error_exit "Failed to update disk attachment."
 
@@ -783,10 +799,7 @@ import_vm() {
     echo "Registering VM..."
     VBoxManage registervm "$TARGET_CONFIG_PATH" || error_exit "Failed to register VM."
 
-    CONTROLLER=$(grep -oP '<StorageController[^>]+name="[^"]+"' "$TARGET_CONFIG_PATH" \
-        | grep SATA \
-        | head -n1 \
-        | sed -E 's/.*name="([^"]+)".*/\1/')
+    CONTROLLER=$(get_sata_controller_name "$TARGET_CONFIG_PATH")
     echo "Attaching disk on controller $CONTROLLER..."
     VBoxManage storageattach "$VM_NAME" \
         --storagectl "$CONTROLLER" \
