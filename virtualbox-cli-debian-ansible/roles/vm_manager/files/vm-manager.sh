@@ -531,12 +531,15 @@ console_vm() {
         sleep 3
     fi
 
+    local IPADDR
+    IPADDR=$(ip -o -4 addr show | awk '!/ lo / && !/vboxnet/ && !/virbr/ {print $4}' | cut -d/ -f1 | head -n1)
+
     echo
     echo "---------------------------------------------------"
     echo "VRDE is enabled for VM '$VM_NAME'."
     echo "Connect via RDP client to:"
     echo
-    echo "    rdesktop localhost:$VRDE_PORT"
+    echo "    rdesktop $IPADDR:$VRDE_PORT"
     echo
     echo "Or any other RDP client."
     echo "---------------------------------------------------"
@@ -582,15 +585,15 @@ stop_vm() {
 
     if [[ "$MODE" == "acpi" ]]; then
         VBoxManage controlvm "$VM_NAME" acpipowerbutton || error_exit "Failed to send ACPI shutdown."
+	VBoxManage controlvm "$VM_NAME" vrde off
     elif [[ "$MODE" == "poweroff" ]]; then
         VBoxManage controlvm "$VM_NAME" poweroff || error_exit "Failed to power off VM."
+	VBoxManage modifyvm "$VM_NAME" --vrde off
     else
         error_exit "Invalid mode. Use 'acpi' or 'poweroff'."
     fi
 
     echo "VM '$VM_NAME' stopped via $MODE."
-
-    VBoxManage controlvm "$VM_NAME" vrde off
 }
 
 #--------------------------------------------
@@ -633,7 +636,6 @@ import_vm() {
     local ORIGINAL_CONFIG_PATH="" # Renamed to avoid confusion
     local NET_TYPE="bridged"
 
-    # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --name) VM_NAME="$2"; shift 2 ;;
@@ -662,11 +664,11 @@ import_vm() {
     echo "Original config path: $ORIGINAL_CONFIG_PATH"
 
     # --- PREPARE TARGET LOCATIONS ---
-    local VM_DIR="${HOME}/VirtualBox VMs/${VM_NAME}"
+    local VM_CONF_DIR="${HOME}/VirtualBox VMs/${VM_NAME}"
     local TARGET_VDI_PATH="${VM_DIR}/${VM_NAME}.vdi"
-    local TARGET_CONFIG_PATH="${VM_DIR}/${VM_NAME}.vbox"
+    local TARGET_CONFIG_PATH="${VM_CONF_DIR}/${VM_NAME}.vbox"
 
-    mkdir -p "$VM_DIR" || error_exit "Failed to create VM directory at ${VM_DIR}."
+    mkdir -p "$VM_CONF_DIR" || error_exit "Failed to create VM directory at ${VM_CONF_DIR}."
 
     # --- PROCESS DISK ---
     if [[ "$VDI_PATH" != "$TARGET_VDI_PATH" ]]; then
@@ -709,8 +711,7 @@ import_vm() {
         sed -i "s|$OLD_UUID|{$NEW_UUID}|g" "$TARGET_CONFIG_PATH" || error_exit "Failed to update UUID in config."
     fi
     
-    # *** CRITICAL FIX 2 ***: Update disk path with a more robust method.
-    # This finds any 'location' attribute ending in .vdi within a HardDisk tag and replaces it.
+    # Update disk path: find any 'location' attribute ending in .vdi within a HardDisk tag and replaces it.
     echo "Updating disk path in config (robust method)..."
     sed -i "/<HardDisk/s#location=\"[^\"]*\\.vdi\"#location=\"$VDI_PATH\"#" "$TARGET_CONFIG_PATH" || error_exit "Failed to update disk path in config."
 
