@@ -67,6 +67,14 @@ get_sata_controller_name() {
     echo "$controller"
 }
 
+get_ide_controller_name() {
+    local config_path="$1"
+    local controller
+    controller=$(grep -oP '<StorageController[^>]+name="[^"]+"' "$config_path" \
+        | grep IDE | head -n1 | sed -E 's/.*name="([^"]+)".*/\1/')
+    echo "$controller"
+}
+
 #--------------------------------------------
 # Function: create
 #--------------------------------------------
@@ -262,21 +270,19 @@ modify_vm() {
                 ;;
             --iso)
                 ISO_ARG="${ARGS[i+1]}"
+                local TARGET_CONFIG_PATH="${HOME}/VirtualBox VMs/${VM_NAME}/${VM_NAME}.vbox"
+                IDE_CONTROLLER=$(get_ide_controller_name "$TARGET_CONFIG_PATH")
                 if [[ "$ISO_ARG" == "" ]]; then
                     # Unmount ISO
-                    VBoxManage storageattach "$VM_NAME" \
-                        --storagectl "IDE Controller" \
-                        --port 0 --device 0 \
-                        --type dvddrive --medium none \
+                    VBoxManage storageattach "$VM_NAME" --storagectl "$IDE_CONTROLLER" \
+                        --port 0 --device 0 --type dvddrive --medium none \
                         || error_exit "Failed to detach ISO."
                     echo "ISO detached from VM '$VM_NAME'."
                 else
                     ISO_PATH="$ISO_DIR/${ISO_ARG}"
                     [[ ! -f "$ISO_PATH" ]] && error_exit "ISO $ISO_PATH not found."
-                    VBoxManage storageattach "$VM_NAME" \
-                        --storagectl "IDE Controller" \
-                        --port 0 --device 0 \
-                        --type dvddrive --medium "$ISO_PATH" \
+                    VBoxManage storageattach "$VM_NAME" --storagectl "$IDE_CONTROLLER" \
+                        --port 0 --device 0 --type dvddrive --medium "$ISO_PATH" \
                         || error_exit "Failed to attach ISO."
                     echo "ISO attached to VM '$VM_NAME': $ISO_PATH"
                 fi
@@ -419,17 +425,15 @@ config_vm() {
             [[ -n "$dev" && "$dev" != "none" ]] && echo "  boot$i → $dev"
         done
 
-        echo "VRDE: $(echo "$info" | grep '^VRDE=' | cut -d'=' -f2 | tr -d '"')"
-        echo "VRDE Port: $(echo "$info" | grep '^VRDEPort=' | cut -d'=' -f2 | tr -d '"')"
+        echo "VRDE: $(echo "$info" | grep '^vrde=' | cut -d'=' -f2 | tr -d '"')"
+        echo "VRDE Port: $(echo "$info" | grep '^vrdeport=' | cut -d'=' -f2 | tr -d '"')"
 
-        echo "Disks:"
-        VBoxManage showvminfo "$VM_NAME" | grep -A 10 "SATA Controller" | grep -E "Medium|Image"
+        echo "Disks: $(echo "$info" | grep 'SATA' | grep -E '.vdi' | cut -d'=' -f2 | tr -d '"')"
 
-        echo "CD/DVD drives:"
-        VBoxManage showvminfo "$VM_NAME" | grep -A 10 "IDE Controller" | grep -E "Medium|Image"
+        echo "CD/DVD drives: $(echo "$info" | grep 'IDE' | grep -E '.iso' | cut -d'=' -f2 | tr -d '"')"
 
         echo "Network:"
-        echo "$info" | grep -E '^nic1=' | awk -F'=' '{print "Adapter 1: " $2}'
+        echo "$info" | grep -E '^nic1=' | awk -F'=' '{print "  Adapter 1: " $2}'
     fi
 }
 
