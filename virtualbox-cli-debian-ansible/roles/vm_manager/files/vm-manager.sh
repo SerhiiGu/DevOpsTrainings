@@ -484,11 +484,15 @@ clone_vm() {
 console_vm() {
     local VM_NAME=""
     local VRDE_PORT=""
-    local FIXED_PORT="5005"
+    local OFF_MODE="0"
+    local MIN_PORT=5000
+    local MAX_PORT=5500
+    local VM_CONF_DIR="${HOME}/VirtualBox VMs/*/*.vbox"
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --name) VM_NAME="$2"; shift 2 ;;
+            --off) OFF_MODE="1"; shift ;;
             *) error_exit "Unknown parameter: $1" ;;
         esac
     done
@@ -497,9 +501,26 @@ console_vm() {
     check_vm_exists "$VM_NAME"
 
     # Check VM state
+    local VMSTATE
     VMSTATE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -E '^VMState=' | cut -d'"' -f2)
 
+    if [[ "$OFF_MODE" == "1" ]]; then
+        echo "Disabling VRDE on VM $VM_NAME..."
+
+        if [[ "$VMSTATE" == "poweroff" ]]; then
+            VBoxManage modifyvm "$VM_NAME" --vrde off || error_exit "Failed to disable VRDE."
+            VBoxManage modifyvm "$VM_NAME" --vrdeport 0 || error_exit "Failed to reset VRDE port."
+        else
+            VBoxManage controlvm "$VM_NAME" vrde off || error_exit "Failed to disable VRDE while VM is running."
+            VBoxManage controlvm "$VM_NAME" vrdeport 0 || error_exit "Failed to reset VRDE port while VM is running."
+        fi
+
+        echo "VRDE disabled for VM '$VM_NAME'."
+        return 0
+    fi
+
     # Check if VRDE is enabled
+    local VRDE_STATE
     VRDE_STATE=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -i '^VRDE=' | cut -d'=' -f2 | tr -d '"')
 
     if [[ "$VRDE_STATE" != "on" ]]; then
@@ -511,18 +532,52 @@ console_vm() {
         fi
     fi
 
-    # Get vrdeport from machinereadable
+    # Get current VRDE port
     VRDE_PORT=$(VBoxManage showvminfo "$VM_NAME" --machinereadable | grep -i '^vrdeport=' | cut -d'=' -f2 | tr -d '"')
 
-    # If port is -1 or 0 → not set → set it to a fixed port
-    if [[ -z "$VRDE_PORT" || "$VRDE_PORT" == "-1" || "$VRDE_PORT" == "0" ]]; then
-        echo "Setting fixed VRDE port to $FIXED_PORT..."
+    # If port is -1 or 0 or not set or 3389 → generate random port
+    if [[ -z "$VRDE_PORT" || "$VRDE_PORT" == "-1" || "$VRDE_PORT" == "0" || "$VRDE_PORT" == "3389" ]]; then
+        echo "Searching for a free random VRDE port..."
+
+        while true; do
+            VRDE_PORT=$(( RANDOM % (MAX_PORT - MIN_PORT + 1) + MIN_PORT ))
+
+
+	    # check in .vbox configs
+            local found_conflict="0"
+	    while IFS= read -r vboxfile; do
+                if grep -q "<VRDEPort>${VRDE_PORT}</VRDEPort>" "$vboxfile"; then
+                    found_conflict="1"
+                    break
+                fi
+            done < <(find "${HOME}/VirtualBox VMs" -type f -name "*.vbox")
+
+            if [[ "$found_conflict" == "1" ]]; then
+                echo "Port ${VRDE_PORT} already used in VM configs. Trying another..."
+                continue
+            fi
+
+            # check if port in use on system
+            if netstat -tuln 2>/dev/null | grep -q ":${VRDE_PORT} "; then
+                echo "Port ${VRDE_PORT} already listening on system. Trying another..."
+                continue
+            fi
+
+            if ss -tuln 2>/dev/null | grep -q ":${VRDE_PORT} "; then
+                echo "Port ${VRDE_PORT} already listening on system. Trying another..."
+                continue
+            fi
+
+            # all good
+            echo "Found free VRDE port: $VRDE_PORT"
+            break
+        done
+
         if [[ "$VMSTATE" == "poweroff" ]]; then
-            VBoxManage modifyvm "$VM_NAME" --vrdeport "$FIXED_PORT" || error_exit "Failed to set VRDE port."
+            VBoxManage modifyvm "$VM_NAME" --vrdeport "$VRDE_PORT" || error_exit "Failed to set VRDE port."
         else
-            VBoxManage controlvm "$VM_NAME" vrdeport "$FIXED_PORT" || error_exit "Failed to set VRDE port while VM is running."
+            VBoxManage controlvm "$VM_NAME" vrdeport "$VRDE_PORT" || error_exit "Failed to set VRDE port while VM is running."
         fi
-        VRDE_PORT="$FIXED_PORT"
     fi
 
     if [[ "$VMSTATE" == "poweroff" ]]; then
@@ -728,9 +783,13 @@ import_vm() {
     echo "Registering VM..."
     VBoxManage registervm "$TARGET_CONFIG_PATH" || error_exit "Failed to register VM."
 
-    echo "Attaching disk..."
+    CONTROLLER=$(grep -oP '<StorageController[^>]+name="[^"]+"' "$TARGET_CONFIG_PATH" \
+        | grep SATA \
+        | head -n1 \
+        | sed -E 's/.*name="([^"]+)".*/\1/')
+    echo "Attaching disk on controller $CONTROLLER..."
     VBoxManage storageattach "$VM_NAME" \
-        --storagectl "SATA Controller" \
+        --storagectl "$CONTROLLER" \
         --port 0 --device 0 --type hdd --medium "$VDI_PATH" \
         --nonrotational on || error_exit "Failed to attach disk."
 
@@ -865,7 +924,7 @@ Functions:
   clone                                Clone VM to the new one
       --name         VM_NAME (required)
       --new_name     NEW_VM_NAME (required)
-  console --name VM_NAME               Start console for VM
+  console --name VM_NAME [--off]       Start console for VM, by default [or stop it]
   start --name VM_NAME
   stop --name VM_NAME [--mode acpi|poweroff]
   restart --name VM_NAME [--reset]     Perform soft [or hard] server restart
