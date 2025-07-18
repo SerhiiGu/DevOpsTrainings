@@ -40,7 +40,12 @@
     --agree-tos \
     --non-interactive
   when: not cert_stat.stat.exists
-  
+
+- name: Check if certificate already exists(after LE obtaining)
+  stat:
+    path: "/etc/letsencrypt/live/{{ awstats_domain_name }}/fullchain.pem"
+  register: cert_stat
+
 - name: Deploy SSL-enabled NGINX config for AWStats
   template:
     src: awstats_ssl.conf.j2

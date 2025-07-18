@@ -43,7 +43,7 @@
 
 - name: Setup cronjob to update stats
   cron:
-    name: "Daily AWStats update"
+    name: "Hourly AWStats update"
     minute: "7"
     hour: "*"
     user: root

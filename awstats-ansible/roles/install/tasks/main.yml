@@ -30,9 +30,9 @@
     - "{{ awstats_html_dir }}"
 
 - name: Download AWStats
-  get_url:
-    url: "{{ awstats_download_url }}"
-    dest: /opt/awstats.zip
+  shell: curl -L -o /opt/awstats.zip "{{ awstats_download_url }}"
+  args:
+    creates: /opt/awstats.zip
 
 - name: Unzip AWStats
   unarchive:
