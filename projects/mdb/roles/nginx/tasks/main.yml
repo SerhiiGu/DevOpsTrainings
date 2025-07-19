@@ -56,6 +56,17 @@
         path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
       register: cert_stat
 
+    - name: Set PHP version based on OS family
+      set_fact:
+        php_version: >-
+          {% if ansible_facts['distribution'] == 'Ubuntu' %}
+            8.3
+          {% elif ansible_facts['distribution'] == 'Debian' %}
+            8.2
+          {% else %}
+            8.2
+          {% endif %}
+
     - name: Deploy SSL-enabled NGINX config for {{ domain_name }}
       template:
         src: mdb_ssl.j2

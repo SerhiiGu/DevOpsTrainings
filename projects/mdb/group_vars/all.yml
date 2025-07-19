@@ -1,7 +1,9 @@
 domain_name: mdb.deus207.pp.ua
 domain_root_dir: "/opt/mdb"
 
-use_ssl: "no" # no, yes(certbot)
+mysql_user: "movies_db"
+
+use_ssl: "yes" # no, yes(certbot)
 certbot_email: "adm@deus207.pp.ua"
 
 allow_ips:

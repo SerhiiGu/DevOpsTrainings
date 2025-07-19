@@ -35,10 +35,35 @@
   args:
     executable: /bin/bash
 
-- name: Replace MySQL server from mysql with localhost in PHP config
+
+- name: Generate random 32-character MySQL password
+  set_fact:
+    mysql_user_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+
+- name: Ensure MySQL user exists with correct password
+  community.mysql.mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_user_password }}"
+    host: "%"
+    priv: "movies_db.*:ALL"
+    state: present
+  become: true
+
+- name: Update mysql_config.php with MySQL credentials
+  replace:
+    path: "{{ domain_root_dir }}/includes/mysql_config.php"
+    regexp: '(\$m_user\s*=\s*")[^"]*(";)'
+    replace: '\1{{ mysql_user }}\2'
+
+- name: Update mysql_config.php with MySQL password
+  replace:
+    path: "{{ domain_root_dir }}/includes/mysql_config.php"
+    regexp: '(\$m_password\s*=\s*")[^"]*(";)'
+    replace: '\1{{ mysql_user_password }}\2'
+
+- name: Update mysql_config.php with proper MySQL host
   replace:
     path: "{{ domain_root_dir }}/includes/mysql_config.php"
     regexp: '\$m_server\s*=\s*"mysql";'
     replace: '$m_server = "localhost";'
-  become: true
 

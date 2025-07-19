@@ -1,6 +1,5 @@
-You need to install
+# Requirements (in projects)
 
 mysql
 php-fpm
 
-before run it.

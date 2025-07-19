@@ -2,12 +2,12 @@ server {
     listen 80;
     server_name {{ domain_name }};
 
-    {% if allow_ips is defined and allow_ips | length > 0 %}
-    {% for ip in allow_ips %}
+{% if allow_ips is defined and allow_ips | length > 0 %}
+{% for ip in allow_ips %}
     allow {{ ip }};
-    {% endfor %}
+{% endfor %}
     deny all;
-    {% endif %}
+{% endif %}
 
     error_log   /var/log/nginx/{{ domain_name }}_error.log;
     access_log  /var/log/nginx/{{ domain_name }}_access.log main;
