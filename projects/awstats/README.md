@@ -1,4 +1,4 @@
-# Additional steps
+# Additional steps (only if you use it locally)
 
 1. config cloudflared first time ( /etc/cloudflared/config.yml )
 ingress:
