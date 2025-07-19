@@ -1,14 +1,8 @@
-- name: "Setup LEMP environment"
+- name: "Import site's data and Nginx config, SSL. WITHOUT db import"
   hosts: all
   become: true
 
   roles:
-    - role: common
-    - role: ssl
-      vars:
-        domain: "mdb.local"
-
-    - role: php
+    - role: files
     - role: nginx
-    - role: mysql
 

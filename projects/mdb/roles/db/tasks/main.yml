@@ -1,6 +1,6 @@
 - name: Find local file movies_db_*.zip
   find:
-    paths: roles/mysql/files/
+    paths: roles/db/files/
     patterns: 'movies_db_*.zip'
     use_regex: false
   register: mysql_zip_files

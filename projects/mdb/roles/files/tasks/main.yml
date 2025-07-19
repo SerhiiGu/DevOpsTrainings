@@ -1,0 +1,44 @@
+- name: Find local file mdb.local_*.zip
+  find:
+    paths: roles/files/files/
+    patterns: 'mdb.local_*.zip'
+    use_regex: false
+  register: mdb_zip_files
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy found mdb zip file to remote host
+  copy:
+    src: "{{ item.path }}"
+    dest: /tmp/mdb.zip
+  loop: "{{ mdb_zip_files.files }}"
+  loop_control:
+    loop_var: item
+  when: mdb_zip_files.files | length > 0
+
+- name: Create site root directory
+  file:
+    path: "{{ domain_root_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Unpack mdb.zip to {{ domain_root_dir }}
+  unarchive:
+    src: /tmp/mdb.zip
+    dest: "{{ domain_root_dir }}"
+    remote_src: yes
+
+- name: Move and overwrite all files from {{ domain_root_dir }}/mdb to {{ domain_root_dir }}
+  shell: |
+    rsync -a --remove-source-files --exclude='mdb' {{ domain_root_dir }}/mdb/ {{ domain_root_dir }}/
+    rm -rf {{ domain_root_dir }}/mdb
+  args:
+    executable: /bin/bash
+
+- name: Replace MySQL server from mysql with localhost in PHP config
+  replace:
+    path: "{{ domain_root_dir }}/includes/mysql_config.php"
+    regexp: '\$m_server\s*=\s*"mysql";'
+    replace: '$m_server = "localhost";'
+  become: true
+

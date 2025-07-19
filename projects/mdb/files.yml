@@ -1,7 +1,7 @@
-- name: Files
+- name: Update files on site
   hosts: all
   become: true
 
   roles:
-    - role: php
+    - role: files
 

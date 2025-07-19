@@ -5,7 +5,7 @@
 
 - name: Install required packages
   apt:
-    name: [wget, git, vim, curl, gnupg2, ca-certificates, lsb-release, software-properties-common, python3-pip, python3-pymysql, rsyslog, net-tools, zip, unzip]
+    name: [wget, git, vim, curl, gnupg2, ca-certificates, lsb-release, software-properties-common, python3-pip, python3-pymysql, certbot, rsyslog, net-tools, zip, unzip]
     state: present
 
 - name: Copy .vimrc
