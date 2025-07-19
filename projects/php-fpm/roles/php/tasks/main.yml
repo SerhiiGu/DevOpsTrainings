@@ -1,0 +1,27 @@
+- name: Set PHP version based on OS family
+  set_fact:
+    php_version: >-
+      {% if ansible_facts['distribution'] == 'Ubuntu' %}
+        8.3
+      {% elif ansible_facts['distribution'] == 'Debian' %}
+        8.2
+      {% else %}
+        8.2
+      {% endif %}
+
+- name: Install PHP and extensions
+  apt:
+    name:
+      - php
+      - php-fpm
+      - php-mysql
+      - php-mbstring
+    state: present
+
+- name: Ensure PHP-FPM is started
+  systemd:
+    name: "php{{ php_version | trim }}-fpm"
+      #    name: php{{ php_version }}-fpm
+    state: restarted
+    enabled: true
+

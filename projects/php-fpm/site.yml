@@ -1,0 +1,8 @@
+- name: "Setup PHP-FPM"
+  hosts: all
+  become: true
+
+  roles:
+    - role: common
+    - role: php
+
