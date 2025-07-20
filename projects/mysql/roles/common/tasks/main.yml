@@ -1,0 +1,61 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 10800
+
+- name: Install common packages
+  apt:
+    name:
+      - apt-transport-https
+      - software-properties-common
+      - ca-certificates
+      - vim
+      - sudo
+      - curl
+      - git
+      - htop
+      - unzip
+      - ufw
+      - wget
+      - jq
+      - tree
+      - rsyslog
+      - net-tools
+      - python3-pip
+      - python3-venv
+      - pkg-config
+      - build-essential
+      - default-libmysqlclient-dev
+    state: present
+
+- name: Copy .vimrc
+  copy:
+    src: ".vimrc"
+    dest: "/root/.vimrc"
+
+- name: Setup timezone to Kyiv
+  timezone:
+    name: Europe/Kyiv
+
+- name: Enable UFW and allow SSH/HTTP/HTTPS
+  block:
+    - name: Allow 'OpenSSH'
+      ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow HTTP
+      ufw:
+        rule: allow
+        port: 80
+
+    - name: Allow HTTPS
+      ufw:
+        rule: allow
+        port: 443
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+        policy: deny
+

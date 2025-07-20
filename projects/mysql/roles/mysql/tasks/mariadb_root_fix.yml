@@ -1,0 +1,104 @@
+- name: Generate random 32-character MySQL root password
+  set_fact:
+    mysql_root_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+
+- name: Check if /root/.my.cnf exists
+  stat:
+    path: /root/.my.cnf
+  register: my_cnf_file
+
+- name: Ensure /root/.my.cnf has correct credentials
+  copy:
+    dest: /root/.my.cnf
+    content: |
+      [client]
+      user=root
+      password={{ mysql_root_password }}
+    mode: '0600'
+  when: my_cnf_file.stat.exists == false
+  become: yes
+  become_user: root
+
+- name: Copy MySQL configuration file
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+  notify:
+    - Restart MySQL
+
+- name: Start MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Test MySQL connection
+  mysql_db:
+    name: mysql
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: "{{ mysql_unix_socket }}"
+  become: yes
+  become_user: root
+
+
+- name: Stop MariaDB service
+  ansible.builtin.service:
+    name: mariadb
+    state: stopped
+
+- name: Ensure skip-grant-tables is set under [mysqld]
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/my.cnf
+    insertafter: '^\[mysqld\]'
+    line: 'skip-grant-tables'
+    state: present
+
+- name: Ensure skip-networking is set under [mysqld]
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/my.cnf
+    insertafter: '^\[mysqld\]'
+    line: 'skip-networking'
+    state: present
+
+- name: Start MariaDB with skips
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+
+- name: Fix root users inside MariaDB
+  ansible.builtin.shell: |
+    mariadb -e "
+    FLUSH PRIVILEGES;
+    DROP USER IF EXISTS 'root'@'localhost';
+    CREATE USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';
+    GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+
+    FLUSH PRIVILEGES;
+    "
+  args:
+    executable: /bin/bash
+
+- name: Stop MariaDB after fix
+  ansible.builtin.service:
+    name: mariadb
+    state: stopped
+
+- name: Remove skip-grant-tables option
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/my.cnf
+    line: 'skip-grant-tables'
+    state: absent
+
+- name: Remove skip-networking option
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/my.cnf
+    line: 'skip-networking'
+    state: absent
+
+- name: Start MariaDB cleanly
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+

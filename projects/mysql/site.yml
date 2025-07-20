@@ -1,0 +1,6 @@
+- name: "Setup and config MariaDB server"
+  hosts: all
+  become: true
+  roles:
+    - role: mysql
+

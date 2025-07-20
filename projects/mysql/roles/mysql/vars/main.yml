@@ -1,0 +1,6 @@
+mysql_listen_port: 3306
+mysql_config_file: /etc/mysql/my.cnf
+mysql_data_dir: /var/lib/mysql
+mysql_bind_address: 127.0.0.1
+mysql_unix_socket: /run/mysqld/mysqld.sock
+
