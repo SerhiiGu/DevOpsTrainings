@@ -19,9 +19,14 @@
     remote_src: yes
     extra_opts: [--strip-components=1]
 
-- name: Generate blowfish_secret (32 bytes hex)
+- name: Generate blowfish_secret using openssl
+  ansible.builtin.command: "openssl rand -hex 32"
+  register: blowfish_secret_cmd
+  changed_when: true
+
+- name: Set blowfish_secret fact
   ansible.builtin.set_fact:
-    blowfish_secret: "{{ 32 | random_hex }}"
+    blowfish_secret: "{{ blowfish_secret_cmd.stdout }}"
 
 - name: Copy phpMyAdmin config.inc.php
   ansible.builtin.template:

@@ -1,7 +1,5 @@
-phpmyadmin_version: latest
 phpmyadmin_download_url: "https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz"
 phpmyadmin_web_root: /opt/pma
-phpmyadmin_nginx_conf_path: /etc/nginx/conf.d/phpmyadmin.conf
 
 phpmyadmin_server_name: pma.deus207.pp.ua
 
