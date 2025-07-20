@@ -1,0 +1,61 @@
+- name: Copy PhpMyAdmin nginx config
+  template:
+    src: pma.j2
+    dest: /etc/nginx/sites-available/pma
+    mode: '0644'
+  notify: Reload Nginx
+
+- name: Enable PhpMyAdmin in NGINX
+  file:
+    src: /etc/nginx/sites-available/pma
+    dest: /etc/nginx/sites-enabled/pma
+    state: link
+    force: true
+  notify: Reload Nginx
+
+
+- name: Handle Let's Encrypt certificate
+  block:
+    - name: Check if certificate already exists
+      stat:
+        path: "/etc/letsencrypt/live/{{ phpmyadmin_server_name }}/fullchain.pem"
+      register: cert_stat
+
+    - name: Obtain Let's Encrypt certificate with Certbot
+      command: >
+        certbot certonly \
+        --webroot -w /var/www/certbot/ \
+        -d {{ phpmyadmin_server_name }} \
+        --email {{ certbot_email }} \
+        --agree-tos \
+        --non-interactive
+      when: not cert_stat.stat.exists
+
+    - name: Check again if certificate exists (post-obtain)
+      stat:
+        path: "/etc/letsencrypt/live/{{ phpmyadmin_server_name }}/fullchain.pem"
+      register: cert_stat
+
+    - name: Set PHP version based on OS family
+      set_fact:
+        php_version: >-
+          {% if ansible_facts['distribution'] == 'Ubuntu' %}
+            8.3
+          {% elif ansible_facts['distribution'] == 'Debian' %}
+            8.2
+          {% else %}
+            8.2
+          {% endif %}
+
+    - name: Deploy SSL-enabled NGINX config for {{ phpmyadmin_server_name }}
+      template:
+        src: pma_ssl.j2
+        dest: /etc/nginx/sites-available/pma
+        owner: root
+        group: root
+        mode: '0644'
+      when: cert_stat.stat.exists
+      notify: Reload Nginx
+
+  when: use_ssl | lower == 'yes'
+

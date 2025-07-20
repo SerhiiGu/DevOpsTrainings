@@ -1,0 +1,64 @@
+server {
+    listen 80;
+    server_name {{ phpmyadmin_server_name }};
+
+{% if allow_ips is defined and allow_ips | length > 0 %}
+{% for ip in allow_ips %}
+    allow {{ ip }};
+{% endfor %}
+    deny all;
+{% endif %}
+
+    error_log   /var/log/nginx/{{ phpmyadmin_server_name }}_error.log;
+    access_log  /var/log/nginx/{{ phpmyadmin_server_name }}_access.log main;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot/;
+        allow all;
+    }
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name {{ phpmyadmin_server_name }};
+
+    error_log   /var/log/nginx/{{ phpmyadmin_server_name }}_error.log;
+    access_log  /var/log/nginx/{{ phpmyadmin_server_name }}_access.log main;
+
+{% if allow_ips is defined and allow_ips | length > 0 %}
+{% for ip in allow_ips %}
+    allow {{ ip }};
+{% endfor %}
+    deny all;
+{% endif %}
+
+    ssl_certificate /etc/letsencrypt/live/{{ phpmyadmin_server_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ phpmyadmin_server_name }}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    root {{ phpmyadmin_web_root }};
+    index index.php index.html;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot/;
+        allow all;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php{{ php_version | trim }}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+

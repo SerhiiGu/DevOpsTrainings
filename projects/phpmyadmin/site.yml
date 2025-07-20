@@ -1,0 +1,7 @@
+- name: "Setup PhpMyAdmin"
+  hosts: all
+  become: true
+  roles:
+    - role: files
+    - role: nginx
+

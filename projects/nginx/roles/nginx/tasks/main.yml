@@ -8,6 +8,15 @@
     name: nginx
     state: present
 
+- name: Stop and disable Apache2
+  systemd:
+    name: apache2
+    enabled: false
+    state: stopped
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false
+
 - name: Copy nginx.conf
   template:
     src: nginx.conf.j2

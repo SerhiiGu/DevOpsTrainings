@@ -1,0 +1,14 @@
+phpmyadmin_version: latest
+phpmyadmin_download_url: "https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz"
+phpmyadmin_web_root: /opt/pma
+phpmyadmin_nginx_conf_path: /etc/nginx/conf.d/phpmyadmin.conf
+
+phpmyadmin_server_name: pma.deus207.pp.ua
+
+use_ssl: "yes" # no, yes(certbot)
+certbot_email: "adm@deus207.pp.ua"
+
+allow_ips:
+  - 127.0.0.1
+  - 192.168.1.0/24
+

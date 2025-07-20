@@ -16,6 +16,8 @@
       - php-fpm
       - php-mysql
       - php-mbstring
+      - php-zip
+      - php-bz2
     state: present
 
 - name: Ensure PHP-FPM is started

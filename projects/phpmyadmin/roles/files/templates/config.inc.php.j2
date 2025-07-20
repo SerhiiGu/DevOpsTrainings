@@ -1,0 +1,17 @@
+<?php
+/* Servers configuration */
+$i = 0;
+
+/* Server: localhost [1] */
+$i++;
+$cfg['Servers'][$i]['only_db'] = '';
+$cfg['Servers'][$i]['hide_db'] = '';
+
+/* End of servers configuration */
+
+$cfg['blowfish_secret'] = \sodium_hex2bin('{{ blowfish_secret }}');
+$cfg['DefaultLang'] = 'en';
+$cfg['ServerDefault'] = 1;
+$cfg['UploadDir'] = '';
+$cfg['SaveDir'] = '';
+

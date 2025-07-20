@@ -1,0 +1,39 @@
+- name: Create web root directory
+  ansible.builtin.file:
+    path: "{{ phpmyadmin_web_root }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Download phpMyAdmin archive
+  ansible.builtin.shell: |
+    curl -L "{{ phpmyadmin_download_url }}" -o /tmp/phpmyadmin.tar.gz
+  args:
+    creates: /tmp/phpmyadmin.tar.gz
+
+- name: Extract phpMyAdmin
+  ansible.builtin.unarchive:
+    src: /tmp/phpmyadmin.tar.gz
+    dest: "{{ phpmyadmin_web_root }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+
+- name: Generate blowfish_secret (32 bytes hex)
+  ansible.builtin.set_fact:
+    blowfish_secret: "{{ 32 | random_hex }}"
+
+- name: Copy phpMyAdmin config.inc.php
+  ansible.builtin.template:
+    src: config.inc.php.j2
+    dest: "{{ phpmyadmin_web_root }}/config.inc.php"
+    mode: '0640'
+
+- name: Ensure proper ownership
+  ansible.builtin.file:
+    path: "{{ phpmyadmin_web_root }}"
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+

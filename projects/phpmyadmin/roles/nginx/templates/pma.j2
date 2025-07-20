@@ -1,0 +1,22 @@
+server {
+    listen 80;
+    server_name {{ phpmyadmin_server_name }};
+
+{% if allow_ips is defined and allow_ips | length > 0 %}
+{% for ip in allow_ips %}
+    allow {{ ip }};
+{% endfor %}
+    deny all;
+{% endif %}
+
+    error_log   /var/log/nginx/{{ phpmyadmin_server_name }}_error.log;
+    access_log  /var/log/nginx/{{ phpmyadmin_server_name }}_access.log main;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot/;
+        allow all;
+    }
+
+    deny all;
+}
+
