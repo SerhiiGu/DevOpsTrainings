@@ -1,0 +1,6 @@
+- name: "Setup default Nginx"
+  hosts: all
+  become: true
+  roles:
+    - role: nginx
+
