@@ -1,9 +1,6 @@
 - name: Install MySQL
   import_tasks: install.yml
 
-- name: Configure MySQL
-  import_tasks: configure.yml
-
 - name: MariaDB root fix
   import_tasks: mariadb_root_fix.yml
 

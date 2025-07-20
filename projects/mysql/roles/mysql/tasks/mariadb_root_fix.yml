@@ -2,11 +2,6 @@
   set_fact:
     mysql_root_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
 
-- name: Check if /root/.my.cnf exists
-  stat:
-    path: /root/.my.cnf
-  register: my_cnf_file
-
 - name: Ensure /root/.my.cnf has correct credentials
   copy:
     dest: /root/.my.cnf
@@ -15,7 +10,6 @@
       user=root
       password={{ mysql_root_password }}
     mode: '0600'
-  when: my_cnf_file.stat.exists == false
   become: yes
   become_user: root
 
@@ -23,25 +17,6 @@
   template:
     src: my.cnf.j2
     dest: /etc/mysql/my.cnf
-  notify:
-    - Restart MySQL
-
-- name: Start MySQL service
-  service:
-    name: mysql
-    state: started
-    enabled: yes
-
-- name: Test MySQL connection
-  mysql_db:
-    name: mysql
-    state: present
-    login_user: root
-    login_password: "{{ mysql_root_password }}"
-    login_unix_socket: "{{ mysql_unix_socket }}"
-  become: yes
-  become_user: root
-
 
 - name: Stop MariaDB service
   ansible.builtin.service:
@@ -101,4 +76,15 @@
   ansible.builtin.service:
     name: mariadb
     state: started
+    enabled: yes
+
+- name: Test MySQL connection
+  mysql_db:
+    name: mysql
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: "{{ mysql_unix_socket }}"
+  become: yes
+  become_user: root
 

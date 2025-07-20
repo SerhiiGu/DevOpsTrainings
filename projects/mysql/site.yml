@@ -2,5 +2,6 @@
   hosts: all
   become: true
   roles:
+    - role: common
     - role: mysql
 
