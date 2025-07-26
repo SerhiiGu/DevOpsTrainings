@@ -32,6 +32,7 @@
   shell: |
     rsync -a --remove-source-files --exclude='mdb' {{ domain_root_dir }}/mdb/ {{ domain_root_dir }}/
     rm -rf {{ domain_root_dir }}/mdb
+    chown -R {{ ansible_user }}:{{ ansible_user }} "{{ domain_root_dir }}"
   args:
     executable: /bin/bash
 
