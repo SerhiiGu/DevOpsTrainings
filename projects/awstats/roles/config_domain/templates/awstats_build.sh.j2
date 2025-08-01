@@ -1,0 +1,107 @@
+#!/bin/bash
+set -e
+
+# ========== CONFIGURABLE PARAMETERS ==========
+DOCROOT="{{ awstats_html_dir }}"
+STATDIR="{{ awstats_data_dir }}"
+DOMAIN="{{ awstats_domain }}"
+AWSTATS_PROG="/opt/awstats/wwwroot/cgi-bin/awstats.pl"
+BUILD_SCRIPT="/opt/awstats/tools/awstats_buildstaticpages.pl"
+# =============================================
+
+# Get current year and month
+CUR_YEAR=$(date +%Y)
+CUR_MONTH=$(date +%m)
+
+# Iterate over all historical statistics files except for the current month
+find "$STATDIR" -type f -name "awstats*.${DOMAIN}.txt" | while read -r STATFILE; do
+    BASENAME=$(basename "$STATFILE")
+    FILE_MONTH=${BASENAME:7:2}
+    FILE_YEAR=${BASENAME:9:4}
+    FILE_ID="awstats${FILE_MONTH}${FILE_YEAR}.${DOMAIN}"
+
+    # Skip current month
+    if [[ "$FILE_MONTH" == "$CUR_MONTH" && "$FILE_YEAR" == "$CUR_YEAR" ]]; then
+        continue
+    fi
+
+    TARGET_DIR="${DOCROOT}/${FILE_ID}"
+
+    # If the output directory doesn't exist, generate the static report
+    if [[ ! -d "$TARGET_DIR" ]]; then
+        echo "Generating stats for $FILE_ID ..."
+        mkdir -p "$TARGET_DIR"
+
+        perl "$BUILD_SCRIPT" \
+            -awstatsprog="$AWSTATS_PROG" \
+            -dir="$TARGET_DIR" \
+            -month=$((10#$FILE_MONTH)) \
+            -year=$FILE_YEAR \
+            -config="$DOMAIN" \
+            -update
+
+        # Find the main HTML file that was just generated
+        MAIN_HTML="awstats.${DOMAIN}.html"
+
+        # Create index.html in the directory with redirect to the main stats file
+        cat > "$TARGET_DIR/index.html" <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="refresh" content="0; url=/$FILE_ID/$MAIN_HTML" />
+  <title>Redirecting to AWStats</title>
+</head>
+<body>
+  <p>If you are not redirected automatically, follow this
+     <a href="/$FILE_ID/$MAIN_HTML">link to AWStats</a>.
+  </p>
+</body>
+</html>
+EOF
+
+        echo "Generated $TARGET_DIR and index.html"
+    else
+        echo "Already exists: $TARGET_DIR → skipping"
+    fi
+done
+
+# ========== Generate current month's statistics ==========
+echo "Generating current month's stats..."
+
+perl "$BUILD_SCRIPT" \
+    -awstatsprog="$AWSTATS_PROG" \
+    -dir="$DOCROOT" \
+    -update \
+    -config="$DOMAIN"
+
+# Expected name for the main stats file for the current month
+MAIN_CURRENT_HTML="awstats.${DOMAIN}.html"
+
+# ========== Generate main index.html with links ==========
+echo "Building main index.html ..."
+
+INDEX_FILE="${DOCROOT}/index.html"
+{
+    echo '<!DOCTYPE html>'
+    echo '<html lang="en">'
+    echo '<head><meta charset="UTF-8"><title>AWStats Index</title></head>'
+    echo '<body>'
+    echo "<h1>AWStats Reports for ${DOMAIN}</h1>"
+    echo "<ul>"
+
+    # First link: current month's summary
+    echo "<li><a href=\"/${MAIN_CURRENT_HTML}\">[Current Month] ${MAIN_CURRENT_HTML}</a></li>"
+
+    # Add links to all historical report directories
+    find "$DOCROOT" -mindepth 1 -maxdepth 1 -type d -name "awstats*" | sort | while read -r DIR; do
+        DIR_NAME=$(basename "$DIR")
+        echo "<li><a href=\"/${DIR_NAME}/\">${DIR_NAME}</a></li>"
+    done
+
+    echo "</ul>"
+    echo '</body>'
+    echo '</html>'
+} > "$INDEX_FILE"
+
+echo "All reports generated successfully."
+

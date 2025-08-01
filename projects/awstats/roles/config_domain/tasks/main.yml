@@ -31,27 +31,22 @@
     -update
     -config={{ awstats_domain }}
   args:
-    creates: "{{ awstats_html_dir }}/index.html"
+    creates: "{{ awstats_html_dir }}/awstats.{{ awstats_domain }}.html"
 
-- name: Create index.html redirecting to main AWStats page
+- name: Create script for AWStats pages update
   template:
-    src: index.html.j2
-    dest: "{{ awstats_html_dir }}/index.html"
-    owner: www-data
-    group: www-data
-    mode: '0644'
+    src: awstats_build.sh.j2
+    dest: /usr/local/bin/awstats_build.sh
+    owner: root
+    group: root
+    mode: '0750'
 
 - name: Setup cronjob to update stats
   cron:
     name: "Hourly AWStats update"
-    minute: "7"
+    minute: "11"
     hour: "*"
     user: root
     job: >
-      perl {{ awstats_root_dir }}/tools/awstats_buildstaticpages.pl
-      -awstatsprog={{ awstats_root_dir }}/wwwroot/cgi-bin/awstats.pl
-      -dir={{ awstats_html_dir }}
-      -update
-      -config={{ awstats_domain }} &&
-      cp {{ awstats_html_dir }}/index.html {{ awstats_html_dir }}/index.html
+      /usr/local/bin/awstats_build.sh > /dev/null 2>&1
 
