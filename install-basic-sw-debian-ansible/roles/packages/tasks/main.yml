@@ -45,6 +45,7 @@
     dest: /etc/profile.d/aliases.sh
     content: |
       # System-wide aliases
+      alias ll='ls -la --color=auto'
       alias bat='batcat'
       alias fd='fdfind -H'
       alias ee='eza -l'
