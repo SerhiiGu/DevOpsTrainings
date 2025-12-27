@@ -1,0 +1,199 @@
+---
+- name: Install and configure iPXE Server on Debian 13
+  hosts: ipxe_servers
+  become: yes
+  vars:
+    base_server_hostname: "ipxe-server"
+    base_server_ip: "192.168.1.195"
+    timezone: "Europe/Kyiv"
+    # Для Debian 13 (Trixie)
+    debian_ver: "13"
+    debian_codename: "trixie"
+
+  tasks:
+    # --- Base Server Tasks ---
+    - name: Set hostname
+      hostname:
+        name: "{{ base_server_hostname }}"
+
+    - name: Update hostname file
+      copy:
+        content: "{{ base_server_hostname }}\n"
+        dest: /etc/hostname
+
+    # --- Packages ---
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 7200
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - vim
+          - git
+          - chrony
+          - wget
+          - ipset
+          - rsyslog
+          - isc-dhcp-server
+          - tftpd-hpa
+          - nginx
+          - build-essential
+          - unzip
+        state: present
+
+    # --- Timezone ---
+    - name: Set timezone
+      timezone:
+        name: "{{ timezone }}"
+
+    # --- Logging & Rsyslog ---
+    - name: Create custom log directory
+      file:
+        path: /var/log/custom
+        state: directory
+        owner: root
+        group: adm
+        mode: '0755'
+
+    - name: Copy rsyslog custom config
+      copy:
+        src: ../files/custom.conf
+        dest: /etc/rsyslog.d/custom.conf
+      notify: Restart rsyslog
+
+    - name: Copy logrotate config
+      copy:
+        src: ../files/logrotate-custom
+        dest: /etc/logrotate.d/custom
+        mode: '0644'
+
+    # --- iPXE / TFTP / HTTP Setup ---
+    - name: Create directories for iPXE
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+      with_items:
+        - { path: '/srv/tftp' }
+        - { path: '/srv/httpboot', owner: 'www-data', group: 'www-data' }
+        - { path: '/srv/httpboot/systemrescue' }
+
+    - name: Download iPXE binaries
+      get_url:
+        url: "{{ item.url }}"
+        dest: "/srv/tftp/{{ item.name }}"
+      with_items:
+        - { url: 'https://boot.ipxe.org/ipxe.pxe', name: 'ipxe.pxe' }
+        - { url: 'https://boot.ipxe.org/ipxe.efi', name: 'ipxe.efi' }
+
+    - name: Download Debian 13 Netboot images (Kernel/Initrd)
+      get_url:
+        url: "http://ftp.debian.org/debian/dists/{{ debian_codename }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/{{ item }}"
+        dest: "/srv/httpboot/{{ item }}"
+      with_items:
+        - linux
+        - initrd.gz
+
+    - name: Download Memtest86+
+      unarchive:
+        src: https://memtest.org/download/v7.20/mt86plus_7.20.binaries.zip
+        dest: /srv/httpboot/
+        remote_src: yes
+        include: ["memtest64.bin"]
+        creates: /srv/httpboot/memtest64.bin
+
+    # --- Config Files ---
+    - name: Copy DHCP configs
+      copy:
+        src: "../files/{{ item.src }}"
+        dest: "/etc/dhcp/{{ item.dest }}"
+      with_items:
+        - { src: 'ipxe_dhcpd.conf', dest: 'dhcpd.conf' }
+        - { src: 'ipxe_dhcp_mac_filter.conf', dest: 'mac_filter.conf' }
+      notify: Restart DHCP
+
+    - name: Copy iPXE boot script
+      copy:
+        src: ../files/ipxe_boot.ipxe
+        dest: /srv/httpboot/boot.ipxe
+      notify: Restart TFTP
+
+    - name: Configure TFTP options
+      lineinfile:
+        path: /etc/default/tftpd-hpa
+        regexp: '^\s*TFTP_OPTIONS\s*='
+        line: 'TFTP_OPTIONS="--secure --create"'
+      notify: Restart TFTP
+
+    - name: Copy Debian 13 preseed (installer answer file)
+      copy:
+        src: ../files/debian13.cfg
+        dest: /srv/httpboot/debian13.cfg
+
+    - name: Detect DHCP Interface
+      script: ../files/facts_dhcp_iface.sh
+      register: iface_script_output
+      changed_when: false
+
+    - name: Set interface fact
+      set_fact:
+        dhcp_interface_name: "{{ iface_script_output.stdout | trim }}"
+
+    - name: Debug detected interface
+      debug:
+        msg: "Detected interface is {{ dhcp_interface_name }}"
+
+    - name: Configure DHCP Server Interface
+      template:
+        src: ../templates/isc-dhcp-server.j2
+        dest: /etc/default/isc-dhcp-server
+      vars:
+        dhcp_iface: "{{ dhcp_interface_name }}"
+      notify: Restart DHCP
+
+    - name: Remove default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart Nginx
+
+    - name: Configure Nginx site
+      copy:
+        src: ../files/ipxe_nginx_httpboot
+        dest: /etc/nginx/sites-enabled/httpboot
+      notify: Restart Nginx
+
+    - name: Fix permissions for httpboot
+      file:
+        path: /srv/httpboot
+        state: directory
+        owner: www-data
+        group: www-data
+        recurse: yes
+        mode: '0755'
+
+    - name: Ensure services are started
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - rsyslog
+        - isc-dhcp-server
+        - tftpd-hpa
+        - nginx
+
+  handlers:
+    - name: Restart rsyslog
+      service: name=rsyslog state=restarted
+    - name: Restart DHCP
+      service: name=isc-dhcp-server state=restarted
+    - name: Restart TFTP
+      service: name=tftpd-hpa state=restarted
+    - name: Restart Nginx
+      service: name=nginx state=restarted
+

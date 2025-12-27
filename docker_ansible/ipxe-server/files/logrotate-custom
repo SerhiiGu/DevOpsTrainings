@@ -1,0 +1,10 @@
+/var/log/custom/*.log {
+    weekly
+    rotate 1
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 root adm
+}
+
