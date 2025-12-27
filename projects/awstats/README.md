@@ -21,4 +21,6 @@ ingress:
 5. Add awstats.deus207.pp.ua to /etc/hosts on your server to your server IP's. For example:
 192.168.1.185 awstats.deus207.pp.ua
 
+==========================================================
+
 
