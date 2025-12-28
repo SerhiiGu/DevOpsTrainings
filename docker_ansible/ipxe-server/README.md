@@ -1,5 +1,3 @@
-
-
 ## RUN
 
 docker compose run --rm ansible ansible-playbook -i inventory.ini playbooks/ipxe-server.yml
@@ -13,18 +11,18 @@ and you're ready to go.
 **Pay attention to an other DHCP server in the network, it can intercept leases and iPXE may not work**
 
 
-## - Додаткові ручні налаштування:
+## Manual additional step
 
-  Завантажити і змонтувати диск https://www.system-rescue.org/Download/
+Download iso [SystemRescueCD](https://www.system-rescue.org/Download/) and mount it
 
    ```bash
    mkdir /mnt/iso
    mount -o loop systemrescue-12.03-amd64.iso /mnt/iso
    ```
 
-  Потім скопіювати його повністю на iPXE сервер:
+  Copy its entire data to iPXE server:
 
 ```cp -r /mnt/iso/* /srv/httpboot/systemrescue/```
 
-  і можна відмонтовувати.
+  and you can umount and remove iso.
 

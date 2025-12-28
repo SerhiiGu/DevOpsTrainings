@@ -8,7 +8,7 @@ set default-option debian
 menu PXE Boot Menu (auto-boot in 10s)
 item --key d debian        Install Debian 13 (Default)
 item --key m memtest       Run Memtest86+
-item --key s systemrescue  SystemRescue
+item --key s systemrescue  SystemRescue(minimum 3G RAM)
 item --key h localboot     Boot from local disk
 item --key r shell         iPXE Shell
 item --key 0 reboot        Reboot
