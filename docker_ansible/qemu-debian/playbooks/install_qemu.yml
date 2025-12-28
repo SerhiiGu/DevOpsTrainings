@@ -1,0 +1,118 @@
+---
+- name: Install QEMU 10.2 from Source
+  hosts: all
+  become: true
+  vars:
+    qemu_version: "10.2.0"
+    build_dir: "/root/qemu-build-disk"
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 7200
+
+    - name: Install build dependencies
+      apt:
+        name:
+          - build-essential
+          - git
+          - libglib2.0-dev
+          - libfdt-dev
+          - libpixman-1-dev
+          - zlib1g-dev
+          - ninja-build
+          - python3-full
+          - python3-jsonschema
+          - python3-pip
+          - python3-venv
+          - pkg-config
+          - rustc
+          - rust-all
+          - cargo
+          - liburing-dev
+          - libcap-ng-dev
+          - libaio-dev
+          - libattr1-dev
+          - libvdeplug-dev
+          - libspice-server-dev
+          - libspice-protocol-dev
+        state: present
+
+    - name: Install Sphinx dependencies
+      apt:
+        name:
+          - python3-sphinx
+          - python3-sphinx-rtd-theme
+          - python3-stemmer
+          - python3-babel
+          - python3-alabaster
+          - python3-imagesize
+          - sphinx-common
+        state: present
+
+    - name: Install Rust bindgen and LLVM
+      apt:
+        name:
+          - bindgen
+          - clang
+          - llvm-dev
+        state: present
+
+    - name: Create build directory
+      file:
+        path: "{{ build_dir }}"
+        state: directory
+
+    - name: Check if QEMU source is already extracted
+      stat:
+        path: "{{ build_dir }}/configure"
+      register: source_extracted
+
+    - name: Download QEMU 10.2 source
+      get_url:
+        url: "https://download.qemu.org/qemu-{{ qemu_version }}.tar.xz"
+        dest: "{{ build_dir }}/qemu.tar.xz"
+      when: not source_extracted.stat.exists
+
+    - name: Extract QEMU source
+      unarchive:
+        src: "{{ build_dir }}/qemu.tar.xz"
+        dest: "{{ build_dir }}"
+        remote_src: yes
+        extra_opts: [--strip-components=1]
+      when: not source_extracted.stat.exists
+
+    - name: Check if QEMU is already installed
+      stat:
+        path: /usr/local/bin/qemu-system-x86_64
+      register: qemu_binary
+
+    - name: Configure and Build QEMU
+      shell: |
+        rm -rf build
+        ./configure \
+          --enable-kvm \
+          --enable-linux-aio \
+          --enable-linux-io-uring \
+          --enable-virtfs \
+          --enable-spice \
+          --enable-rust \
+          --target-list=x86_64-softmmu \
+          --prefix=/usr/local \
+          --python=/usr/bin/python3
+        make -j$(nproc)
+        make install
+      args:
+        chdir: "{{ build_dir }}"
+      register: build_output
+      when: not qemu_binary.stat.exists
+
+    - name: Verify QEMU version
+      command: qemu-system-x86_64 --version
+      register: qemu_ver_check
+
+    - name: Display version
+      debug:
+        msg: "{{ qemu_ver_check.stdout }}"
+

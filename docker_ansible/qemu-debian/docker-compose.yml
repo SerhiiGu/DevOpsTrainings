@@ -1,0 +1,13 @@
+services:
+  ansible:
+    image: alpine/ansible:2.20.0
+    #build: ./ansible
+    container_name: ansible
+    working_dir: /ansible
+    volumes:
+      - .:/ansible:ro
+      - /root/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+      #- ./ssh:/root/.ssh:ro
+    environment:
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+
