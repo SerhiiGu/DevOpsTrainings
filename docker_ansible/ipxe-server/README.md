@@ -1,3 +1,14 @@
+## Requirements
+
+Debian 13
+
+## Usage
+
+  - Autoinstall: Debian 13
+  - Memtest
+  - Rescue purposes: SystemRescueCD
+
+
 ## RUN
 
 docker compose run --rm ansible ansible-playbook -i inventory.ini playbooks/ipxe-server.yml
