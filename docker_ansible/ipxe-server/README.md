@@ -11,7 +11,9 @@ Debian 13
 
 ## RUN
 
-docker compose run --rm ansible ansible-playbook -i inventory.ini playbooks/ipxe-server.yml
+   ```bash
+   docker compose run --rm ansible ansible-playbook -i inventory.ini playbooks/ipxe-server.yml
+   ```
 
 ## How to use
 
