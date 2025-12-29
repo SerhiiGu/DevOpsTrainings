@@ -40,3 +40,4 @@ override.tf.json
 terraform.rc
 
 **/ipxe-server/ssh/*
+**/nginx/cache
