@@ -1,0 +1,40 @@
+- name: Integration Testing for QEMU Manager
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure Python and Pytest are installed
+      apt:
+        name: 
+          - python3
+          - python3-pytest
+        state: present
+
+    - name: Create test directory
+      file:
+        path: /tmp/qemu_tests/tests
+        state: directory
+
+    - name: Copy manager script
+      copy:
+        src: ../files/qemu-manager.py
+        dest: /usr/local/bin/qemu-manager.py
+        mode: '0755'
+
+    - name: Copy test files
+      copy:
+        src: ../files/tests/
+        dest: /tmp/qemu_tests/tests/
+
+    - name: Copy runner script
+      copy:
+        src: ../files/run_tests.sh
+        dest: /tmp/qemu_tests/run_tests.sh
+        mode: '0755'
+
+    - name: Display instructions as a list
+      debug:
+        msg:
+          - "Now you can run tests!"
+          - "chdir to /tmp/qemu_tests/ on the destination server"
+          - "and run ./run_tests.sh run"
+

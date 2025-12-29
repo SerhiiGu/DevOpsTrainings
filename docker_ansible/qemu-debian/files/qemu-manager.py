@@ -71,7 +71,7 @@ class VMManager:
         path = self._get_vm_path(args.name)
         if os.path.exists(path):
             print(f"Error: VM {args.name} already exists.")
-            return
+            sys.exit(1)
 
         disk_path = self._get_disk_path(args.name)
         print(f"Creating disk {disk_path}...")
@@ -158,6 +158,63 @@ class VMManager:
         else:
             await self.send_qmp_command(args.name, "system_powerdown")
             print("Sent ACPI PowerDown signal.")
+
+
+    def delete_vm(self, name):
+        # 1. Перевірка наявності VM
+        path = self._get_vm_path(name)
+        if not os.path.exists(path):
+            print(f"Error: VM '{name}' not found.")
+            return
+
+        vm = self.load_vm(name)
+        disk_path = vm.get('disk')
+
+        # 2. Якщо VM працює — гасимо її через poweroff
+        if self.is_running(name):
+            print(f"VM '{name}' is running. Sending poweroff signal...")
+            try:
+                class StopArgs:
+                    def __init__(self, name, mode):
+                        self.name = name
+                        self.mode = mode
+                
+                # Викликаємо твій стоп у режимі poweroff
+                self.stop(StopArgs(name, 'poweroff'))
+
+                # Чекаємо до 10 секунд, поки процес реально зникне
+                import time
+                for _ in range(10):
+                    if not self.is_running(name):
+                        break
+                    time.sleep(1)
+            except Exception as e:
+                print(f"Warning: Issue while stopping VM: {e}")
+
+        # 3. Остаточна перевірка перед видаленням файлів
+        if self.is_running(name):
+            print(f"Error: Could not stop VM '{name}'. Deletion aborted to prevent disk corruption.")
+            return
+
+        # 4. Видалення файлів
+        try:
+            # Видаляємо JSON конфіг
+            os.remove(path)
+
+            # Видаляємо диск
+            if disk_path and os.path.exists(disk_path):
+                os.remove(disk_path)
+                print(f"Disk {os.path.basename(disk_path)} deleted.")
+
+            # Чистимо монітор-сокет
+            sock_path = self._get_socket_path(name)
+            if os.path.exists(sock_path):
+                os.remove(sock_path)
+
+            print(f"VM '{name}' and all its data have been removed.")
+
+        except Exception as e:
+            print(f"Error during file removal: {e}")
 
 
     def list_vms(self):
@@ -328,6 +385,11 @@ async def main():
     p.add_argument("--name", required=True)
     p.add_argument("--mode", choices=["acpi", "poweroff"], default="acpi")
 
+    # Delete
+    p = subparsers.add_parser("delete", help="Delete a VM and its disk")
+    p.add_argument("--name", required=True, help="Name of the VM to delete")
+    p.add_argument("--force", "-f", action="store_true", help="Skip confirmation prompt")
+
     # List
     subparsers.add_parser("list")
    
@@ -365,6 +427,21 @@ async def main():
         mgr.start(args)
     elif args.command == "stop":
         await mgr.stop(args)
+    elif args.command == "delete":
+        # Перевіряємо чи існує VM перед запитом підтвердження
+        path = os.path.join(VMS_DIR, f"{args.name}.json")
+        if not os.path.exists(path):
+            print(f"Error: VM '{args.name}' does not exist.")
+        else:
+            # Якщо force активовано, підтвердження не запитуємо
+            if args.force:
+                mgr.delete_vm(args.name)
+            else:
+                confirm = input(f"Are you sure you want to DELETE VM '{args.name}' and its disk? (y/N): ")
+                if confirm.lower() == 'y':
+                    mgr.delete_vm(args.name)
+                else:
+                    print("Operation cancelled.")
     elif args.command == "list":
         mgr.list_vms()
     elif args.command == "configs":
