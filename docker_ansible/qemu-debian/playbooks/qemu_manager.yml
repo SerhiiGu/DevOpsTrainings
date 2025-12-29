@@ -1,0 +1,15 @@
+---
+- name: Install QEMU manager
+  hosts: all
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Copy qemu-manager files
+      copy:
+        src: "../files/{{ item.src }}"
+        dest: "/usr/local/bin/{{ item.dest }}"
+        mode: "{{ item.mode }}"
+      with_items:
+        - { src: 'qemu-manager.py', dest: 'qemu-manager.py', mode: '0755' }
+

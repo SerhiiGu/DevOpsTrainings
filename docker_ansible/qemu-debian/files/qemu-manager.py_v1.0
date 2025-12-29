@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+import os
+import sys
+import json
+import argparse
+import subprocess
+import asyncio
+from qemu.qmp import QMPClient
+
+# Конфігурація шляхів
+BASE_DIR = os.path.expanduser("~/.config/qemu-manager")
+VMS_DIR = os.path.join(BASE_DIR, "vms")
+DISK_DIR = os.path.join(BASE_DIR, "disks")
+ISO_DIR = "/iso" # Set your path
+
+os.makedirs(VMS_DIR, exist_ok=True)
+os.makedirs(DISK_DIR, exist_ok=True)
+
+class VMManager:
+    def __init__(self):
+        self.qmp_timeout = 3
+
+    def _get_vm_path(self, name):
+        return os.path.join(VMS_DIR, f"{name}.json")
+
+    def _get_disk_path(self, name):
+        return os.path.join(DISK_DIR, f"{name}.qcow2")
+
+    def _get_socket_path(self, name):
+        return f"/tmp/qmp-{name}.sock"
+
+    def load_vm(self, name):
+        path = self._get_vm_path(name)
+        if not os.path.exists(path):
+            print(f"Error: VM '{name}' not found.")
+            sys.exit(1)
+        with open(path, 'r') as f:
+            return json.load(f)
+
+    def save_vm(self, name, data):
+        with open(self._get_vm_path(name), 'w') as f:
+            json.dump(data, f, indent=4)
+
+
+    def is_running(self, name):
+        sock_path = self._get_socket_path(name)
+        if not os.path.exists(sock_path):
+            return False
+        
+        # Перевіряємо, чи сокет "живий", спробувавши підключитися
+        import socket
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+                s.settimeout(0.5)
+                s.connect(sock_path)
+                return True
+        except (ConnectionRefusedError, socket.timeout):
+            # Якщо сокет є, але ніхто не відповідає - це "сміття" після падіння
+            os.remove(sock_path)
+            return False
+
+def is_running(self, name):
+        return os.path.exists(self._get_socket_path(name))
+
+    async def send_qmp_command(self, name, cmd, args=None):
+        client = QMPClient(name)
+        try:
+            await client.connect(self._get_socket_path(name))
+            res = await client.execute(cmd, args)
+            await client.disconnect()
+            return res
+        except Exception as e:
+            return f"Error: {e}"
+
+    def create(self, args):
+        path = self._get_vm_path(args.name)
+        if os.path.exists(path):
+            print(f"Error: VM {args.name} already exists.")
+            return
+
+        disk_path = self._get_disk_path(args.name)
+        subprocess.run(["qemu-img", "create", "-f", "qcow2", disk_path, f"{args.size}G"])
+
+        vm_data = {
+            "name": args.name,
+            "cpu": args.cpu,
+            "ram": args.ram,
+            "disk": disk_path,
+            "iso": args.iso if args.iso else "",
+            "boot_order": args.boot_order,
+            "net": args.net,
+            "autostart": False
+        }
+        self.save_vm(args.name, vm_data)
+        print(f"VM {args.name} created successfully.")
+
+    def start(self, args):
+        vm = self.load_vm(args.name)
+        if self.is_running(args.name):
+            print(f"Error: VM {args.name} is already running.")
+            return
+
+        sock = self._get_socket_path(args.name)
+        cmd = [
+            "qemu-system-x86_64",
+            "-name", vm['name'],
+            "-m", str(vm['ram']),
+            "-smp", str(vm['cpu']),
+            "-drive", f"file={vm['disk']},format=qcow2",
+            "-qmp", f"unix:{sock},server,nowait",
+            "-display", "none",
+            "-daemonize"
+        ]
+
+        if vm['iso']:
+            cmd.extend(["-cdrom", os.path.join(ISO_DIR, vm['iso'])])
+        
+        if vm['net'] == "user":
+            print("Warning: 'user' net detected. If it fails, use 'bridge'.")
+            cmd.extend(["-netdev", "user,id=net0", "-device", "e1000,netdev=net0"])
+        else:
+            cmd.extend(["-netdev", "bridge,id=net0,br=br0", "-device", "e1000,netdev=net0"])
+
+        # Використовуємо check=True для відлову помилок негайного старту
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                print(f"VM {args.name} started successfully(headless).")
+            else:
+                print(f"Failed to start VM: {result.stderr}")
+        except Exception as e:
+            print(f"Execution error: {e}")
+
+        subprocess.run(cmd)
+        print(f"VM {args.name} started (headless).")
+
+    async def stop(self, args):
+        if not self.is_running(args.name):
+            print("VM is not running.")
+            return
+
+        if args.mode == "acpi":
+            await self.send_qmp_command(args.name, "system_powerdown")
+            print("Sent ACPI PowerDown signal.")
+        else:
+            await self.send_qmp_command(args.name, "quit")
+            print("VM stopped (PowerOff).")
+
+    def list_vms(self):
+        vms = []
+        for f in os.listdir(VMS_DIR):
+            if f.endswith(".json"):
+                name = f[:-5]
+                running = "RUNNING" if self.is_running(name) else "STOPPED"
+                vms.append((name, running))
+        
+        # Сортування: спочатку запущені
+        for name, status in sorted(vms, key=lambda x: x[1], reverse=True):
+            print(f"{name:<20} [{status}]")
+
+    def modify(self, args):
+        vm = self.load_vm(args.name)
+        if args.cpu: vm['cpu'] = args.cpu
+        if args.ram: vm['ram'] = args.ram
+        if args.iso: vm['iso'] = args.iso
+        if args.net: vm['net'] = args.net
+        
+        if args.new_name:
+            old_name = args.name
+            new_path = self._get_vm_path(args.new_name)
+            vm['name'] = args.new_name
+            self.save_vm(args.new_name, vm)
+            os.remove(self._get_vm_path(old_name))
+            print(f"VM renamed to {args.new_name}")
+        else:
+            self.save_vm(args.name, vm)
+            print(f"VM {args.name} updated.")
+
+# --- CLI Parser Setup ---
+async def main():
+    mgr = VMManager()
+    parser = argparse.ArgumentParser(description="QEMU VM Manager")
+    subparsers = parser.add_subparsers(dest="command")
+
+    # Create
+    create_p = subparsers.add_parser("create")
+    create_p.add_argument("--name", required=True)
+    create_p.add_argument("--size", default=20, type=int)
+    create_p.add_argument("--iso", default="")
+    create_p.add_argument("--cpu", default=2, type=int)
+    create_p.add_argument("--ram", default=1024, type=int)
+    create_p.add_argument("--boot_order", default="dvd,disk,net")
+    create_p.add_argument("--net", default="user")
+
+    # Start/Stop
+    start_p = subparsers.add_parser("start")
+    start_p.add_argument("--name", required=True)
+
+    stop_p = subparsers.add_parser("stop")
+    stop_p.add_argument("--name", required=True)
+    stop_p.add_argument("--mode", choices=["acpi", "poweroff"], default="poweroff")
+
+    # Modify
+    mod_p = subparsers.add_parser("modify")
+    mod_p.add_argument("--name", required=True)
+    mod_p.add_argument("--new_name")
+    mod_p.add_argument("--cpu", type=int)
+    mod_p.add_argument("--ram", type=int)
+    mod_p.add_argument("--net")
+    mod_p.add_argument("--iso")
+
+    # List
+    subparsers.add_parser("list")
+
+    # Autostart
+    subparsers.add_parser("list_autostart")
+    en_auto = subparsers.add_parser("enable_autostart")
+    en_auto.add_argument("--name", required=True)
+    
+    dis_auto = subparsers.add_parser("disable_autostart")
+    dis_auto.add_argument("--name", required=True)
+
+    args = parser.parse_args()
+
+    if args.command == "create":
+        mgr.create(args)
+    elif args.command == "start":
+        mgr.start(args)
+    elif args.command == "stop":
+        await mgr.stop(args)
+    elif args.command == "list":
+        mgr.list_vms()
+    elif args.command == "modify":
+        mgr.modify(args)
+    elif args.command == "enable_autostart":
+        vm = mgr.load_vm(args.name)
+        vm['autostart'] = True
+        mgr.save_vm(args.name, vm)
+        print(f"Autostart enabled for {args.name}")
+    elif args.command == "list_autostart":
+        for f in os.listdir(VMS_DIR):
+            vm = mgr.load_vm(f[:-5])
+            if vm.get('autostart'): print(vm['name'])
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+

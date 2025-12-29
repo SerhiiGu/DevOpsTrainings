@@ -5,6 +5,8 @@
   vars:
     qemu_version: "10.2.0"
     build_dir: "/root/qemu-build-disk"
+    qemu_bridge_helper_path: "/usr/local/libexec/qemu-bridge-helper"
+    manager_path: "/usr/local/bin/qemu-manager.py"
 
   tasks:
     - name: Update apt cache
@@ -115,4 +117,115 @@
     - name: Display version
       debug:
         msg: "{{ qemu_ver_check.stdout }}"
+
+
+
+    - name: Detect real physical interface
+      ansible.builtin.shell: |
+        if [ -d /sys/class/net/br0/brif ]; then
+          # Якщо міст є, беремо назву першого порту в ньому
+          ls /sys/class/net/br0/brif | head -n 1
+        else
+          # Якщо мосту немає, беремо дефолтний інтерфейс
+          echo "{{ ansible_facts['default_ipv4']['interface'] }}"
+        fi
+      register: phy_device_cmd
+      changed_when: false
+
+    - name: Set facts for networking
+      ansible.builtin.set_fact:
+        target_interface: "{{ phy_device_cmd.stdout | trim }}"
+        target_ip_cidr: "{{ ansible_facts['default_ipv4']['address'] }}/{{ ansible_facts['default_ipv4']['prefix'] }}"
+        target_gateway: "{{ ansible_facts['default_ipv4']['gateway'] }}"
+
+    - name: Debug detected interface
+      ansible.builtin.debug:
+        msg: "Physical interface is {{ target_interface }}. Bridge will use this port."
+
+    - name: Install bridge-utils
+      ansible.builtin.apt:
+        name: bridge-utils
+        state: present
+
+    - name: Configure Network Bridge (interfaces)
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces
+        content: |
+          source /etc/network/interfaces.d/*
+
+          auto lo
+          iface lo inet loopback
+
+          # Physical Interface
+          auto {{ target_interface }}
+          iface {{ target_interface }} inet manual
+
+          # Bridge Interface
+          auto br0
+          iface br0 inet static
+                  address {{ target_ip_cidr }}
+                  gateway {{ target_gateway }}
+                  bridge_ports {{ target_interface }}
+                  bridge_stp off
+                  bridge_fd 0
+                  dns-nameservers 1.1.1.1
+      register: network_config
+
+    - name: Create QEMU configuration directory
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+      with_items:
+        - { path: '/usr/local/etc' }
+        - { path: '/usr/local/etc/qemu' }
+
+    - name: Allow br0 in QEMU bridge.conf
+      ansible.builtin.copy:
+        dest: /usr/local/etc/qemu/bridge.conf
+        content: "allow br0\n"
+        mode: '0644'
+
+    - name: Set SUID bit on qemu-bridge-helper
+      ansible.builtin.file:
+        path: "{{ qemu_bridge_helper_path }}"
+        mode: '4755'
+        owner: root
+        group: root
+
+    - name: Create Systemd Autostart Service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/qemu-autostart.service
+        content: |
+          [Unit]
+          Description=QEMU VMs Autostart
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          ExecStart={{ manager_path }} autostart_all
+          RemainAfterExit=yes
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Enable Autostart Service
+      ansible.builtin.systemd:
+        name: qemu-autostart.service
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Restart networking (Non-blocking)
+      ansible.builtin.shell: "nohup sh -c 'ifdown {{ target_interface }} && ifup br0' > /dev/null 2>&1 &"
+      async: 10
+      poll: 0
+      when: network_config.changed
+
+    - name: Wait for connection to return
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 60
+      when: network_config.changed
 
