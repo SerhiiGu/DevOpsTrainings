@@ -4,8 +4,8 @@ import sys
 import json
 import argparse
 import subprocess
-import asyncio
 import socket
+from types import SimpleNamespace
 from qemu.qmp import QMPClient
 
 # Налаштування шляхів
@@ -56,15 +56,35 @@ class VMManager:
         with open(self._get_vm_path(name), 'w') as f:
             json.dump(data, f, indent=4)
 
-    async def send_qmp_command(self, name, cmd, args=None):
-        client = QMPClient(name)
+
+    def send_qmp_command(self, vm_name, command_name):
+        sock_path = self._get_socket_path(vm_name)
+        if not os.path.exists(sock_path):
+            print(f"Error: QMP socket not found at {sock_path}")
+            return
+
         try:
-            await client.connect(self._get_socket_path(name))
-            res = await client.execute(cmd, args)
-            await client.disconnect()
-            return res
+            # Створюємо звичайний Unix сокет
+            client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            client.connect(sock_path)
+
+            # 1. При підключенні QEMU надсилає вітання (greeting)
+            initial_data = client.recv(1024)
+
+            # 2. Треба активувати можливості QMP (qmp_capabilities)
+            client.sendall(json.dumps({"execute": "qmp_capabilities"}).encode())
+            client.recv(1024) # отримуємо {"return": {}}
+
+            # 3. Надсилаємо реальну команду
+            cmd = {"execute": command_name}
+            client.sendall(json.dumps(cmd).encode())
+            response = client.recv(1024)
+
+            client.close()
+            return json.loads(response)
         except Exception as e:
-            return f"Error: {e}"
+            print(f"QMP Error: {e}")
+            return None
 
 
     def create(self, args):
@@ -147,16 +167,17 @@ class VMManager:
         except Exception as e:
             print(f"Failed to execute QEMU: {e}")
 
-    async def stop(self, args):
+
+    def stop(self, args):
         if not self.is_running(args.name):
             print(f"VM {args.name} is not running.")
-            return
+            sys.exit(1)
 
         if args.mode == "poweroff":
-            await self.send_qmp_command(args.name, "quit")
+            self.send_qmp_command(args.name, "quit")
             print("VM stopped (PowerOff).")
         else:
-            await self.send_qmp_command(args.name, "system_powerdown")
+            self.send_qmp_command(args.name, "system_powerdown")
             print("Sent ACPI PowerDown signal.")
 
 
@@ -165,7 +186,7 @@ class VMManager:
         path = self._get_vm_path(name)
         if not os.path.exists(path):
             print(f"Error: VM '{name}' not found.")
-            return
+            sys.exit(1)
 
         vm = self.load_vm(name)
         disk_path = vm.get('disk')
@@ -179,7 +200,7 @@ class VMManager:
                         self.name = name
                         self.mode = mode
                 
-                # Викликаємо твій стоп у режимі poweroff
+                # Викликаємо стоп у режимі poweroff
                 self.stop(StopArgs(name, 'poweroff'))
 
                 # Чекаємо до 10 секунд, поки процес реально зникне
@@ -194,7 +215,7 @@ class VMManager:
         # 3. Остаточна перевірка перед видаленням файлів
         if self.is_running(name):
             print(f"Error: Could not stop VM '{name}'. Deletion aborted to prevent disk corruption.")
-            return
+            sys.exit(1)
 
         # 4. Видалення файлів
         try:
@@ -281,7 +302,7 @@ class VMManager:
 
         if args.new_name and is_active:
             print(f"Error: Cannot rename running VM '{args.name}'. Stop it first.")
-            return
+            sys.exit(1)
 
         if args.cpu: vm['cpu'] = args.cpu
         if args.ram: vm['ram'] = args.ram
@@ -360,7 +381,7 @@ class VMManager:
                 print(f"{name:<20} {disk_ok:<10} {iso_ok:<10} {net_ok:<10}")
 
 
-async def main():
+def main():
     mgr = VMManager()
     parser = argparse.ArgumentParser(description="QEMU VM Manager")
     subparsers = parser.add_subparsers(dest="command")
@@ -426,12 +447,13 @@ async def main():
     elif args.command == "start":
         mgr.start(args)
     elif args.command == "stop":
-        await mgr.stop(args)
+        mgr.stop(args)
     elif args.command == "delete":
         # Перевіряємо чи існує VM перед запитом підтвердження
         path = os.path.join(VMS_DIR, f"{args.name}.json")
         if not os.path.exists(path):
             print(f"Error: VM '{args.name}' does not exist.")
+            sys.exit(1)
         else:
             # Якщо force активовано, підтвердження не запитуємо
             if args.force:
@@ -461,25 +483,28 @@ async def main():
     elif args.command == "autostart_all":
         if not os.path.exists(VMS_DIR):
             return
-        for f in os.listdir(VMS_DIR):
-            if f.endswith(".json"):
-                vm_name = f[:-5]
-                vm = mgr.load_vm(vm_name)
-                if vm.get('autostart') and not mgr.is_running(vm_name):
-                    print(f"Autostarting {vm_name}...")
-                    # Створюємо об'єкт args для виклику start()
-                    class MockArgs: pass
-                    start_args = MockArgs()
-                    start_args.name = vm_name
-                    mgr.start(start_args)
+        for filename in os.listdir(VMS_DIR):
+            if filename.endswith(".json"):
+                vm_name = filename[:-5]  # Прибираємо .json
+                try:
+                    vm = mgr.load_vm(vm_name)
+                    # Перевіряємо прапорець автостарту та чи не запущена вона вже
+                    if vm.get('autostart') and not mgr.is_running(vm_name):
+                        print(f"Autostarting {vm_name}...")
+                        # Використовуємо SimpleNamespace замість MockArgs
+                        # Це імітує об'єкт, який повертає argparse
+                        mgr.start(SimpleNamespace(name=vm_name))
+                except Exception as e:
+                    print(f"Error autostarting {vm_name}: {e}")
     elif args.command == "check":
         mgr.check_health()
     else:
         parser.print_help()
 
+
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
-        pass
+        sys.exit(0)
 
