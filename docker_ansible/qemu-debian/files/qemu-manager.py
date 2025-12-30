@@ -7,6 +7,7 @@ import subprocess
 import socket
 from types import SimpleNamespace
 from qemu.qmp import QMPClient
+import xml.etree.ElementTree as ET
 
 # Налаштування шляхів
 BASE_DIR = os.path.expanduser("~/.config/qemu-manager")
@@ -408,6 +409,67 @@ class VMManager:
             print(f"Error during cloning: {e}")
 
 
+    def import_vbox(self, vbox_file, vdi_path):
+        if not os.path.exists(vbox_file) or not os.path.exists(vdi_path):
+            print("Error: .vbox file or .vdi disk not found.")
+            sys.exit(1)
+
+        try:
+            print(f"Parsing {vbox_file}...")
+            tree = ET.parse(vbox_file)
+            root = tree.getroot()
+
+            # Простір імен VirtualBox (часто використовується в XML)
+            ns = {'vb': 'http://www.virtualbox.org/'}
+
+            # 1. Отримуємо ім'я машини
+            # В деяких версіях XML тег Machine може бути без простору імен
+            machine = root.find('.//vb:Machine', ns)
+            if machine is None: machine = root.find('.//Machine')
+
+            vm_name = machine.get('name')
+
+            # 2. Отримуємо RAM
+            memory = root.find('.//vb:Memory', ns)
+            if memory is None: memory = root.find('.//Memory')
+            ram = memory.get('RAMSize', '1024')
+
+            # 3. Отримуємо CPU
+            cpu_node = root.find('.//vb:CPU', ns)
+            if cpu_node is None: cpu_node = root.find('.//CPU')
+            cpu_count = cpu_node.get('count', '1') if cpu_node is not None else '1'
+
+            print(f"Importing VM: {vm_name} (CPU: {cpu_count}, RAM: {ram}M)")
+
+            # 4. Конвертація диска з використанням стиснення (sparse)
+            new_disk_path = os.path.join(DISK_DIR, f"{vm_name}.qcow2")
+            if os.path.exists(new_disk_path):
+                print(f"Error: Disk {new_disk_path} already exists. Import aborted.")
+                sys.exit(1)
+
+            print(f"Converting disk {os.path.basename(vdi_path)} to qcow2...")
+            subprocess.run(["qemu-img", "convert", "-f", "vdi", "-O", "qcow2", vdi_path, new_disk_path], check=True)
+
+            # 5. Створення конфігу для нашого менеджера
+            vm_data = {
+                "name": vm_name,
+                "cpu": int(cpu_count),
+                "ram": int(ram),
+                "disk": new_disk_path,
+                "iso": None,
+                "boot_order": "disk,dvd",
+                "net": "bridge",
+                "vnc": "none",
+                "autostart": False
+            }
+
+            self.save_vm(vm_name, vm_data)
+            print(f"Successfully imported '{vm_name}' from VirtualBox.")
+
+        except Exception as e:
+            print(f"Failed to import VirtualBox VM: {e}")
+
+
     def check_health(self):
         if not os.path.exists(VMS_DIR) or not os.listdir(VMS_DIR):
             print("No VMs to check.")
@@ -480,6 +542,11 @@ def main():
     p.add_argument("--name", required=True, help="Source VM name")
     p.add_argument("--new_name", required=True, help="New VM name")
 
+    # Import from VBOX+VDI
+    p = subparsers.add_parser("import", help="Import VirtualBox VM")
+    p.add_argument("--vbox", required=True, help="Path to .vbox file")
+    p.add_argument("--vdi", required=True, help="Path to .vdi file")
+
     # Autostart
     subparsers.add_parser("list_autostart")
     p = subparsers.add_parser("enable_autostart")
@@ -523,6 +590,8 @@ def main():
         mgr.modify(args)
     elif args.command == "clone":
         mgr.clone_vm(args.name, args.new_name)
+    elif args.command == "import":
+        mgr.import_vbox(args.vbox, args.vdi)
     elif args.command == "enable_autostart":
         v = mgr.load_vm(args.name); v['autostart'] = True; mgr.save_vm(args.name, v)
         print("Autostart enabled.")
