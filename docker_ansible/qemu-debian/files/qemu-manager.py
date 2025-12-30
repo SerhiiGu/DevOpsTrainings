@@ -256,74 +256,53 @@ class VMManager:
 
                 # 2. Статус та ресурси (CPU/RAM)
                 status = "STOPPED"
-                cpu_usage = "-"
-                mem_rss = "-"
+                cpu_load = "-"
+                ram_rss = "-"
 
                 try:
-                    # Шукаємо PID процесу
-                    pid = subprocess.check_output(
-                        ["pgrep", "-f", f"qemu-system-x86_64.*-name {name}"],
-                        text=True
-                    ).strip().split('\n')[0]
-
+                    pid = subprocess.check_output(["pgrep", "-f", f"qemu-system-x86_64.*-name {name}"], text=True).strip().split('\n')[0]
                     status = "RUNNING"
-                    # Отримуємо стастистику через ps
-                    ps_out = subprocess.check_output(
-                        ["ps", "-p", pid, "-o", "%cpu,rss"],
-                        text=True
-                    ).split('\n')[1].split()
+                    ps_out = subprocess.check_output(["ps", "-p", pid, "-o", "%cpu,rss"], text=True).split('\n')[1].split()
 
-                    cpu_usage = f"{ps_out[0]}%"
-                    mem_rss = f"{float(ps_out[1])/1024:.0f}M"
+                    cpu_load = f"{ps_out[0]}%"
+                    ram_rss = f"{float(ps_out[1])/1024:.0f}M"
                 except (subprocess.CalledProcessError, IndexError):
                     pass
+
+                # 3. Конфігураційні дані
+                vnc_val = vm_data.get('vnc', 'none')
+                vnc_port = f"{5900 + int(vnc_val)}" if vnc_val != 'none' else "off"
+                iso = os.path.basename(vm_data.get('iso', 'None')) if vm_data.get('iso') else "None"
 
                 vms.append({
                     "name": name,
                     "status": status,
-                    "size": disk_size_gb,
-                    "cpu": cpu_usage,
-                    "mem": mem_rss
+                    "disk": f"{disk_size_gb:.2f}G",
+                    "cpu_conf": vm_data.get('cpu', '1'),
+                    "cpu_load": cpu_load,
+                    "ram_max": f"{vm_data.get('ram', 0)}M",
+                    "ram_rss": ram_rss,
+                    "net": vm_data.get('net', 'user'),
+                    "vnc": vnc_port,
+                    "auto": "YES" if vm_data.get('autostart') else "NO",
+                    "iso": iso
                 })
 
-        # 3. Вивід таблиці
-        header = f"{'VM NAME':<18} {'STATUS':<12} {'DISK':<10} {'CPU':<8} {'RAM (RSS)':<10}"
+        # 4. Вивід об'єднаної таблиці
+        # Використовуємо трохи ширші колонки для читабельності
+        header = (f"{'VM NAME':<15} {'STATUS':<10} {'DISK':<7} {'CPU':<5} {'LOAD':<7} "
+                  f"{'RAM':<7} {'RSS':<7} {'VNC':<6} {'AUTO':<5} {'ISO'}")
         print(header)
+        #print("-" * 90)
         print("-" * len(header))
 
-        # Сортування: спочатку запущені, потім за алфавітом
+        # Сортування: RUNNING спочатку, далі за алфавітом
         sorted_vms = sorted(vms, key=lambda x: (x['status'] != 'RUNNING', x['name']))
 
-        for vm in sorted_vms:
-            status_str = f"[{vm['status']}]"
-            disk_str = f"{vm['size']:.2f} GB"
-            print(f"{vm['name']:<18} {status_str:<12} {disk_str:<10} {vm['cpu']:<8} {vm['mem']:<10}")
-
-
-    def show_configs(self):
-        if not os.path.exists(VMS_DIR) or not os.listdir(VMS_DIR):
-            print("No VMs found.")
-            return
-
-        header = f"{'VM NAME':<15} {'CPU':<5} {'RAM':<8} {'NET':<10} {'VNC_PORT':<10} {'AUTO':<6} {'ISO'}"
-        print(header)
-        print("-" * len(header))
-
-        for f in sorted(os.listdir(VMS_DIR)):
-            if f.endswith(".json"):
-                name = f[:-5]
-                vm = self.load_vm(name)
-
-                cpu = vm.get('cpu', 'N/A')
-                ram = f"{vm.get('ram', 0)}M"
-                net = vm.get('net', 'user')
-                vnc_val = vm.get('vnc', 'none')
-                vnc_display = f"{5900 + int(vnc_val)}" if vnc_val != 'none' else "off"
-                auto = "YES" if vm.get('autostart') else "NO"
-                # Беремо тільки назву файлу ISO, щоб не захаращувати таблицю шляхами
-                iso = os.path.basename(vm.get('iso', 'None')) if vm.get('iso') else "None"
-
-                print(f"{name:<15} {cpu:<5} {ram:<8} {net:<10} {vnc_display:<10} {auto:<6} {iso}")
+        for v in sorted_vms:
+            st = f"[{v['status']}]"
+            print(f"{v['name']:<15} {st:<10} {v['disk']:<7} {v['cpu_conf']:<5} {v['cpu_load']:<7} "
+                  f"{v['ram_max']:<7} {v['ram_rss']:<7} {v['vnc']:<6} {v['auto']:<5} {v['iso']}")
 
 
     def modify(self, args):
@@ -486,9 +465,6 @@ def main():
     # List
     subparsers.add_parser("list")
    
-    # Show VMs config parameters
-    subparsers.add_parser("configs")
-
     # Modify
     p = subparsers.add_parser("modify")
     p.add_argument("--name", required=True)
@@ -543,8 +519,6 @@ def main():
                     print("Operation cancelled.")
     elif args.command == "list":
         mgr.list_vms()
-    elif args.command == "configs":
-        mgr.show_configs()
     elif args.command == "modify":
         mgr.modify(args)
     elif args.command == "clone":
