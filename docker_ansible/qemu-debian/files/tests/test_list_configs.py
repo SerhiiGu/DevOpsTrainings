@@ -47,7 +47,7 @@ def test_list_disk_usage_display(run_cmd, cleanup_vm):
     run_cmd("create", "--name", vm_name, "--size", "5") # 5GB
     
     result = run_cmd("list")
-    assert "DISK USAGE" in result.stdout
+    assert "DISK" in result.stdout
     # На свіжоствореному qcow2 диску використання зазвичай 0.00 GB або близьке до того
     assert "GB" in result.stdout
 

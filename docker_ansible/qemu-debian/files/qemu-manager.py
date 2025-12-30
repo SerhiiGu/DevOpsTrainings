@@ -137,7 +137,6 @@ class VMManager:
             "-smp", str(vm['cpu']),
             "-drive", f"file={vm['disk']},format=qcow2,if=virtio",
             "-qmp", f"unix:{sock},server,nowait",
-            "-display", "none",
             "-daemonize"
         ]
 
@@ -151,9 +150,9 @@ class VMManager:
         else:
             cmd.extend(["-netdev", "bridge,id=n1,br=br0", "-device", "virtio-net-pci,netdev=n1"])
 
-        vnc_setting = vm.get('vnc', 'none')
-        if vnc_setting != 'none':
-            cmd.extend(['-vnc', f'0.0.0.0:{vnc_display}'])
+        vnc_port = vm.get('vnc', 'none')
+        if vnc_port != 'none':
+            cmd.extend(['-vnc', f'0.0.0.0:{vnc_port}'])
         else:
             cmd.extend(['-display', 'none'])
 
@@ -250,24 +249,55 @@ class VMManager:
                 vm_data = self.load_vm(name)
                 disk_path = vm_data.get('disk')
 
-                # Отримуємо розмір файлу в ГБ (реальне займане місце)
+                # 1. Розмір диска (реальне займане місце)
                 disk_size_gb = 0.0
                 if disk_path and os.path.exists(disk_path):
                     disk_size_gb = os.path.getsize(disk_path) / (1024**3)
 
-                status = "RUNNING" if self.is_running(name) else "STOPPED"
-                vms.append({"name": name, "status": status, "size": disk_size_gb})
+                # 2. Статус та ресурси (CPU/RAM)
+                status = "STOPPED"
+                cpu_usage = "-"
+                mem_rss = "-"
 
-        print(f"{'VM NAME':<20} {'STATUS':<15} {'DISK USAGE':<10}")
-        print("-" * 50)
+                try:
+                    # Шукаємо PID процесу
+                    pid = subprocess.check_output(
+                        ["pgrep", "-f", f"qemu-system-x86_64.*-name {name}"],
+                        text=True
+                    ).strip().split('\n')[0]
+
+                    status = "RUNNING"
+                    # Отримуємо стастистику через ps
+                    ps_out = subprocess.check_output(
+                        ["ps", "-p", pid, "-o", "%cpu,rss"],
+                        text=True
+                    ).split('\n')[1].split()
+
+                    cpu_usage = f"{ps_out[0]}%"
+                    mem_rss = f"{float(ps_out[1])/1024:.0f}M"
+                except (subprocess.CalledProcessError, IndexError):
+                    pass
+
+                vms.append({
+                    "name": name,
+                    "status": status,
+                    "size": disk_size_gb,
+                    "cpu": cpu_usage,
+                    "mem": mem_rss
+                })
+
+        # 3. Вивід таблиці
+        header = f"{'VM NAME':<18} {'STATUS':<12} {'DISK':<10} {'CPU':<8} {'RAM (RSS)':<10}"
+        print(header)
+        print("-" * len(header))
 
         # Сортування: спочатку запущені, потім за алфавітом
         sorted_vms = sorted(vms, key=lambda x: (x['status'] != 'RUNNING', x['name']))
 
         for vm in sorted_vms:
-            status_formatted = f"[{vm['status']}]"
-            size_str = f"{vm['size']:.2f} GB"
-            print(f"{vm['name']:<20} {status_formatted:<15} {size_str:>10}")
+            status_str = f"[{vm['status']}]"
+            disk_str = f"{vm['size']:.2f} GB"
+            print(f"{vm['name']:<18} {status_str:<12} {disk_str:<10} {vm['cpu']:<8} {vm['mem']:<10}")
 
 
     def show_configs(self):
@@ -357,10 +387,52 @@ class VMManager:
             print(f"VM '{args.name}' updated parameters.")
 
 
+    def clone_vm(self, old_name, new_name):
+        old_path = self._get_vm_path(old_name)
+        new_path = self._get_vm_path(new_name)
+
+        if not os.path.exists(old_path):
+            print(f"Error: Source VM '{old_name}' not found.")
+            sys.exit(1)
+        if os.path.exists(new_path):
+            print(f"Error: Destination VM '{new_name}' already exists.")
+            sys.exit(1)
+        if self.is_running(old_name):
+            print(f"Error: Cannot clone a running VM. Please stop '{old_name}' first.")
+            sys.exit(1)
+
+        try:
+            # 1. Завантажуємо старий конфіг
+            vm = self.load_vm(old_name)
+
+            # 2. Копіюємо файл диска
+            old_disk = vm['disk']
+            new_disk = os.path.join(DISK_DIR, f"{new_name}.qcow2")
+
+            print(f"Cloning disk {os.path.basename(old_disk)} -> {os.path.basename(new_disk)}...")
+            # Використовуємо cp --sparse=always через subprocess для швидкості
+            subprocess.run(["cp", "--sparse=always", old_disk, new_disk], check=True)
+
+            # 3. Оновлюємо дані для нової VM
+            vm['name'] = new_name
+            vm['disk'] = new_disk
+            vm['autostart'] = False
+
+            # Disable VNC, щоб уникнути конфліктів портів
+            vm['vnc'] = 'none'
+
+            # 4. Зберігаємо новий конфіг
+            self.save_vm(new_name, vm)
+            print(f"VM '{old_name}' successfully cloned to '{new_name}'.")
+
+        except Exception as e:
+            print(f"Error during cloning: {e}")
+
+
     def check_health(self):
         if not os.path.exists(VMS_DIR) or not os.listdir(VMS_DIR):
             print("No VMs to check.")
-            return
+            sys.exit(1)
 
         print(f"{'VM NAME':<20} {'DISK':<10} {'ISO':<10} {'NET':<10}")
         print("-" * 55)
@@ -427,6 +499,11 @@ def main():
     p.add_argument("--vnc", help="VNC port (e.g. 5901. Min.: 5901) or 'none' to disable")
     p.add_argument("--iso")
 
+    # Clone
+    p = subparsers.add_parser("clone", help="Clone an existing VM")
+    p.add_argument("--name", required=True, help="Source VM name")
+    p.add_argument("--new_name", required=True, help="New VM name")
+
     # Autostart
     subparsers.add_parser("list_autostart")
     p = subparsers.add_parser("enable_autostart")
@@ -470,6 +547,8 @@ def main():
         mgr.show_configs()
     elif args.command == "modify":
         mgr.modify(args)
+    elif args.command == "clone":
+        mgr.clone_vm(args.name, args.new_name)
     elif args.command == "enable_autostart":
         v = mgr.load_vm(args.name); v['autostart'] = True; mgr.save_vm(args.name, v)
         print("Autostart enabled.")
