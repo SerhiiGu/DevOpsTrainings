@@ -1,0 +1,65 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ubuntu-server
+    password: "$6$Rapdb1xkkqqPtYHR$5dVZBx8BYRPkVhLopees3rz9vep.nvehdjKArHgOkg3nv3AID8PSsBzEuTcQNll9ySkEAljU2DtY0a0uUfIhu." # hashed: openssl passwd -6
+    username: ubuntu
+  keyboard: {layout: us, variant: ''}
+  locale: en_US.UTF-8
+  network:
+    network:
+      version: 2
+      ethernets:
+        enp0s3:
+          dhcp4: true
+  storage:
+    config:
+      - type: disk
+        id: disk-0
+        match:
+          smallest: true
+        wipe: superblock 
+        preserve: false
+        grub_device: true
+        ptable: gpt
+
+      # 1. Технічний розділ для GRUB (необхідний для GPT на BIOS/Legacy системі)
+      - type: partition
+        id: partition-grub
+        device: disk-0
+        size: 2M
+        flag: bios_grub
+
+      # 2. Swap 128MB
+      - type: partition
+        id: partition-swap
+        device: disk-0
+        size: 128M
+      - type: format
+        id: format-swap
+        fstype: swap
+        volume: partition-swap
+      - type: mount
+        id: mount-swap
+        device: format-swap
+        path: none
+
+      # 3. Основний розділ (корінь)
+      - type: partition
+        id: partition-root
+        device: disk-0
+        size: -1
+      - type: format
+        id: format-root
+        fstype: ext4
+        volume: partition-root
+      - type: mount
+        id: mount-root
+        device: format-root
+        path: /
+
+  ssh:
+    install-server: true
+    allow-pw: true
+

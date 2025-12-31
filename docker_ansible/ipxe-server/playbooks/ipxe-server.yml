@@ -6,7 +6,7 @@
     base_server_hostname: "ipxe-server"
     base_server_ip: "192.168.1.195"
     timezone: "Europe/Kyiv"
-    # Для Debian 13 (Trixie)
+    # For Debian 13 (Trixie)
     debian_ver: "13"
     debian_codename: "trixie"
 
@@ -42,6 +42,12 @@
           - nginx
           - build-essential
           - unzip
+          - p7zip-full
+        state: present
+
+    - name: Install NFS server
+      package:
+        name: nfs-kernel-server
         state: present
 
     # --- Timezone ---
@@ -81,6 +87,7 @@
         - { path: '/srv/tftp' }
         - { path: '/srv/httpboot', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/debian13', owner: 'www-data', group: 'www-data' }
+        - { path: '/srv/httpboot/ubuntu24.04-lts', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/systemrescue', owner: 'www-data', group: 'www-data' }
 
     - name: Download iPXE binaries
@@ -91,6 +98,7 @@
         - { url: 'https://boot.ipxe.org/ipxe.pxe', name: 'ipxe.pxe' }
         - { url: 'https://boot.ipxe.org/ipxe.efi', name: 'ipxe.efi' }
 
+    # Debian 13 kernel
     - name: Download Debian 13 Netboot images (Kernel/Initrd)
       get_url:
         url: "http://ftp.debian.org/debian/dists/{{ debian_codename }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/{{ item }}"
@@ -99,6 +107,36 @@
         - linux
         - initrd.gz
 
+    # Ubuntu 24.04 LTS related files
+    - name: Check if Ubuntu is already unpacked
+      stat:
+        path: /srv/httpboot/ubuntu24.04-lts/casper
+      register: ubuntu_unpacked
+
+    - name: Download Ubuntu 24.04 ISO (only if not exists)
+      get_url:
+        url: "https://releases.ubuntu.com/24.04/ubuntu-24.04.3-live-server-amd64.iso"
+        dest: "/srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.3-live-server-amd64.iso"
+        force: no
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      when: not ubuntu_unpacked.stat.exists
+
+    - name: Extract Ubuntu ISO contents
+      shell: |
+        7z x -y /srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.3-live-server-amd64.iso -o/srv/httpboot/ubuntu24.04-lts/
+      args:
+        creates: /srv/httpboot/ubuntu24.04-lts/casper
+      become: yes
+
+    - name: Cleanup ISO after extraction
+      file:
+        path: "/srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.3-live-server-amd64.iso"
+        state: absent
+      when: ubuntu_unpacked.stat.exists or (ansible_facts.cmd_res is defined and ansible_facts.cmd_res.rc == 0)
+
+    # Memtest
     - name: Download Memtest86+
       unarchive:
         src: https://memtest.org/download/v7.20/mt86plus_7.20.binaries.zip
@@ -130,10 +168,30 @@
         line: 'TFTP_OPTIONS="--secure --create"'
       notify: Restart TFTP
 
+
     - name: Copy Debian 13 preseed (installer answer file)
       copy:
         src: ../files/debian13.cfg
         dest: /srv/httpboot/debian13.cfg
+
+    - name: Copy Ubuntu autoinstall config (user-data)
+      copy:
+        src: ../files/user-data-ubuntu24.04-lts
+        dest: /srv/httpboot/ubuntu24.04-lts/user-data
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Ensure meta-data file exists (required by cloud-init)
+      file:
+        path: /srv/httpboot/ubuntu24.04-lts/meta-data
+        state: touch
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        modification_time: preserve
+        access_time: preserve
+
 
     - name: Detect DHCP Interface
       script: ../files/facts_dhcp_iface.sh
@@ -177,6 +235,16 @@
         recurse: yes
         mode: '0755'
 
+    - name: Export httpboot directory via NFS
+      lineinfile:
+        path: /etc/exports
+        line: "/srv/httpboot/ubuntu24.04-lts *(ro,sync,no_subtree_check)"
+      notify: Restart NFS
+
+    - name: Ensure NFS exports are applied immediately
+      command: exportfs -ra
+      become: yes
+
     - name: Ensure services are started
       service:
         name: "{{ item }}"
@@ -187,6 +255,7 @@
         - isc-dhcp-server
         - tftpd-hpa
         - nginx
+        - nfs-kernel-server
 
   handlers:
     - name: Restart rsyslog
@@ -197,4 +266,6 @@
       service: name=tftpd-hpa state=restarted
     - name: Restart Nginx
       service: name=nginx state=restarted
+    - name: Restart NFS
+      service: name=nfs-kernel-server state=restarted
 
