@@ -7,7 +7,7 @@ set default-option debian
 :start
 menu PXE Boot Menu (auto-boot in 10s)
 item --key d debian        Install Debian 13 (Default)
-item --key u ubuntu2404    Install Ubuntu24.04 LTS
+item --key u ubuntu2404    Install Ubuntu24.04 LTS(min 2G RAM)
 item --key m memtest       Run Memtest86+
 item --key s systemrescue  SystemRescue(min 3G RAM)
 item --key h localboot     Boot from local disk
@@ -27,7 +27,7 @@ boot
 echo Booting Ubuntu 24.04.3 LTS Autoinstall via NFS...
 set server-ip 192.168.1.195
 set base-url http://${server-ip}/ubuntu24.04-lts/casper
-kernel ${base-url}/vmlinuz initrd=initrd ip=dhcp boot=casper netboot=nfs nfsroot=${server-ip}:/srv/httpboot/ubuntu24.04-lts autoinstall ds=nocloud-net;s=http://${server-ip}/ubuntu24.04-lts/
+kernel ${base-url}/vmlinuz initrd=initrd ip=dhcp boot=casper netboot=nfs nfsroot=${server-ip}:/srv/httpboot/ubuntu24.04-lts autoinstall noprompt ds=nocloud-net;s=http://${server-ip}/ubuntu24.04-lts/
 initrd ${base-url}/initrd
 boot
 
