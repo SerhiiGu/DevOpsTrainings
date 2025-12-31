@@ -80,7 +80,8 @@
       with_items:
         - { path: '/srv/tftp' }
         - { path: '/srv/httpboot', owner: 'www-data', group: 'www-data' }
-        - { path: '/srv/httpboot/systemrescue' }
+        - { path: '/srv/httpboot/debian13', owner: 'www-data', group: 'www-data' }
+        - { path: '/srv/httpboot/systemrescue', owner: 'www-data', group: 'www-data' }
 
     - name: Download iPXE binaries
       get_url:
@@ -93,7 +94,7 @@
     - name: Download Debian 13 Netboot images (Kernel/Initrd)
       get_url:
         url: "http://ftp.debian.org/debian/dists/{{ debian_codename }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/{{ item }}"
-        dest: "/srv/httpboot/{{ item }}"
+        dest: "/srv/httpboot/debian13/{{ item }}"
       with_items:
         - linux
         - initrd.gz

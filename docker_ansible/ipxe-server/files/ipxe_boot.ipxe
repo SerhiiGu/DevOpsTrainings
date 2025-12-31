@@ -17,9 +17,9 @@ choose --timeout ${menu-timeout} --default ${default-option} selected || goto ca
 goto ${selected}
 
 :debian
-echo Booting Debian Installer...
-kernel http://192.168.1.195/linux auto=true priority=critical interface=auto ip=dhcp url=http://192.168.1.195/debian13.cfg
-initrd http://192.168.1.195/initrd.gz
+echo Booting Debian 13 Installer...
+kernel http://192.168.1.195/debian13/linux auto=true priority=critical interface=auto ip=dhcp url=http://192.168.1.195/debian13.cfg
+initrd http://192.168.1.195/debian13/initrd.gz
 boot
 
 :memtest
