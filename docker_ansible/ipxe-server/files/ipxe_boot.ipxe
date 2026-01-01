@@ -1,12 +1,13 @@
 #!ipxe
 
-# 10 seconds (in msec)
-set menu-timeout 10000
-set default-option debian
+chain http://192.168.1.195/cfg/${mac}.ipxe ||
 
 :start
+set menu-timeout 10000
+set default-option localboot
+
 menu PXE Boot Menu (auto-boot in 10s)
-item --key d debian        Install Debian 13 (Default)
+item --key d debian        Install Debian 13
 item --key u ubuntu2404    Install Ubuntu24.04 LTS(min 2G RAM)
 item --key m memtest       Run Memtest86+
 item --key s systemrescue  SystemRescue(min 3G RAM)
@@ -47,7 +48,21 @@ boot
 
 :localboot
 echo Booting from local drive...
-exit
+# Check if we in the UEFI mode (In the iPXE ${platform} is 'efi' for UEFI or 'pcbios' for Legacy
+iseq ${platform} efi && goto boot_efi || goto boot_bios
+
+:boot_bios
+sanboot --no-describe --drive 0x80 || goto failed
+
+:boot_efi
+# In the UEFI iPXE can't set boot from disk.
+# 'exit 0' return control for UEFI (Boot Manager). Disk should be in the boot list (even second).
+exit 0
+
+:failed
+echo Local boot failed. Starting shell...
+shell
+
 
 :shell
 shell

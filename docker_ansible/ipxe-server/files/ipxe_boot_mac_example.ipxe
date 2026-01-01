@@ -1,0 +1,19 @@
+#!ipxe
+
+# Example file name: /srv/httpboot/cfg/08:00:27:2f:18:15.ipxe   
+# Mac-address with ":" and in the lowercase
+
+# This client must install Ubuntu without menu
+echo "Custom config for ${mac} detected!"
+sleep 5
+
+goto ubuntu2404
+
+:ubuntu2404
+echo Booting Ubuntu 24.04.3 LTS Autoinstall via NFS...
+set server-ip 192.168.1.195
+set base-url http://${server-ip}/ubuntu24.04-lts/casper
+kernel ${base-url}/vmlinuz initrd=initrd ip=dhcp boot=casper netboot=nfs nfsroot=${server-ip}:/srv/httpboot/ubuntu24.04-lts autoinstall ds=nocloud-net;s=http://${server-ip}/ubuntu24.04-lts/
+initrd ${base-url}/initrd
+boot
+

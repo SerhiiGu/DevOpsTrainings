@@ -86,6 +86,7 @@
       with_items:
         - { path: '/srv/tftp' }
         - { path: '/srv/httpboot', owner: 'www-data', group: 'www-data' }
+        - { path: '/srv/httpboot/cfg', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/debian13', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/ubuntu24.04-lts', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/systemrescue', owner: 'www-data', group: 'www-data' }
@@ -160,6 +161,12 @@
         src: ../files/ipxe_boot.ipxe
         dest: /srv/httpboot/boot.ipxe
       notify: Restart TFTP
+
+    - name: Copy example custom boot IPXE file for MAC address
+      copy:
+        src: ../files/ipxe_boot_mac_example.ipxe
+        dest: "/srv/httpboot/cfg/08:00:27:2f:ef:ab.ipxe"
+      notify: Restart DHCP
 
     - name: Configure TFTP options
       lineinfile:

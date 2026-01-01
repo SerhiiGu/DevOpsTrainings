@@ -50,6 +50,7 @@ autoinstall:
         id: partition-root
         device: disk-0
         size: -1
+        flag: boot
       - type: format
         id: format-root
         fstype: ext4
@@ -58,6 +59,10 @@ autoinstall:
         id: mount-root
         device: format-root
         path: /
+
+    grub:
+      device: disk-0
+      terminal: console
 
   network:
     version: 2
@@ -74,14 +79,10 @@ autoinstall:
   ssh:
     install-server: true
     allow-pw: true
-    extra_config: |
-      PubkeyAuthentication yes
-      PermitRootLogin yes
 
   user-data:
     users:
       - name: root
-        passwd: "$6$Rapdb1xkkqqPtYHR$5dVZBx8BYRPkVhLopees3rz9vep.nvehdjKArHgOkg3nv3AID8PSsBzEuTcQNll9ySkEAljU2DtY0a0uUfIhu."
         lock_passwd: false
         ssh_authorized_keys:
           - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA2AgW9ikJ2axkwkh+XLJQjHY4SDt65wlQVnINSkNKYVj4jU5KskwxrybEmwwD1YvMJL5k5q8QWUgyOzzE/smAMDgka1wNJgMIfeiP9At5lP6Ars2LQ2xlq4Qeu9891RsWEwyMM71BNeHvzE6f8Mc9JC3HbWGXoPJP9jQEpt5dI5Toi8/9uPG+KTxkOOaOPynMvfG8sC8LE5RnOXpFFBlBrHRCsnRKkFF6/rIOGPzDQs24Ox4USBma+QyDcLbWhMU2L5pDjBJeLvX7ONPq0VDy9lujATRSfhKiGsKjv/XPhrxXuIAixiYMaK89feC5I6i3c97dBLC84PU16GrNmkkZIw==
@@ -93,9 +94,19 @@ autoinstall:
     - wget
     - vim
 
-late-commands:
+  late-commands:
+    - |
+      cat <<EOF > /target/etc/ssh/sshd_config.d/99-custom.conf
+      PubkeyAuthentication yes
+      PasswordAuthentication yes
+      PermitRootLogin yes
+      EOF
+    - curtin in-target -- bash -c "echo 'root:\$6\$Rapdb1xkkqqPtYHR\$5dVZBx8BYRPkVhLopees3rz9vep.nvehdjKArHgOkg3nv3AID8PSsBzEuTcQNll9ySkEAljU2DtY0a0uUfIhu.' | chpasswd -e"
+    - curtin in-target -- passwd -u root
+    - curtin in-target -- /usr/bin/apt-get upgrade -y
     - curtin in-target -- /usr/bin/apt-get clean
     - curtin in-target -- /bin/sh -c "rm -rf /var/lib/apt/lists/*"
     - curtin in-target -- /usr/bin/find /tmp /var/tmp -mindepth 1 -delete
+    - curtin in-target -- sed -i 's/^root:!/root:/' /etc/shadow
     - curtin in-target -- sed -i 's/ExecStart=.*/ExecStart=-\/sbin\/reboot -f/' /lib/systemd/system/final.target.wants/debian-installer-reboot.service || true
 
