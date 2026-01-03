@@ -2,7 +2,7 @@ FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y \
     nginx curl lua-cjson \
-    tree less vim \
+    tree less vim jq \
     libnginx-mod-http-lua \
     && rm -rf /var/lib/apt/lists/*
 

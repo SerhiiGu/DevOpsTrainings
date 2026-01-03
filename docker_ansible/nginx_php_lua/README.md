@@ -70,3 +70,28 @@ curl -i -X POST -d '{"user":"admin"}' http://localhost:90/process_json_2
     fastcgi_no_cache: Nginx отримає відповідь від PHP, але не покладе її в папку кешу для майбутніх запитів.
     Для повної ігнорації кешу (як у прикладі з адміном) потрібно використовувати обидві директиви одночасно.
 
+
+===============================================
+Cache if request have only allowed fields (slow variant)
+
+```location /cache_only_allowed_fields_json```
+
+Get a POST query and parse it. Cache only if we have fields from the explicitly stated list.
+
+We have the list of accepted fields for caching: Ex.: "page" and "valid".
+
+If we get POST only with these fields - we can cache them. If we have ANY OTHER field - skip a cache. See in the tests below.
+
+```bash
+# MISS => HIT
+curl -i -X POST -d '{"page":"qwerty"}' http://localhost:90/cache_only_allowed_fields_json
+curl -i -X POST -d '{"page":"qwerty", "valid":"1d"}' http://localhost:90/cache_only_allowed_fields_json
+# Everytime BYPASS
+curl -i -X POST -d '{"page":"qwerty", "cookie": "SMTH..."}' http://localhost:90/cache_only_allowed_fields_json
+curl -i -X POST -d '{"valid":"2w", "cookie": "SMTH...", "nocache": true}' http://localhost:90/cache_only_allowed_fields_json
+```
+
+
+=================================================
+
+
