@@ -1,0 +1,57 @@
+# Kickstart for CentOS Stream 10
+text
+
+# DHCP network config
+#network --bootproto=dhcp --device=link --activate
+# Static network config. device=link - get the first device with cable connected, bootproto=static - set static config
+network --bootproto=static --ip=192.168.1.190 --netmask=255.255.255.0 --gateway=192.168.1.1 --nameserver=8.8.8.8 --device=link --activate --onboot=on
+
+url --url="https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/"
+
+# Authentication. Hashing by: openssl passwd -6
+rootpw --iscrypted $6$Rapdb1xkkqqPtYHR$5dVZBx8BYRPkVhLopees3rz9vep.nvehdjKArHgOkg3nv3AID8PSsBzEuTcQNll9ySkEAljU2DtY0a0uUfIhu.
+
+# System services
+selinux --enforcing
+firewall --enabled --ssh
+
+# Timezone & Locale
+timezone Europe/Kyiv --utc
+lang en_US.UTF-8
+
+# Disk partitioning (Manual Style: GPT, No LVM/RAID)
+zerombr
+clearpart --all --initlabel
+# For GPT on the BIOS system (required):
+part biosboot --fstype="biosboot" --size=2
+# For UEFI system (required):
+#part /boot/efi --fstype="efi" --size=200 --ondisk=sda
+# My partitions:
+part swap --size=128 --ondisk=sda
+part / --fstype="xfs" --grow --ondisk=sda
+
+# Packages
+%packages
+@^minimal-environment
+vim
+git
+tree
+net-tools
+kexec-tools
+%end
+
+# Post-install actions (works in chroot)
+%post --erroronfail
+# root's ssh_authorized_key
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA2AgW9ikJ2axkwkh+XLJQjHY4SDt65wlQVnINSkNKYVj4jU5KskwxrybEmwwD1YvMJL5k5q8QWUgyOzzE/smAMDgka1wNJgMIfeiP9At5lP6Ars2LQ2xlq4Qeu9891RsWEwyMM71BNeHvzE6f8Mc9JC3HbWGXoPJP9jQEpt5dI5Toi8/9uPG+KTxkOOaOPynMvfG8sC8LE5RnOXpFFBlBrHRCsnRKkFF6/rIOGPzDQs24Ox4USBma+QyDcLbWhMU2L5pDjBJeLvX7ONPq0VDy9lujATRSfhKiGsKjv/XPhrxXuIAixiYMaK89feC5I6i3c97dBLC84PU16GrNmkkZIw==" > /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+restorecon -Rv /root/.ssh
+# Allow root login
+sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
+%end
+
+# Reboot after installation
+reboot
+

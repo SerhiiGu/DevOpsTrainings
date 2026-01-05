@@ -89,6 +89,7 @@
         - { path: '/srv/httpboot/cfg', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/debian13', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/ubuntu24.04-lts', owner: 'www-data', group: 'www-data' }
+        - { path: '/srv/httpboot/centos10', owner: 'www-data', group: 'www-data' }
         - { path: '/srv/httpboot/systemrescue', owner: 'www-data', group: 'www-data' }
 
     - name: Download iPXE binaries
@@ -137,6 +138,15 @@
         state: absent
       when: ubuntu_unpacked.stat.exists or (ansible_facts.cmd_res is defined and ansible_facts.cmd_res.rc == 0)
 
+    # CentOS 10 kernel
+    - name: Download CentOS Stream 10 Netboot images
+      get_url:
+        url: "https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/images/pxeboot/{{ item }}"
+        dest: "/srv/httpboot/centos10/{{ item }}"
+      with_items:
+        - vmlinuz
+        - initrd.img
+
     # Memtest
     - name: Download Memtest86+
       unarchive:
@@ -175,7 +185,7 @@
         line: 'TFTP_OPTIONS="--secure --create"'
       notify: Restart TFTP
 
-
+    # Answer files/Kickstart
     - name: Copy Debian 13 preseed (installer answer file)
       copy:
         src: ../files/debian13.cfg
@@ -198,6 +208,13 @@
         mode: '0644'
         modification_time: preserve
         access_time: preserve
+
+    - name: Kickstart config for CentOS 10
+      template:
+        src: ../templates/centos10_ks.cfg.j2
+        dest: "/srv/httpboot/centos10.cfg"
+        owner: www-data
+        group: www-data
 
 
     - name: Detect DHCP Interface

@@ -9,6 +9,7 @@ set default-option localboot
 menu PXE Boot Menu (auto-boot in 10s)
 item --key d debian        Install Debian 13
 item --key u ubuntu2404    Install Ubuntu24.04 LTS(min 2G RAM)
+item --key c centos10      Install CentOS Stream 10(min 3G RAM)
 item --key m memtest       Run Memtest86+
 item --key s systemrescue  SystemRescue(min 3G RAM)
 item --key h localboot     Boot from local disk
@@ -30,6 +31,13 @@ set server-ip 192.168.1.195
 set base-url http://${server-ip}/ubuntu24.04-lts/casper
 kernel ${base-url}/vmlinuz initrd=initrd ip=dhcp boot=casper netboot=nfs nfsroot=${server-ip}:/srv/httpboot/ubuntu24.04-lts autoinstall noprompt ds=nocloud-net;s=http://${server-ip}/ubuntu24.04-lts/
 initrd ${base-url}/initrd
+boot
+
+:centos10
+echo Booting CentOS Stream 10 Installer...
+set server-ip 192.168.1.195
+kernel http://${server-ip}/centos10/vmlinuz inst.ks=http://${server-ip}/centos10.cfg inst.gpt inst.geoloc=0 rd.driver.pre=ahci ip=dhcp inst.stage2=https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os/
+initrd http://${server-ip}/centos10/initrd.img
 boot
 
 :memtest
