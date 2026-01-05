@@ -70,3 +70,64 @@ curl -i -X POST -d '{"user":"admin"}' http://localhost:90/process_json_2
     fastcgi_no_cache: Nginx отримає відповідь від PHP, але не покладе її в папку кешу для майбутніх запитів.
     Для повної ігнорації кешу (як у прикладі з адміном) потрібно використовувати обидві директиви одночасно.
 
+
+===============================================
+Cache if request have only allowed fields (slow variant)
+
+```location /cache_only_allowed_fields_json + location @disk_cache```
+
+Get a POST query and parse it. Cache only if we have fields from the explicitly stated list.
+
+We have the list of accepted fields for caching: Ex.: "page" and "valid".
+
+If we get POST only with these fields - we can cache them. If we have ANY OTHER field - skip a cache. See in the tests below.
+
+```bash
+# MISS => HIT
+curl -i -X POST -d '{"page":"qwerty"}' http://localhost:90/cache_only_allowed_fields_json
+curl -i -X POST -d '{"page":"qwerty", "valid":"1d"}' http://localhost:90/cache_only_allowed_fields_json
+# Everytime BYPASS
+curl -i -X POST -d '{"page":"qwerty", "cookie": "SMTH..."}' http://localhost:90/cache_only_allowed_fields_json
+curl -i -X POST -d '{"valid":"2w", "cookie": "SMTH...", "nocache": true}' http://localhost:90/cache_only_allowed_fields_json
+```
+
+
+=================================================
+Purge cache URI with grep. Slow variant, generates high I/O, but it's relaible.
+
+```location /purge_cache```
+
+```curl -i -X POST -d '{"page": "page-for-item1", "page": "/page-for-query/234" }' http://localhost:90/purge_cache```
+
+And it must delete cache pages like:
+
+```bash
+/page-for-item1
+/page-for-item1/
+/page-for-item1-smth2 (in general: /page-for-item1*)
+/page-for-query/234
+/page-for-query/234*
+```
+
+=================================================
+Fast way to purge cache URI, but LUA table stores only in RAM, and after restart nginx(not reload) it may not found files even if they will be at the FS
+
+```location /purge_cache_lua_table```
+
+You may send list of URIs from the beginning (from /). Exact or wildcard accepted:
+
+```bash
+curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/"]}' http://localhost:90/purge_cache_lua_table
+curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/a.php", "cache_only_allowed_fields_json/"]}' http://localhost:90/purge_cache_lua_table
+curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/*"]}' http://localhost:90/purge_cache_lua_table #same as previous, but as wildcard
+```
+
+==================================================
+For debug purposes: get total number of rows(URI) and keys(cache files) in the LUA table, and up to 1000 rows itself
+
+```
+curl http://localhost:90/debug_cache_total
+curl http://localhost:90/debug_cache_list | jq
+```
+
+
