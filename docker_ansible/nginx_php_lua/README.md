@@ -10,7 +10,9 @@ curl -X POST -d "user=banned2&role=admin&token=qwerty123" http://localhost:90/lu
 
 docker-compose up -d --build
 
+
 ===========================================
+
 JSON - додати пакет "apt install lua-cjson"
 
 curl -X POST http://localhost:90/lua_json_test \
@@ -25,7 +27,9 @@ pcall: Ми використовуємо pcall (protected call) для cjson.dec
 Це важливо, бо якщо прийде "битий" JSON, функція decode викличе фатальну помилку Lua, і Nginx поверне 500.
 pcall дозволяє обробити помилку м'яко.
 
+
 ===========================================
+
 Lua розпарсить JSON, візьме звідти ім'я користувача і додасть його у новий заголовок X-Lua-User, який потім прочитає PHP.
 
 curl -X POST http://localhost:90/process_json \
@@ -40,6 +44,7 @@ curl -X POST http://localhost:90/process_json \
 
 
 =============================================
+
 NEW /process_json
 NEW /lua_to_php
 
@@ -53,7 +58,9 @@ fastcgi_ignore_headers Cache-Control Expires Set-Cookie;
 TEST: TWICE
 curl -i -X POST -H "Content-Type: application/json" -d '{"user":"test"}' http://localhost:90/process_json
 
+
 ==============================================
+
 BLOCK /process_json_2
 
 ### X-Cache-Status: MISS => X-Cache-Status: HIT
@@ -72,6 +79,7 @@ curl -i -X POST -d '{"user":"admin"}' http://localhost:90/process_json_2
 
 
 ===============================================
+
 Cache if request have only allowed fields (slow variant)
 
 ```location /cache_only_allowed_fields_json + location @disk_cache```
@@ -93,6 +101,7 @@ curl -i -X POST -d '{"valid":"2w", "cookie": "SMTH...", "nocache": true}' http:/
 
 
 =================================================
+
 Purge cache URI with grep. Slow variant, generates high I/O, but it's relaible.
 
 ```location /purge_cache```
@@ -109,7 +118,9 @@ And it must delete cache pages like:
 /page-for-query/234*
 ```
 
+
 =================================================
+
 Fast way to purge cache URI, but LUA table stores only in RAM, and after restart nginx(not reload) it may not found files even if they will be at the FS
 
 ```location /purge_cache_lua_table```
@@ -123,6 +134,7 @@ curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/*"]}' http://loc
 ```
 
 ==================================================
+
 For debug purposes: get total number of rows(URI) and keys(cache files) in the LUA table, and up to 1000 rows itself
 
 ```
