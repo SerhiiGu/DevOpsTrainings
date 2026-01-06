@@ -8,6 +8,7 @@ services:
       - ./nginx/cache:/var/cache/nginx
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/mobile-api.conf:/etc/nginx/conf.d/mobile-api.conf:ro
+      - ./nginx/lua:/etc/nginx/lua
     depends_on:
       - php
 

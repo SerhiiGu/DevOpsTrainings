@@ -80,7 +80,7 @@ curl -i -X POST -d '{"user":"admin"}' http://localhost:90/process_json_2
 
 ===============================================
 
-Cache if request have only allowed fields (slow variant)
+Cache if request have only allowed fields, and only for the list with allowed for caching URI
 
 ```location /cache_only_allowed_fields_json + location @disk_cache```
 
@@ -88,9 +88,9 @@ Get a POST query and parse it. Cache only if we have fields from the explicitly 
 
 We have the list of accepted fields for caching: Ex.: "page" and "valid".
 
-Also, we have the **list of allowed URIs** for caching(local allowed_uris). Wildcard doesn't accepted!
+Also, we have the **list of allowed URIs** for caching(allowed_uris). Wildcard doesn't accepted!
 
-If we get POST only with these fields - we can cache them. If we have ANY OTHER field - skip a cache. See in the tests below.
+If we get POST only with these fields - we can cache them. If we have ANY OTHER field - skip a cache. The same logic with an URI. See in the tests below.
 
 ```bash
 # MISS => HIT
