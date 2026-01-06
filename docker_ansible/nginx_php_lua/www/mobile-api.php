@@ -4,9 +4,9 @@ header('Content-Type: application/json');
 $headers = getallheaders();
 
 echo json_encode([
-    "message" => "Nginx => PHP to mobile-api.php",
     "timestamp" => microtime(true),
-    "received_headers" => $headers,
+    "uri" => $_SERVER['REQUEST_URI'],
+   // "received_headers" => $headers,
     "raw_post" => file_get_contents('php://input')
 ], JSON_PRETTY_PRINT);
 
