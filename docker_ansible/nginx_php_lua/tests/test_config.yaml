@@ -1,0 +1,11 @@
+# Налаштування підключення
+scheme: "http"
+host: "nginx"  # Назва сервісу в мережі docker-compose
+port: 91
+verify_ssl: false
+
+# Список URI, які кешуються БЕЗ врахування POST тіла (static logic)
+# Ці URI будуть виключені з "Базового тесту 1" і підуть у "Базовий тест 2"
+static_uri_excludes:
+  - "/lang_list"
+

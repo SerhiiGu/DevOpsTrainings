@@ -6,7 +6,8 @@
 local allowed_uris = {
     ["/"] = true,
     ["/lang_list"] = true,
-    ["/about"] = true
+    ["/about"] = true,
+    ["/home"] = true
 }
 
 -- If URI isn't allowed - skip all other checks
@@ -30,7 +31,7 @@ else
             ngx.var.skip_cache = 1
         else
             -- Allowed fields list
-            local allowed_keys = { page = true, valid = true }
+            local allowed_keys = { lang = true, regionId = true, currencyCodeString = true, page = true, valid = true }
             local sorted_keys = {}
             local invalid_found = false
 

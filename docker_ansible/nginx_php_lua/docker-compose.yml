@@ -18,3 +18,19 @@ services:
     volumes:
       - ./www:/var/www/html
 
+  # only manual run
+  # docker compose run --rm tester   #run all
+  # docker compose run --rm tester pytest test_cache.py::test_dynamic_uri_cache -v    # one certain test
+  tester:
+    build:
+      context: ./tests
+    profiles: ["testing"]
+    volumes:
+      - ./tests:/app
+      - ./nginx/lua:/etc/nginx/lua:ro
+      - ./nginx/mobile-api.conf:/etc/nginx/conf.d/mobile-api.conf:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - nginx
+
