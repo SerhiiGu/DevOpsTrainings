@@ -88,6 +88,8 @@ Get a POST query and parse it. Cache only if we have fields from the explicitly 
 
 We have the list of accepted fields for caching: Ex.: "page" and "valid".
 
+Also, we have the **list of allowed URIs** for caching(local allowed_uris). Wildcard doesn't accepted!
+
 If we get POST only with these fields - we can cache them. If we have ANY OTHER field - skip a cache. See in the tests below.
 
 ```bash
@@ -102,11 +104,11 @@ curl -i -X POST -d '{"valid":"2w", "cookie": "SMTH...", "nocache": true}' http:/
 
 =================================================
 
-Purge cache URI with grep. Slow variant, generates high I/O, but it's relaible.
+Purge cache URI with grep. Slow variant, generates high I/O, but it's relaible.  Wildcard by default!
 
 ```location /purge_cache```
 
-```curl -i -X POST -d '{"page": "page-for-item1", "page": "/page-for-query/234" }' http://localhost:90/purge_cache```
+```curl -i -X POST -d '{"pages": ["/page-for-item1", "/page-for-query/234"]}' http://localhost:90/purge_cache```
 
 And it must delete cache pages like:
 
