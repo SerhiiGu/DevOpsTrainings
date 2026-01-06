@@ -15,3 +15,24 @@ if ngx.var.skip_cache == "0" and ngx.var.my_cache_key ~= "" then
     end
 end
 
+-- Cache HIT/MISS counting
+local stats = ngx.shared.cache_stats
+local status = ngx.var.upstream_cache_status
+local uri = ngx.var.uri
+
+-- HIT
+if status == "HIT" then
+    stats:incr(uri .. ":HIT", 1, 0) -- Detailed counter, for every URI
+    stats:incr("TOTAL_HIT", 1, 0)   -- Global counter
+
+-- MISS + EXPIRED
+elseif status == "MISS" or status == "EXPIRED" or status == "STALE" then
+    stats:incr(uri .. ":MISS_EXPIRED", 1, 0)
+    stats:incr("TOTAL_MISS", 1, 0)
+
+-- BYPASS (when skip_cache = 1)
+elseif status == "BYPASS" or not status or status == "-" then
+    stats:incr(uri .. ":BYPASS", 1, 0)
+    stats:incr("TOTAL_BYPASS", 1, 0)
+end
+
