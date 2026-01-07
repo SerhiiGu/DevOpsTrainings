@@ -1,18 +1,28 @@
 #cloud-config
 autoinstall:
   version: 1
+  # disable updates to prevent error and for faster installation
+  apt:
+    update: false
+    upgrade: false
   identity:
     hostname: ubuntu-server
     password: "$6$Rapdb1xkkqqPtYHR$5dVZBx8BYRPkVhLopees3rz9vep.nvehdjKArHgOkg3nv3AID8PSsBzEuTcQNll9ySkEAljU2DtY0a0uUfIhu." # hashed: openssl passwd -6
     username: ubuntu
   keyboard: {layout: us, variant: ''}
   locale: en_US.UTF-8
+
   network:
-    network:
-      version: 2
-      ethernets:
-        enp0s3:
-          dhcp4: true
+    version: 2
+    ethernets:
+      enp0s3:
+        addresses:
+          - 192.168.1.190/24
+        nameservers:
+          addresses: [8.8.8.8, 1.1.1.1]
+        routes:
+          - to: default
+            via: 192.168.1.1
   storage:
     config:
       - type: disk
@@ -64,18 +74,6 @@ autoinstall:
       device: disk-0
       terminal: console
 
-  network:
-    version: 2
-    ethernets:
-      enp0s3:
-        addresses:
-          - 192.168.1.190/24
-        nameservers:
-          addresses: [8.8.8.8, 1.1.1.1]
-        routes:
-          - to: default
-            via: 192.168.1.1
-
   ssh:
     install-server: true
     allow-pw: true
@@ -89,7 +87,6 @@ autoinstall:
 
   packages:
     - net-tools
-    - openssh-server
     - curl
     - wget
     - vim
@@ -103,7 +100,6 @@ autoinstall:
       EOF
     - curtin in-target -- bash -c "echo 'root:\$6\$Rapdb1xkkqqPtYHR\$5dVZBx8BYRPkVhLopees3rz9vep.nvehdjKArHgOkg3nv3AID8PSsBzEuTcQNll9ySkEAljU2DtY0a0uUfIhu.' | chpasswd -e"
     - curtin in-target -- passwd -u root
-    - curtin in-target -- /usr/bin/apt-get upgrade -y
     - curtin in-target -- /usr/bin/apt-get clean
     - curtin in-target -- /bin/sh -c "rm -rf /var/lib/apt/lists/*"
     - curtin in-target -- /usr/bin/find /tmp /var/tmp -mindepth 1 -delete
