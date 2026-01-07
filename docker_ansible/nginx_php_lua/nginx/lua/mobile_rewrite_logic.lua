@@ -2,12 +2,12 @@
 -- The list of allowed URI and the list of allowed fields is here
 
 
--- List of allowed URIs for caching
+-- List of allowed URIs for caching and their specific allowed fields
 local allowed_uris = {
-    ["/"] = true,
-    ["/lang_list"] = true,
-    ["/about"] = true,
-    ["/home"] = true
+    ["/"] = { lang = true },
+    ["/lang_list"] = {},
+    ["/about"] = { lang = true, regionId = true, currencyCodeString = true },
+    ["/home"] = { lang = true, regionId = true, currencyCodeString = true }
 }
 
 -- If URI isn't allowed - skip all other checks
@@ -30,8 +30,8 @@ else
         if not status or type(data) ~= "table" then
             ngx.var.skip_cache = 1
         else
-            -- Allowed fields list
-            local allowed_keys = { lang = true, regionId = true, currencyCodeString = true, page = true, valid = true }
+            -- Allowed fields list for the current URI
+            local allowed_keys = allowed_uris[ngx.var.uri]
             local sorted_keys = {}
             local invalid_found = false
 
