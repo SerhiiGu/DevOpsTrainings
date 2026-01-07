@@ -44,8 +44,8 @@ def test_stats_show_increment(config):
     a_total_hit = after.get("TOTAL_HIT", 0)
 
     print(f"\n[TEST SHOW_STATS] URL: {url}")
-    print(f"  {uri}:HIT  | Before: {b_uri_hit:<4} | After: {a_uri_hit:<4} | Diff: {a_uri_hit - b_uri_hit}")
-    print(f"  TOTAL_HIT | Before: {b_total_hit:<4} | After: {a_total_hit:<4} | Diff: {a_total_hit - b_total_hit}")
+    print(f"  {uri}:HIT  | Before: {b_uri_hit:<6} | After: {a_uri_hit:<6} | Diff: {a_uri_hit - b_uri_hit}")
+    print(f"  TOTAL_HIT | Before: {b_total_hit:<6} | After: {a_total_hit:<6} | Diff: {a_total_hit - b_total_hit}")
 
     assert a_uri_hit == b_uri_hit + 1
     assert a_total_hit == b_total_hit + 1
@@ -73,10 +73,10 @@ def test_stats_summary_increment(config):
 
     print(f"\n[TEST SUMMARY] Mixed actions (HIT/MISS/BYPASS)")
     print(f"  L_BYPASS: {uri_bypass} | L_HIT: {uri_hit}")
-    print(f"  HIT       | Before: {before['hit']:<4} | After: {after['hit']:<4} | Diff: {after['hit'] - before['hit']}")
-    print(f"  MISS      | Before: {before['miss']:<4} | After: {after['miss']:<4} | Diff: {after['miss'] - before['miss']}")
-    print(f"  BYPASS    | Before: {before['bypass']:<4} | After: {after['bypass']:<4} | Diff: {after['bypass'] - before['bypass']}")
-    print(f"  TOTAL     | Before: {before['total']:<4} | After: {after['total']:<4} | Diff: {after['total'] - before['total']}")
+    print(f"  HIT       | Before: {before['hit']:<6} | After: {after['hit']:<6} | Diff: {after['hit'] - before['hit']}")
+    print(f"  MISS      | Before: {before['miss']:<6} | After: {after['miss']:<6} | Diff: {after['miss'] - before['miss']}")
+    print(f"  BYPASS    | Before: {before['bypass']:<6} | After: {after['bypass']:<6} | Diff: {after['bypass'] - before['bypass']}")
+    print(f"  TOTAL     | Before: {before['total']:<6} | After: {after['total']:<6} | Diff: {after['total'] - before['total']}")
 
     assert after['bypass'] == before['bypass'] + 1
     assert after['hit'] == before['hit'] + 1
