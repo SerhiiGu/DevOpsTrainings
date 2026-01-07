@@ -1,8 +1,7 @@
 import pytest
 import requests
-import re
 import yaml
-import os
+import re
 
 @pytest.fixture(scope="session")
 def config():
@@ -10,27 +9,25 @@ def config():
         return yaml.safe_load(f)
 
 @pytest.fixture(scope="session")
-def lua_data():
+def lua_allowed_uris():
+    """Parse allowed_uris from Lua"""
     lua_path = "/etc/nginx/lua/mobile_rewrite_logic.lua"
     with open(lua_path, "r") as f:
         content = f.read()
     
-    # Витягуємо allowed_keys
-    keys_match = re.search(r"allowed_keys\s*=\s*\{(.*?)\}", content, re.DOTALL)
-    allowed_keys = re.findall(r"(\w+)\s*=\s*true", keys_match.group(1)) if keys_match else []
-
-    # Витягуємо allowed_uris
-    uris_match = re.search(r"allowed_uris\s*=\s*\{(.*?)\}", content, re.DOTALL)
-    allowed_uris = re.findall(r'\["(.*?)"\]', uris_match.group(1)) if uris_match else []
+    # Regexp for getting ["/uri"] = { keys }
+    uri_blocks = re.findall(r'\["(.*?)"\]\s*=\s*\{(.*?)\}', content, re.DOTALL)
     
-    return {"keys": allowed_keys, "uris": allowed_uris}
+    parsed = {}
+    for uri, keys_str in uri_blocks:
+        # Get key names
+        keys = re.findall(r'(\w+)\s*=\s*true', keys_str)
+        parsed[uri] = keys
+    return parsed
 
 @pytest.fixture(autouse=True)
 def purge_cache(config):
-    """Очищення кешу перед кожним тестом"""
+    """Full cache clean before tests"""
     base_url = f"{config['scheme']}://{config['host']}:{config['port']}"
-    payload = {"pages": ["*"]}
-    
-    requests.post(f"{base_url}/purge_cache", json=payload, verify=config['verify_ssl'])
-    requests.post(f"{base_url}/purge_cache_lua_table", json=payload, verify=config['verify_ssl'])
-
+    requests.post(f"{base_url}/purge_cache", json={"pages": ["/"]}, timeout=5)
+    requests.post(f"{base_url}/purge_cache_lua_table", json={"pages": ["*"]}, timeout=5)

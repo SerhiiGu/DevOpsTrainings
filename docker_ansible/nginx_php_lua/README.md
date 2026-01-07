@@ -120,6 +120,11 @@ And it must delete cache pages like:
 /page-for-query/234*
 ```
 
+Puge ALL cache:
+```bash
+curl -i -X POST -d '{"pages": ["/"]}' http://localhost:90/purge_cache
+```
+
 
 =================================================
 
@@ -134,6 +139,12 @@ curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/"]}' http://loca
 curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/a.php", "cache_only_allowed_fields_json/"]}' http://localhost:90/purge_cache_lua_table
 curl -i -X POST -d '{"pages": ["/cache_only_allowed_fields_json/*"]}' http://localhost:90/purge_cache_lua_table #same as previous, but as wildcard
 ```
+
+Pugre ALL cache from the table:
+```bash
+curl -i -X POST -d '{"pages": ["*"]}' http://localhost:91/purge_cache_lua_table
+```
+
 
 ==================================================
 

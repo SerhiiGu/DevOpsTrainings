@@ -1,11 +1,27 @@
-# Налаштування підключення
-scheme: "http"
-host: "nginx"  # Назва сервісу в мережі docker-compose
+# Connection configuration
+scheme: "http" # protocol: http/https
+host: "nginx"  # server name, IP or domain name
 port: 91
 verify_ssl: false
 
-# Список URI, які кешуються БЕЗ врахування POST тіла (static logic)
-# Ці URI будуть виключені з "Базового тесту 1" і підуть у "Базовий тест 2"
-static_uri_excludes:
-  - "/lang_list"
+# Tests table: [URI, JSON_POST, EXPECTED_STATUS]
+test_cases:
+  # Tests for /home (allowed: lang, regionId, currencyCodeString)
+  - ["/home", '{"lang":"uk","regionId":"2","currencyCodeString":"UAH"}', "HIT"]
+  - ["/home", '{"lang":"en","invalid_key":"123"}', "BYPASS"]
+
+  # Tests for /about (allowed: lang, regionId, currencyCodeString)
+  - ["/about", '{"lang":"uk","regionId":"1"}', "HIT"]
+  - ["/about", '{"page":"1"}', "BYPASS"]
+
+  # Test for /lang_list (keys never matter)
+  - ["/lang_list", "{}", "HIT"]
+  - ["/lang_list", '{"any_key":"val"}', "HIT"]
+
+  # Test for / (allowed: lang)
+  - ["/", '{"lang":"uk"}', "HIT"]
+  - ["/", '{"regionId":"2"}', "BYPASS"]
+
+  # Non-existent URI
+  - ["/random_page", '{"lang":"uk"}', "BYPASS"]
 

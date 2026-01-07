@@ -21,7 +21,13 @@ else
 
     -- If the body is empty (ex.: empty POST) - set the cache key as json_empty
     if not body or body == "" then
-        ngx.var.my_cache_key = "json_empty"
+        -- If URI requires keys (like /about), empty body must be a BYPASS
+        local current_allowed = allowed_uris[ngx.var.uri] or {}
+        if next(current_allowed) ~= nil then
+            ngx.var.skip_cache = 1
+        else
+            ngx.var.my_cache_key = "json_empty"
+        end
     else
         local cjson = require "cjson"
         local status, data = pcall(cjson.decode, body)
@@ -31,7 +37,7 @@ else
             ngx.var.skip_cache = 1
         else
             -- Allowed fields list for the current URI
-            local allowed_keys = allowed_uris[ngx.var.uri]
+            local allowed_keys = allowed_uris[ngx.var.uri] or {}
             local sorted_keys = {}
             local invalid_found = false
 
