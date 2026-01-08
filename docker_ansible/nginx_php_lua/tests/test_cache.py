@@ -15,10 +15,22 @@ def test_cache_logic(config, lua_allowed_uris):
         headers = {'Content-Type': 'application/json'}
         payload = json.loads(post_data)
 
+
         # 1. First request (should be MISS/BYPASS)
+        start_time = time.time()
         r1 = requests.post(url, json=payload, verify=config['verify_ssl'], timeout=5)
+        duration = time.time() - start_time
+
+        # Get the data from the headers
+        actual_status = r1.headers.get("X-Cache-Status", "NONE")
+        ttl = r1.headers.get("X-Cache-Expires-In", "N/A")
+
+        # Console output
+        print(f"{uri:<15} | {actual_status:<8} | {ttl:<8} | {duration:.4f}s | {url:<30} | {payload}")
+
 
         time.sleep(0.5)
+
 
         # 2. Second request (we tested this)
         start_time = time.time()
@@ -31,6 +43,7 @@ def test_cache_logic(config, lua_allowed_uris):
 
         # Console output
         print(f"{uri:<15} | {actual_status:<8} | {ttl:<8} | {duration:.4f}s | {url:<30} | {payload}")
+
 
         # CHECKS
         # 1. Status (from the test_config.py)
