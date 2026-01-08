@@ -15,8 +15,8 @@ test_cases:
   - ["/about", '{"page":"1"}', "BYPASS"]
 
   # Test for /lang_list (keys never matter)
-  - ["/lang_list", "{}", "HIT"]
-  - ["/lang_list", '{"any_key":"val"}', "HIT"]
+  - ["/lang-list", "{}", "HIT"]
+  - ["/lang-list", '{"any_key":"val"}', "HIT"]
 
   # Test for / (allowed: lang)
   - ["/", '{"lang":"uk"}', "HIT"]

@@ -5,7 +5,7 @@
 -- List of allowed URIs for caching and their specific allowed fields
 local allowed_uris = {
     ["/"] = { lang = true },
-    ["/lang_list"] = {},
+    ["/lang-list"] = {},
     ["/about"] = { lang = true, regionId = true, currencyCodeString = true },
     ["/home"] = { lang = true, regionId = true, currencyCodeString = true }
 }
