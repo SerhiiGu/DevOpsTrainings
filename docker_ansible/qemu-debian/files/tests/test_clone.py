@@ -16,7 +16,7 @@ def test_clone_success(run_cmd, cleanup_vm):
     assert "successfully cloned" in result.stdout
 
     # 3. Перевіряємо чи існує новий конфіг та диск
-    configs = run_cmd("configs")
+    configs = run_cmd("list")
     assert new_vm in configs.stdout
     
     # 4. Перевіряємо, що VNC у клона вимкнено (як у твоєму коді vm['vnc'] = 'none')

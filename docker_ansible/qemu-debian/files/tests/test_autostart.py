@@ -19,7 +19,7 @@ def test_autostart_logic(run_cmd, cleanup_vm):
     assert vm_name in list_after_enable.stdout
 
     # 4. Перевіряємо також відображення в загальних конфігах (стовпчик AUTO)
-    configs_res = run_cmd("configs")
+    configs_res = run_cmd("list")
     # Шукаємо рядок з нашою VM і перевіряємо наявність "YES"
     vm_config_line = [line for line in configs_res.stdout.splitlines() if vm_name in line][0]
     assert "YES" in vm_config_line
