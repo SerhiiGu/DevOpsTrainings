@@ -1,4 +1,4 @@
-docker exec -it nginx_php_lua-nginx-1 bash
+docker exec -it nginx bash
 
 ### in the nginx container
 curl -v http://localhost:90/lua_test
@@ -155,4 +155,22 @@ curl http://localhost:90/debug_cache_total
 curl http://localhost:90/debug_cache_list | jq
 ```
 
+
+==================================================
+
+## Port 92: Cache by allowing header
+
+Yes(X-Allow-Cache: yes):
+```bash
+curl -i -X POST -d '{"page":"qwerty", "valid":"1d"}' http://localhost:92/cache1
+```
+
+No(other header flag, no header, and default behaviour):
+```bash
+curl -i -X POST -d '{"page":"qwerty"}' http://localhost:92/testcase2
+curl -i -X POST -d '{"test":"no_header"}' http://localhost:92/noheader
+curl -i -X POST -d '{"foo":"bar"}' http://localhost:92/something-else
+```
+
+Endpoint: ```www/mobile-api_92.php```, config: ```nginx/mobile-api_92.conf```
 
