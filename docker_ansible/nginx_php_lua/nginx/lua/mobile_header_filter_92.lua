@@ -1,15 +1,19 @@
--- Get technical status and our skip_save flag
+-- Get technical status from Nginx and our save flag
 local status = ngx.var.upstream_cache_status
 local skip_save = ngx.var.skip_save
+local final_status = status
 
--- Logical status override:
--- If Nginx says MISS/EXPIRED but backend denied caching (skip_save=1), 
--- we force the header to show BYPASS for clarity.
+-- Override logic:
+-- If it's technically a MISS but backend denied saving, call it BYPASS
 if (status == "MISS" or status == "EXPIRED" or status == "STALE") and skip_save == "1" then
-    ngx.header["X-Cache-Status"] = "BYPASS"
+    final_status = "BYPASS"
 end
 
--- TTL Logic for HIT status
+-- IMPORTANT: Always set the header since we removed 'add_header' from nginx.conf
+-- If status is nil (very rare), default to "-"
+ngx.header["X-Cache-Status"] = final_status or "-"
+
+-- TTL Logic for HIT status (extracting info from Nginx cache file)
 if status == "HIT" then
     local key = ngx.var.full_key
     local hash = ngx.md5(key)
