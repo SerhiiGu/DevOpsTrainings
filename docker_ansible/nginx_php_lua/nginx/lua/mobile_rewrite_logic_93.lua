@@ -1,33 +1,63 @@
 -- Cache key creation logic
--- The list of allowed URI and the list of allowed fields is here
+-- The list of allowed URIs is here
 
+-- 1. MANDATORY HEADER CHECK
+-- Check if the specific header exists and equals 200
+local req_headers = ngx.req.get_headers()
+local mobile_resp_code = req_headers["x-mobile-app-http-response-code"]
 
--- List of allowed URIs for caching and their specific allowed fields
+-- If header is missing or not "200" => BYPASS cache immediately
+if not mobile_resp_code or mobile_resp_code ~= "200" then
+    ngx.var.skip_cache = 1
+    -- Stop execution here, we don't need to parse body or URI
+    return
+end
+
+-- 2. URI CHECK LOGIC
+-- List of allowed URIs for caching.
+-- Value 'true' means enabled.
+-- Supports wildcards at the end (e.g., "/product/*")
 local allowed_uris = {
-    ["/"] = { lang = true },
-    ["/lang-list"] = {},
-    ["/about"] = { lang = true, regionId = true, currencyCodeString = true },
-    ["/home"] = { lang = true, regionId = true, currencyCodeString = true }
+    ["/"] = true,
+    ["/lang-list"] = true,
+    ["/about"] = true,
+    ["/home"] = true,
+    ["/product/*"] = true
 }
 
+local uri = ngx.var.uri
+local is_uri_allowed = false
+
+-- Check exact match first
+if allowed_uris[uri] then
+    is_uri_allowed = true
+else
+    -- Check wildcards
+    for path, _ in pairs(allowed_uris) do
+        -- Check if path ends with *
+        if string.sub(path, -1) == "*" then
+            -- Remove * to get the prefix (e.g., "/product/")
+            local prefix = string.sub(path, 1, -2)
+            -- Check if current URI starts with this prefix
+            if string.sub(uri, 1, #prefix) == prefix then
+                is_uri_allowed = true
+                break
+            end
+        end
+    end
+end
+
+
 -- If URI isn't allowed - skip all other checks
-if not allowed_uris[ngx.var.uri] then
+if not is_uri_allowed then
     ngx.var.skip_cache = 1
--- For /lang_list => ignore POST data and cache without it
-elseif ngx.var.uri == "/lang_list" then
-    ngx.var.my_cache_key = "static_uri_cache"
+
 else
     local body = ngx.req.get_body_data()
 
-    -- If the body is empty (ex.: empty POST) - set the cache key as json_empty
+    -- If the body is empty (ex.: empty POST)
     if not body or body == "" then
-        -- If URI requires keys (like /about), empty body must be a BYPASS
-        local current_allowed = allowed_uris[ngx.var.uri] or {}
-        if next(current_allowed) ~= nil then
-            ngx.var.skip_cache = 1
-        else
-            ngx.var.my_cache_key = "json_empty"
-        end
+        ngx.var.my_cache_key = "json_empty"
     else
         local cjson = require "cjson"
         local status, data = pcall(cjson.decode, body)
@@ -36,38 +66,39 @@ else
         if not status or type(data) ~= "table" then
             ngx.var.skip_cache = 1
         else
-            -- Allowed fields list for the current URI
-            local allowed_keys = allowed_uris[ngx.var.uri] or {}
+            -- Use ALL fields from JSON for the key
             local sorted_keys = {}
-            local invalid_found = false
 
-            for k, v in pairs(data) do
-                if not allowed_keys[k] then
-                    invalid_found = true
-                    break
-                end
+	    for k, v in pairs(data) do
                 table.insert(sorted_keys, k)
             end
 
-            if invalid_found then
-                -- Fount not allowed field => skip cache
-                ngx.var.skip_cache = 1
-            else
-                -- Make stable key
-                table.sort(sorted_keys)
-                local key_parts = {}
-                for _, k in ipairs(sorted_keys) do
-                    table.insert(key_parts, k .. "=" .. tostring(data[k]))
+            -- Make stable key
+            table.sort(sorted_keys)
+            local key_parts = {}
+
+	    for _, k in ipairs(sorted_keys) do
+                -- Handle different value types to avoid concatenation errors
+                local val = data[k]
+                if type(val) == "boolean" then
+                    val = val and "true" or "false"
+                elseif type(val) == "table" then
+                    val = "table" -- Simplified for nested tables, or use cjson.encode(val) if deep key needed
+                else
+                    val = tostring(val)
                 end
 
-                ngx.var.my_cache_key = table.concat(key_parts, ":")
+		table.insert(key_parts, k .. "=" .. val)
+            end
 
-                if ngx.var.my_cache_key == "" then
-                    ngx.var.my_cache_key = "json_empty"
-                end
+            ngx.var.my_cache_key = table.concat(key_parts, ":")
+
+            if ngx.var.my_cache_key == "" then
+                ngx.var.my_cache_key = "json_empty"
             end
         end
     end
 end
-ngx.var.full_key = ngx.var.scheme .. ngx.var.request_method .. ngx.var.host .. ngx.var.request_uri .. "|" .. ngx.var.my_cache_key
 
+-- Final full key construction
+ngx.var.full_key = ngx.var.scheme .. ngx.var.request_method .. ngx.var.host .. ngx.var.request_uri .. "|" .. ngx.var.my_cache_key
