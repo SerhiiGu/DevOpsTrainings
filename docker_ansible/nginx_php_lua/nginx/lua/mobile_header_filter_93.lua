@@ -1,5 +1,22 @@
--- Get nginx cache TTL
+-- Header Filter Logic
+-- 1. Check if we should SAVE to cache based on backend response header.
+-- 2. Calculate TTL if it is a HIT.
 
+local upstream_status = ngx.var.upstream_cache_status
+
+-- LOGIC 1: Validate Backend Response for Caching
+-- We only check this if it's NOT a HIT (meaning we just got fresh data from PHP)
+if upstream_status ~= "HIT" then
+    local resp_headers = ngx.resp.get_headers()
+    local app_code = resp_headers["x-mobile-app-http-response-code"]
+
+    -- If header is missing OR not "200", DO NOT SAVE to cache
+    if not app_code or app_code ~= "200" then
+        ngx.var.skip_cache = 1
+    end
+end
+
+-- LOGIC 2: Calculate TTL for Cache Hits (Existing logic)
 if ngx.var.upstream_cache_status == "HIT" then
     local key = ngx.var.full_key
     local hash = ngx.md5(key)

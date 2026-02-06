@@ -174,3 +174,32 @@ curl -i -X POST -d '{"foo":"bar"}' http://localhost:92/something-else
 
 Endpoint: ```www/mobile-api_92.php```, config: ```nginx/mobile-api_92.conf```
 
+===================================================
+
+## Port 92: Cache by allowing header and by allowed URI list (asterisk allowed)
+
+All as expected (x-mobile-app-http-response-code: 200): MISS/STALE=>HIT
+```bash
+curl -i -X POST -d '{"lang":"en"}' http://localhost:93/about
+```
+
+Wildcard hit:
+```bash
+curl -i -X POST -H "x-mobile-app-http-response-code: 200"  http://localhost:93/product/smth1
+curl -i -X POST -H "x-mobile-app-http-response-code: 200" -d '{"id":123}' http://localhost:93/product/smth1
+```
+
+Code isn't 200: continuous MISS
+```bash
+curl -i -X POST -d '{"lang":"en", "force_error_code": true}' http://localhost:93/about
+```
+
+No header: MISS
+```bash
+curl -i -X POST -d '{"lang":"en", "simulate_missing_header": true}' http://localhost:93/about
+```
+
+Page not in the allowed_uris: BYPASS
+```bash
+curl -i -X POST -d '{}' http://localhost:93/contact-us
+```
