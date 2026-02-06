@@ -42,3 +42,7 @@ terraform.rc
 **/ipxe-server/ssh/*
 **/nginx/cache
 **/__pycache__
+
+# garbage
+**/*.swp
+
