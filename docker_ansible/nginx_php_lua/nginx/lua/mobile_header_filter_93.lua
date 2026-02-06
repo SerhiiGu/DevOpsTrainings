@@ -1,23 +1,30 @@
 -- Header Filter Logic
--- 1. Check if we should SAVE to cache based on backend response header.
--- 2. Calculate TTL if it is a HIT.
+-- Handles Cache-Control based on backend response AND manages visual Cache Status
 
 local upstream_status = ngx.var.upstream_cache_status
+local final_status = upstream_status
 
--- LOGIC 1: Validate Backend Response for Caching
--- We only check this if it's NOT a HIT (meaning we just got fresh data from PHP)
-if upstream_status ~= "HIT" then
+-- 1. Check backend response for validity (Only if we touched backend)
+if upstream_status == "MISS" or upstream_status == "EXPIRED" or upstream_status == "BYPASS" then
     local resp_headers = ngx.resp.get_headers()
     local app_code = resp_headers["x-mobile-app-http-response-code"]
 
-    -- If header is missing OR not "200", DO NOT SAVE to cache
+    -- If header is missing OR not "200"
     if not app_code or app_code ~= "200" then
+        -- Prevent saving to cache
         ngx.var.skip_cache = 1
+
+	-- VISUALLY report as BYPASS to the client (to avoid "Continuous MISS" confusion)
+        final_status = "BYPASS"
     end
 end
 
--- LOGIC 2: Calculate TTL for Cache Hits (Existing logic)
-if ngx.var.upstream_cache_status == "HIT" then
+-- 2. Set the client-facing header manually (Because we removed add_header from nginx.conf)
+ngx.header["X-Cache-Status"] = final_status
+
+
+-- 3. Calculate TTL for Cache Hits (Standard Logic)
+if upstream_status == "HIT" then
     local key = ngx.var.full_key
     local hash = ngx.md5(key)
     local path = "/var/cache/nginx/" .. string.sub(hash, -2) .. "/" .. string.sub(hash, -4, -3) .. "/" .. hash
@@ -38,4 +45,3 @@ if ngx.var.upstream_cache_status == "HIT" then
          end
     end
 end
-

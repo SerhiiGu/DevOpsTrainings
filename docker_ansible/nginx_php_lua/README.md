@@ -189,12 +189,12 @@ curl -i -X POST -d '{"view":"full"}' http://localhost:93/product/smth1
 curl -i -X POST http://localhost:93/product/iphone-15
 ```
 
-Code isn't 200: continuous MISS
+Code isn't 200: BYPASS
 ```bash
 curl -i -X POST -d '{"lang":"en", "force_error_code": true}' http://localhost:93/about
 ```
 
-No header: continuous MISS
+No header: BYPASS
 ```bash
 curl -i -X POST -d '{"lang":"en", "simulate_missing_header": true}' http://localhost:93/about
 ```
