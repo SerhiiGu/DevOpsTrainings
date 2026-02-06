@@ -176,7 +176,7 @@ Endpoint: ```www/mobile-api_92.php```, config: ```nginx/mobile-api_92.conf```
 
 ===================================================
 
-## Port 92: Cache by allowing header and by allowed URI list (asterisk allowed)
+## Port 93: Cache by allowing header and by allowed URI list (asterisk allowed)
 
 All as expected (x-mobile-app-http-response-code: 200): MISS/STALE=>HIT
 ```bash
@@ -202,4 +202,31 @@ curl -i -X POST -d '{"lang":"en", "simulate_missing_header": true}' http://local
 Page not in the allowed_uris: BYPASS
 ```bash
 curl -i -X POST -d '{}' http://localhost:93/contact-us
+```
+
+## Port 94: Same as port 93, but cache and response code hided from users and moved to logs
+All as expected (x-mobile-app-http-response-code: 200): MISS/STALE=>HIT
+```bash
+curl -i -X POST -d '{"lang":"en"}' http://localhost:94/about
+```
+
+Wildcard hit:
+```bash
+curl -i -X POST -d '{"view":"full"}' http://localhost:94/product/smth1
+curl -i -X POST http://localhost:94/product/iphone-15
+```
+
+Code isn't 200: BYPASS
+```bash
+curl -i -X POST -d '{"lang":"en", "force_error_code": true}' http://localhost:94/about
+```
+
+No header: BYPASS
+```bash
+curl -i -X POST -d '{"lang":"en", "simulate_missing_header": true}' http://localhost:94/about
+```
+
+Page not in the allowed_uris: BYPASS
+```bash
+curl -i -X POST -d '{}' http://localhost:94/contact-us
 ```
