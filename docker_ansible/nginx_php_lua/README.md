@@ -185,8 +185,8 @@ curl -i -X POST -d '{"lang":"en"}' http://localhost:93/about
 
 Wildcard hit:
 ```bash
-curl -i -X POST -H "x-mobile-app-http-response-code: 200"  http://localhost:93/product/smth1
-curl -i -X POST -H "x-mobile-app-http-response-code: 200" -d '{"id":123}' http://localhost:93/product/smth1
+curl -i -X POST -d '{"view":"full"}' http://localhost:93/product/smth1
+curl -i -X POST http://localhost:93/product/iphone-15
 ```
 
 Code isn't 200: continuous MISS
@@ -194,7 +194,7 @@ Code isn't 200: continuous MISS
 curl -i -X POST -d '{"lang":"en", "force_error_code": true}' http://localhost:93/about
 ```
 
-No header: MISS
+No header: continuous MISS
 ```bash
 curl -i -X POST -d '{"lang":"en", "simulate_missing_header": true}' http://localhost:93/about
 ```
