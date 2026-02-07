@@ -7,6 +7,7 @@ local allowed_uris = {
     ["/lang-list"] = true,
     ["/about"] = true,
     ["/home"] = true,
+    ["/common-data"] = true,
     ["/product/*"] = true
 }
 

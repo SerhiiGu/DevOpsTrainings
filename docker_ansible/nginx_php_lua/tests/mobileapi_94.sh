@@ -23,7 +23,7 @@ docker logs nginx --tail 1
     local h1=$(echo "$headers" | grep -i "x-mobile-app-http-response-code")
     local h2=$(echo "$headers" | grep -i "X-Cache-Status")
     
-    echo "Headers: [${h1:-empty}] [${h2:-empty}]"
+    echo -n "Headers: [${h1:-empty}] [${h2:-empty}] .. "
 
     # 4. Get stats AFTER
     sleep 0.5 # Wait for log
@@ -31,7 +31,7 @@ docker logs nginx --tail 1
     [ -z "$after" ] && after=0
     
     local diff=$((after - before))
-    echo "Stat change ($expected_stat): $before -> $after (Diff: $diff)"
+    echo -n "Stat change ($expected_stat): $before -> $after (Diff: $diff) .. "
     
     if [ "$diff" -ge 1 ]; then
         echo -e "\e[32mPASS\e[0m"
@@ -42,7 +42,7 @@ docker logs nginx --tail 1
 
 # --- ТЕСТ КЕЙСИ ---
 # 0. Clean ALL cache
-curl -i -X POST -d '{"pages": ["/"]}' $BASE_URL/purge_cache
+curl -i -X POST -d '{"pages": ["/"]}' $BASE_URL/purge_cache 2>&1 | grep Purge
 
 # 1. Normal HIT (run twice to get HIT)
 run_test "Normal MISS" "/about" '{"lang":"en"}' "MISS"
