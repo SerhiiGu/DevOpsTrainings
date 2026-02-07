@@ -22,6 +22,9 @@ end
 -- 2. Set the client-facing header manually (Because we removed add_header from nginx.conf)
 ngx.header["X-Cache-Status"] = final_status
 
+-- 2. Set values for logging
+ngx.var.lua_cache_status = final_status
+ngx.var.mobile_app_response_code = app_code
 
 -- skip all code below, it is needed only for debug
 if true then
