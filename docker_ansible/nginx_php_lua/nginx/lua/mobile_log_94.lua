@@ -21,7 +21,7 @@ local status = ngx.var.lua_cache_status
 local uri = ngx.var.uri
 
 -- HIT
-if status == "HIT" then
+if status == "HIT" or status == "UPDATING" then
     stats:incr(uri .. ":HIT", 1, 0) -- Detailed counter, for every URI
     stats:incr("TOTAL_HIT", 1, 0)   -- Global counter
 

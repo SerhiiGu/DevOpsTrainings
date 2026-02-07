@@ -22,6 +22,8 @@ if ($app_response_code !== null) {
     header("x-mobile-app-http-response-code: $app_response_code");
 }
 
+//sleep(3);
+
 $response = [
     "timestamp" => microtime(true),
     "uri" => $uri,

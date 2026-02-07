@@ -3,11 +3,12 @@
 
 local upstream_status = ngx.var.upstream_cache_status
 local final_status = upstream_status
+local app_code = "200"
 
 -- 1. Check backend response for validity (Only if we touched backend)
 if upstream_status == "MISS" or upstream_status == "STALE" or upstream_status == "EXPIRED" or upstream_status == "BYPASS" then
     local resp_headers = ngx.resp.get_headers()
-    local app_code = resp_headers["x-mobile-app-http-response-code"]
+    app_code = resp_headers["x-mobile-app-http-response-code"]
 
     -- If header is missing OR not "200"
     if not app_code or app_code ~= "200" then
@@ -15,6 +16,7 @@ if upstream_status == "MISS" or upstream_status == "STALE" or upstream_status ==
         ngx.var.skip_cache = 1
 	-- VISUALLY report as BYPASS to the client
         final_status = "BYPASS"
+	app_code = app_code or "999"
     end
 end
 
@@ -27,7 +29,7 @@ ngx.var.mobile_app_response_code = app_code
 
 
 -- Remove headers from client response
---ngx.header["x-mobile-app-http-response-code"] = nil
+ngx.header["x-mobile-app-http-response-code"] = nil
 --ngx.header["X-Cache-Status"] = nil
 
 
