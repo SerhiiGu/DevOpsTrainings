@@ -14,6 +14,9 @@ local allowed_uris = {
 local uri = ngx.var.uri
 local is_uri_allowed = false
 
+-- remove gzip from nginx=>PHP headers (always UNcompressed data to client)
+--ngx.req.clear_header("Accept-Encoding")
+
 -- 1. Check URI allowlist (Exact match first, then Wildcard)
 if allowed_uris[uri] then
     is_uri_allowed = true
@@ -84,3 +87,6 @@ end
 
 -- Final key construction
 ngx.var.full_key = ngx.var.scheme .. ngx.var.request_method .. ngx.var.host .. ngx.var.request_uri .. "|" .. ngx.var.my_cache_key
+
+-- Generate MD5 hash for the filename(for logging)
+ngx.var.cache_file_md5 = ngx.md5(ngx.var.full_key)
