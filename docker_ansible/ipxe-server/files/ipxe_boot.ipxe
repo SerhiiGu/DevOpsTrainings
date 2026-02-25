@@ -26,7 +26,7 @@ initrd http://192.168.1.195/debian13/initrd.gz
 boot
 
 :ubuntu2404
-echo Booting Ubuntu 24.04.3 LTS Autoinstall via NFS...
+echo Booting Ubuntu 24.04.4 LTS Autoinstall via NFS...
 set server-ip 192.168.1.195
 set base-url http://${server-ip}/ubuntu24.04-lts/casper
 kernel ${base-url}/vmlinuz initrd=initrd ip=dhcp boot=casper netboot=nfs nfsroot=${server-ip}:/srv/httpboot/ubuntu24.04-lts autoinstall noprompt ds=nocloud-net;s=http://${server-ip}/ubuntu24.04-lts/

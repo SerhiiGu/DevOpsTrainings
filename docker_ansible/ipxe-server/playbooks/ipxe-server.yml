@@ -98,7 +98,7 @@
         dest: "/srv/tftp/{{ item.name }}"
       with_items:
         - { url: 'https://boot.ipxe.org/ipxe.pxe', name: 'ipxe.pxe' }
-        - { url: 'https://boot.ipxe.org/ipxe.efi', name: 'ipxe.efi' }
+        - { url: 'https://boot.ipxe.org/x86_64-efi/ipxe.efi', name: 'ipxe.efi' }
 
     # Debian 13 kernel
     - name: Download Debian 13 Netboot images (Kernel/Initrd)
@@ -117,8 +117,8 @@
 
     - name: Download Ubuntu 24.04 ISO (only if not exists)
       get_url:
-        url: "https://releases.ubuntu.com/24.04/ubuntu-24.04.3-live-server-amd64.iso"
-        dest: "/srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.3-live-server-amd64.iso"
+        url: "https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso"
+        dest: "/srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.4-live-server-amd64.iso"
         force: no
         owner: www-data
         group: www-data
@@ -127,14 +127,14 @@
 
     - name: Extract Ubuntu ISO contents
       shell: |
-        7z x -y /srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.3-live-server-amd64.iso -o/srv/httpboot/ubuntu24.04-lts/
+        7z x -y /srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.4-live-server-amd64.iso -o/srv/httpboot/ubuntu24.04-lts/
       args:
         creates: /srv/httpboot/ubuntu24.04-lts/casper
       become: yes
 
     - name: Cleanup ISO after extraction
       file:
-        path: "/srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.3-live-server-amd64.iso"
+        path: "/srv/httpboot/ubuntu24.04-lts/ubuntu-24.04.4-live-server-amd64.iso"
         state: absent
       when: ubuntu_unpacked.stat.exists or (ansible_facts.cmd_res is defined and ansible_facts.cmd_res.rc == 0)
 
