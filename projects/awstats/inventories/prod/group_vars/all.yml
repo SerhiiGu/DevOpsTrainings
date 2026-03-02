@@ -5,7 +5,10 @@ awstats_root_dir: /opt/awstats
 awstats_config_dir: /etc/awstats
 awstats_data_dir: /var/lib/awstats
 awstats_html_dir: /var/www/html/awstats
-awstats_domain_name: awstats.deus207.pp.ua
+# Domain list for Awstats. One at the row. May be one or many list
+awstats_domains:
+  - "voc.deus207.pp.ua"
+  - "pma.deus207.pp.ua"
 
 certbot_email: "adm@deus207.pp.ua"
 
